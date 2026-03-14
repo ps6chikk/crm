@@ -471,6 +471,23 @@ textarea{resize:vertical;min-height:70px;line-height:1.6;}
 }
 .btn-add-photo:hover{border-color:var(--green);color:var(--green);}
 .photo-counter{font-size:0.68rem;color:var(--muted2);margin-bottom:0.5rem;}
+
+/* ── CREATE FROM IA ── */
+.create-card{
+  background:var(--s1);border:1px solid var(--green);border-radius:14px;
+  overflow:hidden;margin-top:0.7rem;animation:fadeUp 0.3s ease;
+}
+.create-head{
+  padding:0.7rem 1rem;background:var(--green-d);border-bottom:1px solid var(--green);
+  font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--green);
+}
+.create-body{padding:0.9rem;}
+.create-row{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:0.6rem;}
+.create-field{margin-bottom:0.6rem;}
+.create-field label{display:block;font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted2);margin-bottom:0.3rem;}
+.btn-create{width:100%;padding:0.85rem;border:none;border-radius:10px;background:var(--green);color:#0A0A0B;font-family:'Bricolage Grotesque',sans-serif;font-size:0.9rem;font-weight:800;cursor:pointer;transition:all 0.15s;margin-top:0.3rem;}
+.btn-create:hover{background:var(--green-m);}
+.btn-create:active{transform:scale(0.98);}
 </style>
 </head>
 <body>
@@ -590,11 +607,18 @@ textarea{resize:vertical;min-height:70px;line-height:1.6;}
     <div class="card-title" style="margin:0;">Style de description</div>
     <button onclick="openModal('modal-templates')" style="background:none;border:none;color:var(--green);cursor:pointer;font-size:0.72rem;font-weight:700;">📋 Mes modèles</button>
   </div>
-  <div class="pills">
-    <button class="pill active" data-tone="casual">Casual</button>
-    <button class="pill" data-tone="chic">Chic</button>
-    <button class="pill" data-tone="punchy">Punchy</button>
-    <button class="pill" data-tone="detailed">Détaillé</button>
+  <div style="margin-bottom:0.9rem;">
+    <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.6rem;">
+      <div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;"></div>
+      <span style="font-size:0.78rem;color:var(--muted2);">Par défaut — optimisé Vinted</span>
+    </div>
+    <div class="pills">
+      <button class="pill" data-tone="casual">Casual</button>
+      <button class="pill" data-tone="chic">Chic</button>
+      <button class="pill" data-tone="punchy">Punchy</button>
+      <button class="pill" data-tone="detailed">Détaillé</button>
+    </div>
+    <div style="font-size:0.68rem;color:var(--muted);margin-top:0.3rem;">Optionnel — coche un style pour l'appliquer à la place</div>
   </div>
 
   <!-- MODE TEXTE -->
@@ -624,11 +648,18 @@ textarea{resize:vertical;min-height:70px;line-height:1.6;}
       <div class="card-title" style="margin-bottom:0.5rem;">Infos complémentaires <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optionnel)</span></div>
       <input type="text" id="photoHint" placeholder="Ex : taille M, acheté à Emmaüs, prix cible 35€…" style="font-size:0.85rem;">
     </div>
-    <div style="display:flex;align-items:center;gap:0.7rem;padding:0.75rem 0.9rem;background:var(--s2);border:1.5px solid var(--border);border-radius:10px;margin-bottom:0.7rem;cursor:pointer;" onclick="toggleDeepAnalysis()">
+    <div style="display:flex;align-items:center;gap:0.7rem;padding:0.75rem 0.9rem;background:var(--s2);border:1.5px solid var(--border);border-radius:10px;margin-bottom:0.5rem;cursor:pointer;" onclick="toggleDeepAnalysis()">
       <div id="deepCheckbox" style="width:18px;height:18px;border-radius:5px;border:2px solid var(--border2);background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;"></div>
       <div>
         <div style="font-size:0.82rem;font-weight:700;color:var(--text);">Analyse approfondie</div>
         <div style="font-size:0.68rem;color:var(--muted2);">Marque détectée · estimation prix · flag niche</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:0.7rem;padding:0.75rem 0.9rem;background:var(--s2);border:1.5px solid var(--border);border-radius:10px;margin-bottom:0.7rem;cursor:pointer;" onclick="toggleBatchMode()">
+      <div id="batchCheckbox" style="width:18px;height:18px;border-radius:5px;border:2px solid var(--border2);background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;"></div>
+      <div>
+        <div style="font-size:0.82rem;font-weight:700;color:var(--text);">Mode batch 🔥</div>
+        <div style="font-size:0.68rem;color:var(--muted2);">Enchaîne les articles sans interruption</div>
       </div>
     </div>
     <button class="btn btn-primary" id="genPhotoBtn" onclick="generateDescFromPhotos()">🔍 Analyser & Générer</button>
@@ -1309,10 +1340,18 @@ function renderDashboard() {
 // ══════════════════════════════════
 document.querySelectorAll('.pill').forEach(p => {
   p.addEventListener('click', () => {
+    const isActive = p.classList.contains('active');
     document.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
-    p.classList.add('active');
+    if (!isActive) p.classList.add('active');
   });
 });
+
+function getActiveTone() {
+  const active = document.querySelector('.pill.active');
+  return active ? active.dataset.tone : null;
+}
+
+const DEFAULT_PROMPT = 'Style : accrocheur et humain, quelques emojis bien placés, pas trop long. Mets en valeur les points forts de la pièce. Pas de blabla inutile, va à l\'essentiel.';
 
 const apiKeyEl = document.getElementById('apiKeyInput');
 const keyPill = document.getElementById('keyPill');
@@ -1340,15 +1379,16 @@ async function generateDesc() {
   const key = apiKeyEl.value.trim() || getKey();
   if (!key.startsWith('sk-ant-')) { showToast('🔑 Configure ta clé API'); return; }
 
-  const tone = document.querySelector('.pill.active').dataset.tone;
+  const tone = getActiveTone();
   const toneMap = {
     casual: 'Ton décontracté et sympa avec quelques emojis bien placés. Accrocheur et humain.',
     chic: 'Ton élégant et soigné, sans emojis. Langage raffiné.',
     punchy: 'Très court et percutant. Maximum 5-6 lignes. Va droit au but.',
     detailed: 'Description complète et structurée avec sections claires.'
   };
+  const styleInstruction = tone ? toneMap[tone] : DEFAULT_PROMPT;
 
-  const prompt = 'Tu es expert en vente sur Vinted. Génère une description d\'annonce optimisée.\n\nArticle : "' + text + '"\n\nStyle : ' + toneMap[tone] + '\n\nNote : frais de port à la charge de l\'acheteur sur Vinted.\nRéponds UNIQUEMENT avec le texte de l\'annonce, prêt à copier-coller. Sans introduction ni commentaire.';
+  const prompt = 'Tu es expert en vente sur Vinted. Génère une description d\'annonce optimisée.\n\nArticle : "' + text + '"\n\n' + styleInstruction + '\n\nRéponds UNIQUEMENT avec le texte de l\'annonce, prêt à copier-coller. Sans introduction ni commentaire. Ne mentionne pas les frais de port.';
 
   const btn = document.getElementById('genBtn');
   btn.disabled = true; btn.textContent = 'Génération…';
@@ -1516,6 +1556,26 @@ function toggleDeepAnalysis() {
   box.innerHTML = deepAnalysis ? '<span style="color:#0A0A0B;font-size:0.75rem;font-weight:900;">✓</span>' : '';
 }
 
+// ── BATCH MODE TOGGLE ──
+let batchMode = false;
+let batchCount = 0;
+let batchTotal = { articles: 0, buyTotal: 0, sellTotal: 0 };
+
+function toggleBatchMode() {
+  batchMode = !batchMode;
+  const box = document.getElementById('batchCheckbox');
+  box.style.background = batchMode ? 'var(--yellow)' : 'transparent';
+  box.style.borderColor = batchMode ? 'var(--yellow)' : 'var(--border2)';
+  box.innerHTML = batchMode ? '<span style="color:#0A0A0B;font-size:0.75rem;font-weight:900;">✓</span>' : '';
+  if (!batchMode && batchTotal.articles > 0) showBatchRecap();
+  if (batchMode) { batchTotal = { articles: 0, buyTotal: 0, sellTotal: 0 }; }
+}
+
+function showBatchRecap() {
+  const profit = batchTotal.sellTotal - batchTotal.sellTotal * 0.123 - batchTotal.buyTotal;
+  showToast('Session : ' + batchTotal.articles + ' articles · +' + profit.toFixed(0) + '€ net estimé');
+}
+
 function renderPhotoSlot(idx, dataUrl) {
   const slot = document.getElementById('slot' + idx);
   slot.innerHTML = `<img src="${dataUrl}" alt=""><button class="del-btn" onclick="removePhotoSlot(event,${idx})">✕</button>`;
@@ -1537,22 +1597,22 @@ async function generateDescFromPhotos() {
   const key = document.getElementById('apiKeyInput').value.trim() || getKey();
   if (!key.startsWith('sk-ant-')) { showToast('🔑 Configure ta clé API'); return; }
 
-  const tone = document.querySelector('.pill.active').dataset.tone;
+  const tone = getActiveTone();
   const toneMap = {
     casual: 'Ton décontracté et sympa avec quelques emojis bien placés. Accrocheur et humain.',
     chic: 'Ton élégant et soigné, sans emojis. Langage raffiné.',
     punchy: 'Très court et percutant. Maximum 5-6 lignes. Va droit au but.',
     detailed: 'Description complète et structurée avec sections claires.'
   };
-
+  const styleInstruction = tone ? toneMap[tone] : DEFAULT_PROMPT;
   const hint = document.getElementById('photoHint').value.trim();
   const hintText = hint ? `\n\nInfos complémentaires fournies par le vendeur : "${hint}"` : '';
 
   let textPrompt;
   if (deepAnalysis) {
-    textPrompt = `Tu es expert en revente de vêtements sur Vinted et en identification de marques/pièces rares.\n\nAnalyse ces photos et réponds en deux blocs SÉPARÉS par une ligne "---" :\n\nBLOC 1 — ANALYSE :\n- Marque identifiée (et niveau de certitude)\n- Type de pièce et particularités notables\n- Estimation de valeur marché Vinted\n- Flag niche si applicable (collab, édition limitée, vintage, workwear, etc.)\n\nBLOC 2 — DESCRIPTION ANNONCE :\nStyle : ${toneMap[tone]}\nTexte prêt à copier-coller, sans introduction ni commentaire.\n\nNote : frais de port à la charge de l'acheteur sur Vinted.${hintText}`;
+    textPrompt = `Tu es expert en revente de vêtements sur Vinted et en identification de marques/pièces rares.\n\nAnalyse ces photos et réponds en deux blocs SÉPARÉS par une ligne "---" :\n\nBLOC 1 — ANALYSE :\n- Marque identifiée (et niveau de certitude)\n- Type de pièce et particularités notables\n- Estimation de valeur marché Vinted\n- Flag niche si applicable (collab, édition limitée, vintage, workwear, etc.)\n\nBLOC 2 — DESCRIPTION ANNONCE :\n${styleInstruction}\nTexte prêt à copier-coller, sans introduction ni commentaire. Ne mentionne pas les frais de port.${hintText}`;
   } else {
-    textPrompt = `Tu es expert en vente sur Vinted. Analyse ces photos d'un article vestimentaire et génère une description d'annonce optimisée.\n\nIdentifie : marque (si visible), type de vêtement, couleur(s), matière estimée, état apparent, taille si visible, tout détail notable ou niche.\n\nStyle : ${toneMap[tone]}\n\nNote : frais de port à la charge de l'acheteur sur Vinted.${hintText}\n\nRéponds UNIQUEMENT avec le texte de l'annonce prêt à copier-coller. Sans introduction ni commentaire.`;
+    textPrompt = `Tu es expert en vente sur Vinted. Analyse ces photos d'un article vestimentaire et génère une description d'annonce optimisée.\n\nIdentifie : marque (si visible), type de vêtement, couleur(s), matière estimée, état apparent, taille si visible, tout détail notable ou niche.\n\n${styleInstruction}${hintText}\n\nRéponds UNIQUEMENT avec le texte de l'annonce prêt à copier-coller. Sans introduction ni commentaire. Ne mentionne pas les frais de port.`;
   }
 
   // Construire le contenu multimodal
@@ -1587,11 +1647,23 @@ async function generateDescFromPhotos() {
     lastGeneratedDesc = desc;
 
     let resultHtml;
+    // Extraire le nom suggéré depuis l'analyse
+    let suggestedName = '';
     if (deepAnalysis && desc.includes('---')) {
       const parts = desc.split('---');
       const analyse = parts[0].trim();
       const annonce = parts.slice(1).join('---').trim();
       lastGeneratedDesc = annonce;
+
+      // Tenter d'extraire marque + type depuis l'analyse
+      const marqueMatch = analyse.match(/[Mm]arque[^:]*:\*?\*?\s*([^\n*]+)/);
+      const typeMatch = analyse.match(/[Tt]ype[^:]*:\*?\*?\s*([^\n*]+)/);
+      if (marqueMatch && typeMatch) {
+        suggestedName = marqueMatch[1].trim().split(' ')[0] + ' — ' + typeMatch[1].trim().split(',')[0].trim();
+      } else if (marqueMatch) {
+        suggestedName = marqueMatch[1].trim().split('(')[0].trim();
+      }
+
       resultHtml = `
         <div class="result-card">
           <div class="result-head" style="background:var(--blue-d);border-color:var(--blue);">
@@ -1605,12 +1677,10 @@ async function generateDescFromPhotos() {
             <button class="copy-btn" onclick="navigator.clipboard.writeText(lastGeneratedDesc).then(()=>showToast('✓ Copié !'))">Copier</button>
           </div>
           <div class="result-body">${escHtml(annonce)}</div>
-          <div style="display:flex;gap:0;border-top:1px solid var(--border);">
-            <button class="save-to-article-btn" style="flex:1;border-right:1px solid var(--border);" onclick="openSaveDescModal()">📌 Attacher</button>
-            <button class="save-to-article-btn" style="flex:1;" onclick="shareDescription(lastGeneratedDesc)">📤 Partager</button>
-          </div>
-        </div>`;
+        </div>
+        ${buildCreateForm(suggestedName)}`;
     } else {
+      lastGeneratedDesc = desc;
       resultHtml = `
         <div class="result-card">
           <div class="result-head">
@@ -1618,11 +1688,8 @@ async function generateDescFromPhotos() {
             <button class="copy-btn" onclick="navigator.clipboard.writeText(lastGeneratedDesc).then(()=>showToast('✓ Copié !'))">Copier</button>
           </div>
           <div class="result-body">${escHtml(desc)}</div>
-          <div style="display:flex;gap:0;border-top:1px solid var(--border);">
-            <button class="save-to-article-btn" style="flex:1;border-right:1px solid var(--border);" onclick="openSaveDescModal()">📌 Attacher</button>
-            <button class="save-to-article-btn" style="flex:1;" onclick="shareDescription(lastGeneratedDesc)">📤 Partager</button>
-          </div>
-        </div>`;
+        </div>
+        ${buildCreateForm('')}`;
     }
     document.getElementById('genResult').innerHTML = resultHtml;
     showToast('✓ Description générée depuis les photos !');
@@ -1644,6 +1711,101 @@ function openSaveDescModal() {
   article.updatedAt = new Date().toISOString();
   save();
   showToast('Description attachée à ' + article.name);
+}
+
+function buildCreateForm(suggestedName) {
+  return `
+    <div class="create-card">
+      <div class="create-head">⚡ Créer l'article directement</div>
+      <div class="create-body">
+        <div class="create-field">
+          <label>Nom de l'article *</label>
+          <input type="text" id="iaName" value="${escHtml(suggestedName)}" placeholder="Ex : Veste Carhartt Detroit" style="font-size:0.88rem;">
+        </div>
+        <div class="create-row">
+          <div class="create-field" style="margin:0;">
+            <label>Prix d'achat (€)</label>
+            <input type="number" id="iaBuy" min="0" placeholder="0" style="font-size:0.88rem;">
+          </div>
+          <div class="create-field" style="margin:0;">
+            <label>Prix de vente (€)</label>
+            <input type="number" id="iaSell" min="0" placeholder="0" style="font-size:0.88rem;">
+          </div>
+        </div>
+        <div class="create-row">
+          <div class="create-field" style="margin:0;">
+            <label>Taille</label>
+            <input type="text" id="iaSize" placeholder="M, L, 38…" style="font-size:0.88rem;">
+          </div>
+          <div class="create-field" style="margin:0;">
+            <label>État</label>
+            <select id="iaCondition" style="font-size:0.88rem;">
+              <option>Neuf avec étiquette</option>
+              <option selected>Très bon état</option>
+              <option>Bon état</option>
+              <option>Satisfaisant</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-create" onclick="createArticleFromIA()">⚡ Créer l'article</button>
+      </div>
+    </div>`;
+}
+
+function createArticleFromIA() {
+  const name = document.getElementById('iaName')?.value.trim();
+  if (!name) { showToast('⚠️ Renseigne le nom !'); return; }
+
+  const firstPhoto = iaPhotos.find(Boolean) || null;
+  const buyPrice = parseFloat(document.getElementById('iaBuy')?.value) || 0;
+  const sellPrice = parseFloat(document.getElementById('iaSell')?.value) || 0;
+
+  const article = {
+    id: Date.now().toString(),
+    name,
+    brand: '',
+    size: document.getElementById('iaSize')?.value.trim() || '',
+    buyPrice,
+    sellPrice,
+    condition: document.getElementById('iaCondition')?.value || 'Très bon état',
+    notes: '',
+    privateNote: '',
+    description: lastGeneratedDesc,
+    photo: firstPhoto,
+    status: 'online',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    soldAt: null,
+  };
+
+  articles.unshift(article);
+  save();
+  renderArticles();
+  renderDashboard();
+
+  // Batch tracking
+  if (batchMode) {
+    batchTotal.articles++;
+    batchTotal.buyTotal += buyPrice;
+    batchTotal.sellTotal += sellPrice;
+  }
+
+  // Reset
+  iaPhotos = [];
+  document.getElementById('photoGridIa').innerHTML = '';
+  document.getElementById('photoHint').value = '';
+  updatePhotoCounter();
+  document.getElementById('genResult').innerHTML = '';
+  lastGeneratedDesc = '';
+
+  if (batchMode) {
+    showToast('⚡ ' + name + ' ajouté ! (' + batchTotal.articles + ' ce soir)');
+    // Reste sur le panel IA pour enchaîner
+    window.scrollTo(0, 0);
+  } else {
+    showToast('⚡ ' + name + ' ajouté !');
+    showTab('articles', 1);
+  }
 }
 
 // ══════════════════════════════════
