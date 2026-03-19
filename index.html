@@ -1351,7 +1351,28 @@ function getActiveTone() {
   return active ? active.dataset.tone : null;
 }
 
-const DEFAULT_PROMPT = `Tu es expert en revente de vêtements vintage et tendance sur Vinted.\n\nStructure OBLIGATOIRE de ta réponse :\n1. Une PREMIÈRE LIGNE = titre accrocheur et précis (ex: "Levi's 527 Low Boot Cut Y2K — Denim délavé 90s 🔥" ou "Polaire nordique vintage oversize — Motif flocons ❄️")\n2. Ligne vide\n3. Le corps de la description : accrocheur, humain, quelques emojis bien placés\n\nPoints IMPORTANTS :\n- Pour les jeans : coupe exacte (low rise/mid/high, bootcut/straight/flare/slim), contexte vintage/Y2K si applicable, taille indiquée suivie de la phrase exacte "(voir les mesures en fin de photos)"\n- Pour tout article : matière, état réel, particularités notables, arguments de vente forts (vintage, Y2K, tendance, niche, qualité)\n- Ne jamais inclure les mesures chiffrées dans la description\n\nNe mets PAS : mention des frais de port, "bundle possible", phrases bateau type "se marie avec tout", mesures en centimètres.`;
+const DEFAULT_PROMPT = `Tu es un vendeur Vinted expérimenté qui écrit des descriptions efficaces et naturelles. Pas de bullshit, pas de superlatifs, pas de phrases bateau.
+
+Structure OBLIGATOIRE :
+1. TITRE (première ligne) : court, descriptif, précis. Ex: "T-shirt biker double face moto croix style US – taille L" ou "Levi's 527 Low Boot Cut Y2K denim délavé – W34"
+2. Ligne vide
+3. DESCRIPTION : 3-5 lignes max, ton naturel et direct. Décris ce qu'on voit vraiment, mets en avant ce qui fait vendre (print, état, particularité). 1-2 emojis max, bien placés, pas partout.
+4. 2-3 points clés courts avec ✔️ si pertinent (double print, jamais porté, détail notable...)
+5. Taille + "(voir les mesures en fin de photos)"
+6. État honnête en une phrase
+
+INTERDITS absolus :
+- "Pièce rare qui prend de la valeur"
+- "Marque culte ultra recherchée"  
+- "Incroyable", "exceptionnel", "parfait"
+- "Envoi rapide"
+- Listes à points avec tirets
+- Mesures en cm
+- Frais de port
+- "Bundle possible"
+- Markdown **gras** ou ##titres
+
+Le titre doit être sobre et informatif, pas un slogan. La description doit sonner comme un vrai humain qui vend ses affaires, pas comme une pub.`;
 
 const apiKeyEl = document.getElementById('apiKeyInput');
 const keyPill = document.getElementById('keyPill');
@@ -1610,9 +1631,9 @@ async function generateDescFromPhotos() {
 
   let textPrompt;
   if (deepAnalysis) {
-    textPrompt = `Tu es expert en revente de vêtements vintage et tendance sur Vinted.\n\nAnalyse ces photos et réponds en deux blocs SÉPARÉS par une ligne "---" :\n\nBLOC 1 — ANALYSE :\n- Marque identifiée (certitude)\n- Type de pièce exact (pour un jean : modèle, coupe précise low/mid/high rise, bootcut/straight/flare/slim)\n- Époque estimée et pertinence vintage/Y2K/tendance actuelle\n- Estimation valeur marché Vinted\n- Flag niche si applicable\n\nBLOC 2 — DESCRIPTION ANNONCE :\nStructure OBLIGATOIRE :\n1. Première ligne = titre accrocheur et précis\n2. Ligne vide\n3. Corps de description : accrocheur, emojis bien placés, arguments forts en avant\nSi taille mentionnée, ajouter "(voir les mesures en fin de photos)" juste après.\nNe jamais inclure de mesures en cm. Ne pas mentionner les frais de port ni "bundle possible".${hintText}`;
+    textPrompt = `Tu es un revendeur Vinted expérimenté qui analyse vite et bien.\n\nAnalyse ces photos et réponds en deux blocs SÉPARÉS par "---" :\n\nBLOC 1 — ANALYSE TERRAIN :\n- Marque/type exact (pour jean : coupe précise, low/mid/high rise)\n- Époque et pertinence vintage/Y2K si applicable\n- Prix réaliste de vente sur Vinted (pas théorique)\n- Ce qui fait vendre ou ce qui peut freiner\n\nBLOC 2 — DESCRIPTION ANNONCE :\nTitre sobre et précis en première ligne.\nLigne vide.\nDescription naturelle 3-5 lignes, ton humain direct, 1-2 emojis max.\n2-3 points ✔️ si pertinent.\nTaille + "(voir les mesures en fin de photos)".\nÉtat honnête.\n\nINTERDITS : markdown **gras**, superlatifs bullshit, "pièce rare qui prend de la valeur", mesures en cm, frais de port.${hintText}`;
   } else {
-    textPrompt = `Tu es expert en revente de vêtements vintage et tendance sur Vinted.\n\nAnalyse ces photos et génère une description d'annonce optimisée.\n\nStructure OBLIGATOIRE :\n1. Première ligne = titre accrocheur et précis (ex: "Levi's 527 Low Boot Cut Y2K 🔥" ou "Polaire nordique vintage oversize ❄️")\n2. Ligne vide\n3. Corps de description accrocheur avec emojis bien placés\n\nPoints à toujours mentionner si visibles : marque, coupe exacte (surtout pour les jeans : low/mid/high rise, bootcut/flare/straight), contexte vintage/Y2K si pertinent, matière, état, arguments forts.\nSi taille mentionnée, ajouter "(voir les mesures en fin de photos)" juste après.\nNe jamais inclure de mesures en cm. Ne pas mentionner les frais de port ni "bundle possible".${hintText}`;
+    textPrompt = `Tu es un vendeur Vinted expérimenté qui écrit des descriptions efficaces et naturelles.\n\nAnalyse ces photos et génère une description d'annonce.\n\nStructure OBLIGATOIRE :\n1. Titre sobre et précis (ex: "T-shirt biker double face moto croix style US – taille L")\n2. Ligne vide\n3. Description 3-5 lignes naturelles, ton direct, 1-2 emojis max\n4. 2-3 points ✔️ si pertinent\n5. Taille + "(voir les mesures en fin de photos)"\n6. État honnête en une phrase\n\nINTERDITS : markdown **gras**, superlatifs, "incroyable/exceptionnel/parfait", mesures en cm, frais de port, "bundle possible".${hintText}`;
   }
 
   // Construire le contenu multimodal
