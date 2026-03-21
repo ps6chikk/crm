@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Story Manager — Gestion de projets d'écriture IA</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0f1117;--surface:#1a1d27;--surface2:#242836;--surface3:#2e3347;
+  --border:#3a3f55;--text:#e2e4ed;--text2:#9ca0b4;--text3:#6b7089;
+  --accent:#4a9eff;--accent2:#3178d6;--accent-soft:rgba(74,158,255,.12);
+  --danger:#ef4444;--danger-soft:rgba(239,68,68,.12);
+  --success:#22c55e;--success-soft:rgba(34,197,94,.12);
+  --warning:#f59e0b;--warning-soft:rgba(245,158,11,.12);
+  --radius:8px;--shadow:0 4px 24px rgba(0,0,0,.4);
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --mono:'SF Mono',SFMono-Regular,Consolas,monospace;
+}
+html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+a{color:var(--accent);text-decoration:none}
+
+/* Layout */
+#app{display:flex;height:100vh;overflow:hidden}
+#sidebar{width:280px;min-width:280px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* Sidebar */
+.sidebar-header{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.sidebar-header h2{font-size:15px;font-weight:600;flex:1}
+.story-list{flex:1;overflow-y:auto;padding:8px}
+.story-item{padding:10px 12px;border-radius:var(--radius);cursor:pointer;margin-bottom:2px;transition:background .15s}
+.story-item:hover{background:var(--surface2)}
+.story-item.active{background:var(--accent-soft);border:1px solid var(--accent)}
+.story-item .title{font-weight:500;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.story-item .meta{font-size:11px;color:var(--text3);margin-top:2px}
+.sidebar-footer{padding:12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn:hover{background:var(--surface3)}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2)}
+.btn-danger{background:var(--danger-soft);border-color:var(--danger);color:var(--danger)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-block{width:100%}
+
+/* Tabs */
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface);overflow-x:auto}
+.tab{padding:10px 16px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* Main content area */
+.content{flex:1;overflow-y:auto;padding:20px}
+
+/* Chat */
+.chat-container{display:flex;flex-direction:column;height:100%}
+.messages{flex:1;overflow-y:auto;padding:20px}
+.message{margin-bottom:16px;max-width:85%}
+.message.user{margin-left:auto}
+.message.assistant{margin-right:auto}
+.message .bubble{padding:12px 16px;border-radius:12px;font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.message.user .bubble{background:var(--accent);color:#fff;border-bottom-right-radius:4px}
+.message.assistant .bubble{background:var(--surface2);border:1px solid var(--border);border-bottom-left-radius:4px}
+.chat-input{padding:16px;border-top:1px solid var(--border);display:flex;gap:8px}
+.chat-input textarea{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;color:var(--text);font-size:13px;font-family:var(--font);resize:none;min-height:44px;max-height:120px}
+.chat-input textarea:focus{outline:none;border-color:var(--accent)}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.card-title{font-weight:600;font-size:14px}
+
+/* Forms */
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.input,.select,textarea.input{width:100%;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:13px;font-family:var(--font)}
+.input:focus,textarea.input:focus{outline:none;border-color:var(--accent)}
+textarea.input{min-height:60px;resize:vertical}
+
+/* Grid */
+.grid{display:grid;gap:12px}
+.grid-2{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+
+/* Badge */
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.badge-accent{background:var(--accent-soft);color:var(--accent)}
+.badge-success{background:var(--success-soft);color:var(--success)}
+.badge-warning{background:var(--warning-soft);color:var(--warning)}
+.badge-danger{background:var(--danger-soft);color:var(--danger)}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:auto}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;width:90%;max-width:500px;max-height:80vh;overflow-y:auto;box-shadow:var(--shadow)}
+.modal h3{margin-bottom:16px;font-size:16px}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+
+/* Summary */
+.summary-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-size:13px;line-height:1.7;white-space:pre-wrap;min-height:80px}
+
+/* Timeline */
+.timeline-item{position:relative;padding-left:24px;margin-bottom:16px}
+.timeline-item::before{content:'';position:absolute;left:6px;top:6px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.timeline-item::after{content:'';position:absolute;left:9px;top:18px;bottom:-12px;width:2px;background:var(--border)}
+.timeline-item:last-child::after{display:none}
+
+/* Empty state */
+.empty{text-align:center;padding:48px 24px;color:var(--text3)}
+.empty svg{margin-bottom:12px;opacity:.5}
+.empty p{font-size:13px;margin-bottom:16px}
+
+/* Responsive */
+@media(max-width:768px){
+  #sidebar{position:fixed;left:-300px;top:0;bottom:0;z-index:50;transition:left .2s}
+  #sidebar.open{left:0}
+  .sidebar-toggle{display:block!important}
+}
+.sidebar-toggle{display:none;position:fixed;top:12px;left:12px;z-index:40}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:3px}
+
+/* Loading */
+.loading{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.settings-row{display:flex;align-items:center;gap:8px;padding:8px 0}
+.api-key-display{flex:1;padding:6px 10px;background:var(--surface2);border-radius:var(--radius);font-size:12px;font-family:var(--mono);color:var(--text2)}
+</style>
+</head>
+<body>
+
+<button class="btn sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+
+<div id="app">
+  <div id="sidebar">
+    <div class="sidebar-header">
+      <h2>📖 Stories</h2>
+      <button class="btn btn-sm btn-primary" onclick="createStory()">+ Nouveau</button>
+    </div>
+    <div class="story-list" id="storyList"></div>
+    <div class="sidebar-footer">
+      <button class="btn btn-block btn-sm" onclick="openMergeModal()">🔀 Fusionner</button>
+      <button class="btn btn-block btn-sm" onclick="exportAllStories()">💾 Exporter tout (JSON)</button>
+      <button class="btn btn-block btn-sm" onclick="document.getElementById('importInput').click()">📥 Restaurer sauvegarde</button>
+      <input type="file" id="importInput" accept=".json" style="display:none;" onchange="importStories(this)">
+      <button class="btn btn-block btn-sm" onclick="openSettingsModal()">⚙️ Paramètres</button>
+    </div>
+  </div>
+
+  <div id="main">
+    <div id="noStory" class="content" style="display:flex;align-items:center;justify-content:center;height:100%">
+      <div class="empty">
+        <p style="font-size:24px;margin-bottom:8px">📖</p>
+        <p>Sélectionnez ou créez une histoire pour commencer.</p>
+        <button class="btn btn-primary" onclick="createStory()" style="margin-top:12px">Créer une histoire</button>
+      </div>
+    </div>
+
+    <div id="storyView" style="display:none;flex-direction:column;height:100%">
+      <div class="tabs" id="tabs">
+        <div class="tab active" data-tab="chat" onclick="switchTab('chat')">💬 Chat</div>
+        <div class="tab" data-tab="summary" onclick="switchTab('summary')">📝 Résumé</div>
+        <div class="tab" data-tab="characters" onclick="switchTab('characters')">👤 Personnages</div>
+        <div class="tab" data-tab="locations" onclick="switchTab('locations')">📍 Lieux</div>
+        <div class="tab" data-tab="objects" onclick="switchTab('objects')">🗡️ Objets</div>
+        <div class="tab" data-tab="timeline" onclick="switchTab('timeline')">📅 Timeline</div>
+        <div class="tab" data-tab="style" onclick="switchTab('style')">🎨 Style</div>
+      </div>
+      <div id="tabContent" class="content"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <h3>⚙️ Paramètres</h3>
+    <div class="form-group">
+      <label>Clé API OpenAI</label>
+      <div style="display:flex;gap:8px">
+        <input type="password" class="input" id="apiKeyInput" placeholder="sk-...">
+        <button class="btn btn-sm" onclick="toggleKeyVisibility()">👁️</button>
+      </div>
+      <p style="font-size:11px;color:var(--text3);margin-top:4px">Stockée localement dans votre navigateur.</p>
+    </div>
+    <div class="form-group">
+      <label>Modèle</label>
+      <select class="input" id="modelSelect">
+        <option value="gpt-4.1">GPT-4.1</option>
+        <option value="gpt-4.1-mini">GPT-4.1 Mini</option>
+        <option value="gpt-4.1-nano">GPT-4.1 Nano</option>
+        <option value="gpt-4o-mini">GPT-4o Mini</option>
+        <option value="gpt-4o">GPT-4o</option>
+        <option value="gpt-4-turbo">GPT-4 Turbo</option>
+        <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('settingsModal')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveSettings()">Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="mergeModal">
+  <div class="modal">
+    <h3>🔀 Fusionner deux histoires</h3>
+    <div class="form-group">
+      <label>Histoire A</label>
+      <select class="input" id="mergeA"></select>
+    </div>
+    <div class="form-group">
+      <label>Histoire B</label>
+      <select class="input" id="mergeB"></select>
+    </div>
+    <div class="form-group">
+      <label>Titre du résultat</label>
+      <input type="text" class="input" id="mergeTitle" placeholder="Histoire fusionnée">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('mergeModal')">Annuler</button>
+      <button class="btn btn-primary" id="mergeBtn" onclick="mergeStories()">Fusionner</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="editModal">
+  <div class="modal" id="editModalContent"></div>
+</div>
+
+<script>
+// ===== STATE =====
+let stories = [];
+let activeStoryId = null;
+let currentTab = 'chat';
+
+const STORAGE_KEY = 'story_manager_data';
+const SETTINGS_KEY = 'story_manager_settings';
+const MAX_RECENT = 10;
+
+// ===== INIT =====
+function init() {
+  loadData();
+  loadSettings();
+  renderSidebar();
+  if (stories.length > 0) selectStory(stories[0].id);
+}
+
+// ===== DATA =====
+function loadData() {
+  try { stories = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { stories = []; }
+}
+function saveData() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(stories)); } catch(e) { alert('Erreur de sauvegarde: espace insuffisant.'); }
+}
+function getStory(id) { return stories.find(s => s.id === id); }
+function activeStory() { return getStory(activeStoryId); }
+
+function loadSettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
+    document.getElementById('apiKeyInput').value = s.apiKey || '';
+    document.getElementById('modelSelect').value = s.model || 'gpt-4o-mini';
+  } catch {}
+}
+function getSettings() {
+  return {
+    apiKey: document.getElementById('apiKeyInput').value.trim(),
+    model: document.getElementById('modelSelect').value
+  };
+}
+function saveSettings() {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(getSettings()));
+  closeModal('settingsModal');
+}
+
+// ===== STORY CRUD =====
+function createStory() {
+  const now = Date.now();
+  const story = {
+    id: 'story_' + now,
+    title: 'Nouvelle histoire',
+    createdAt: now,
+    updatedAt: now,
+    style: { tone: 'neutre', writing_style: 'descriptif', pov: '3rd person', tense: 'past' },
+    story_summary: '',
+    characters: [],
+    locations: [],
+    objects: [],
+    timeline: [],
+    recent_messages: []
+  };
+  stories.unshift(story);
+  saveData();
+  renderSidebar();
+  selectStory(story.id);
+}
+
+function deleteStory(id) {
+  if (!confirm('Supprimer cette histoire ?')) return;
+  stories = stories.filter(s => s.id !== id);
+  saveData();
+  if (activeStoryId === id) { activeStoryId = null; showNoStory(); }
+  renderSidebar();
+}
+
+function renameStory(id) {
+  const s = getStory(id);
+  const name = prompt('Nouveau titre :', s.title);
+  if (name && name.trim()) { s.title = name.trim(); s.updatedAt = Date.now(); saveData(); renderSidebar(); }
+}
+
+// ===== SIDEBAR =====
+function renderSidebar() {
+  const el = document.getElementById('storyList');
+  if (!stories.length) { el.innerHTML = '<div class="empty"><p>Aucune histoire</p></div>'; return; }
+  el.innerHTML = stories.map(s => `
+    <div class="story-item ${s.id === activeStoryId ? 'active' : ''}" onclick="selectStory('${s.id}')">
+      <div class="title">${esc(s.title)}</div>
+      <div class="meta">${s.characters.length} perso · ${s.timeline.length} events · ${new Date(s.updatedAt).toLocaleDateString('fr')}</div>
+      <div style="display:flex;gap:4px;margin-top:6px" onclick="event.stopPropagation()">
+        <button class="btn btn-sm" onclick="exportStory('${s.id}')" title="Exporter">💾</button>
+        <button class="btn btn-sm" onclick="renameStory('${s.id}')">✏️</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteStory('${s.id}')">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectStory(id) {
+  activeStoryId = id;
+  document.getElementById('noStory').style.display = 'none';
+  document.getElementById('storyView').style.display = 'flex';
+  renderSidebar();
+  switchTab(currentTab);
+}
+
+function showNoStory() {
+  document.getElementById('noStory').style.display = 'flex';
+  document.getElementById('storyView').style.display = 'none';
+}
+
+// ===== TABS =====
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  const ct = document.getElementById('tabContent');
+  const s = activeStory();
+  if (!s) return;
+
+  const renderers = {
+    chat: renderChat,
+    summary: renderSummary,
+    characters: renderCharacters,
+    locations: renderLocations,
+    objects: renderObjects,
+    timeline: renderTimeline,
+    style: renderStyle
+  };
+  (renderers[tab] || (() => {}))(ct, s);
+}
+
+// ===== CHAT =====
+function renderChat(el, s) {
+  el.innerHTML = `
+    <div class="chat-container" style="height:100%;display:flex;flex-direction:column">
+      <div class="messages" id="chatMessages" style="flex:1;overflow-y:auto">
+        ${s.recent_messages.length ? s.recent_messages.map(m => `
+          <div class="message ${m.role}">
+            <div class="bubble">${esc(m.content)}</div>
+          </div>
+        `).join('') : '<div class="empty"><p>Commencez à écrire pour interagir avec l\'IA.</p></div>'}
+      </div>
+      <div class="chat-input">
+        <textarea id="chatInput" placeholder="Écrivez votre message ou instruction..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"></textarea>
+        <button class="btn btn-primary" id="sendBtn" onclick="sendMessage()">Envoyer</button>
+      </div>
+    </div>`;
+  const msgs = document.getElementById('chatMessages');
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const btn = document.getElementById('sendBtn');
+  const text = input.value.trim();
+  if (!text) return;
+
+  const settings = getSettings();
+  if (!settings.apiKey) { openSettingsModal(); alert('Veuillez saisir votre clé API OpenAI.'); return; }
+
+  const s = activeStory();
+  s.recent_messages.push({ role: 'user', content: text });
+  input.value = '';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading"></span>';
+  renderChat(document.getElementById('tabContent'), s);
+
+  try {
+    const systemPrompt = buildSystemPrompt(s);
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...s.recent_messages.slice(-10).map(m => ({ role: m.role, content: m.content }))
+    ];
+
+    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${settings.apiKey}` },
+      body: JSON.stringify({ model: settings.model, messages, temperature: 0.8, max_tokens: 2000 })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error?.message || `Erreur ${resp.status}`);
+    }
+
+    const data = await resp.json();
+    const reply = data.choices[0].message.content;
+
+    // Try to parse memory update from response
+    const memUpdate = extractMemoryUpdate(reply);
+    if (memUpdate) applyMemoryUpdate(s, memUpdate);
+
+    const cleanReply = cleanResponse(reply);
+    s.recent_messages.push({ role: 'assistant', content: cleanReply });
+
+    // Keep max messages
+    while (s.recent_messages.length > MAX_RECENT * 2) s.recent_messages.shift();
+    s.updatedAt = Date.now();
+    saveData();
+
+    // Auto-summarize every 20 messages
+    if (s.recent_messages.length > 0 && s.recent_messages.length % 20 === 0) {
+      autoSummarize(s, settings);
+    }
+  } catch (e) {
+    s.recent_messages.push({ role: 'assistant', content: '❌ Erreur : ' + e.message });
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Envoyer';
+  renderChat(document.getElementById('tabContent'), s);
+  renderSidebar();
+}
+
+function buildSystemPrompt(s) {
+  return `Tu es un assistant d'écriture créative. Tu aides l'utilisateur à développer son histoire.
+
+CONTEXTE DE L'HISTOIRE :
+Titre : ${s.title}
+Style : ton=${s.style.tone}, style=${s.style.writing_style}, POV=${s.style.pov}, temps=${s.style.tense}
+
+RÉSUMÉ : ${s.story_summary || '(aucun résumé)'}
+
+PERSONNAGES : ${JSON.stringify(s.characters.map(c => ({ name: c.name, role: c.role, status: c.status })))}
+LIEUX : ${JSON.stringify(s.locations.map(l => ({ name: l.name, type: l.type })))}
+OBJETS : ${JSON.stringify(s.objects.map(o => ({ name: o.name, owner: o.owner })))}
+TIMELINE : ${JSON.stringify(s.timeline.slice(-5).map(e => ({ title: e.title, timestamp: e.timestamp })))}
+
+INSTRUCTIONS :
+- Réponds de manière créative en respectant le style défini.
+- Si tu crées un nouveau personnage, lieu, objet ou événement, inclus un bloc JSON entre \`\`\`memory_update et \`\`\` avec les mises à jour.
+- Format du bloc memory_update :
+\`\`\`memory_update
+{
+  "characters": [...nouveaux ou modifiés],
+  "locations": [...],
+  "objects": [...],
+  "timeline": [...],
+  "story_summary": "résumé mis à jour (optionnel)"
+}
+\`\`\`
+- Si aucune mise à jour n'est nécessaire, n'inclus pas ce bloc.`;
+}
+
+function extractMemoryUpdate(text) {
+  const match = text.match(/```memory_update\s*([\s\S]*?)```/);
+  if (!match) return null;
+  try { return JSON.parse(match[1]); } catch { return null; }
+}
+
+function cleanResponse(text) {
+  return text.replace(/```memory_update[\s\S]*?```/g, '').trim();
+}
+
+function applyMemoryUpdate(story, update) {
+  ['characters', 'locations', 'objects', 'timeline'].forEach(key => {
+    if (update[key] && Array.isArray(update[key])) {
+      update[key].forEach(item => {
+        if (!item.id) item.id = key.slice(0, -1) + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+        const idx = story[key].findIndex(e => e.id === item.id);
+        if (idx >= 0) story[key][idx] = { ...story[key][idx], ...item };
+        else story[key].push(item);
+      });
+    }
+  });
+  if (update.story_summary) story.story_summary = update.story_summary;
+}
+
+// ===== SUMMARY =====
+function renderSummary(el, s) {
+  el.innerHTML = `
+    <div style="max-width:700px">
+      <div class="card-header"><span class="card-title">📝 Résumé de l'histoire</span>
+        <button class="btn btn-sm" onclick="generateSummary()">🤖 Générer via IA</button>
+      </div>
+      <textarea class="input" style="min-height:200px" id="summaryText" onchange="saveSummary()">${esc(s.story_summary)}</textarea>
+      <p style="font-size:11px;color:var(--text3);margin-top:8px">Modifiez directement ou générez via IA.</p>
+    </div>`;
+}
+function saveSummary() {
+  const s = activeStory(); s.story_summary = document.getElementById('summaryText').value; s.updatedAt = Date.now(); saveData();
+}
+async function generateSummary() {
+  const s = activeStory();
+  const settings = getSettings();
+  if (!settings.apiKey) { openSettingsModal(); return; }
+  const btn = event.target; btn.disabled = true; btn.innerHTML = '<span class="loading"></span> Génération...';
+  try {
+    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${settings.apiKey}` },
+      body: JSON.stringify({
+        model: settings.model,
+        messages: [
+          { role: 'system', content: 'Génère un résumé narratif concis de cette histoire basé sur les éléments fournis. En français.' },
+          { role: 'user', content: JSON.stringify({ characters: s.characters, locations: s.locations, objects: s.objects, timeline: s.timeline, messages: s.recent_messages.slice(-10) }) }
+        ],
+        temperature: 0.7, max_tokens: 500
+      })
+    });
+    const data = await resp.json();
+    s.story_summary = data.choices[0].message.content;
+    s.updatedAt = Date.now(); saveData();
+    document.getElementById('summaryText').value = s.story_summary;
+  } catch (e) { alert('Erreur : ' + e.message); }
+  btn.disabled = false; btn.textContent = '🤖 Générer via IA';
+}
+
+// ===== CHARACTERS =====
+function renderCharacters(el, s) {
+  el.innerHTML = `
+    <div class="card-header"><span class="card-title">👤 Personnages (${s.characters.length})</span>
+      <button class="btn btn-sm btn-primary" onclick="editCharacter()">+ Ajouter</button></div>
+    <div class="grid grid-2">${s.characters.length ? s.characters.map(c => `
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">${esc(c.name)}</span>
+          <div style="display:flex;gap:4px">
+            <button class="btn btn-sm" onclick="editCharacter('${c.id}')">✏️</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteItem('characters','${c.id}')">🗑️</button>
+          </div>
+        </div>
+        <span class="badge badge-accent">${esc(c.role || '')}</span>
+        <p style="margin-top:8px;font-size:12px;color:var(--text2)">${esc(c.description || '')}</p>
+        ${c.status ? `<p style="font-size:11px;margin-top:6px">${c.status.alive ? '🟢 Vivant' : '🔴 Mort'} — ${esc(c.status.location || '?')}</p>` : ''}
+      </div>`).join('') : '<div class="empty"><p>Aucun personnage</p></div>'}</div>`;
+}
+
+function editCharacter(id) {
+  const s = activeStory();
+  const c = id ? s.characters.find(x => x.id === id) : { id: '', name: '', role: '', description: '', personality: { traits: [], strengths: [], weaknesses: [] }, background: '', goals: [], relationships: [], inventory: [], status: { alive: true, location: '' } };
+  const isNew = !id;
+  document.getElementById('editModalContent').innerHTML = `
+    <h3>${isNew ? 'Nouveau personnage' : 'Modifier ' + esc(c.name)}</h3>
+    <div class="form-group"><label>Nom</label><input class="input" id="eCharName" value="${esc(c.name)}"></div>
+    <div class="form-group"><label>Rôle</label><input class="input" id="eCharRole" value="${esc(c.role || '')}"></div>
+    <div class="form-group"><label>Description</label><textarea class="input" id="eCharDesc">${esc(c.description || '')}</textarea></div>
+    <div class="form-group"><label>Traits (virgules)</label><input class="input" id="eCharTraits" value="${(c.personality?.traits || []).join(', ')}"></div>
+    <div class="form-group"><label>Background</label><textarea class="input" id="eCharBg">${esc(c.background || '')}</textarea></div>
+    <div class="form-group"><label>Objectifs (virgules)</label><input class="input" id="eCharGoals" value="${(c.goals || []).join(', ')}"></div>
+    <div class="form-group"><label>Inventaire (virgules)</label><input class="input" id="eCharInv" value="${(c.inventory || []).join(', ')}"></div>
+    <div class="form-group"><label>Lieu actuel</label><input class="input" id="eCharLoc" value="${esc(c.status?.location || '')}"></div>
+    <div class="form-group"><label><input type="checkbox" id="eCharAlive" ${c.status?.alive !== false ? 'checked' : ''}> Vivant</label></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('editModal')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveCharacter('${id || ''}')">Sauvegarder</button>
+    </div>`;
+  openModal('editModal');
+}
+
+function saveCharacter(id) {
+  const s = activeStory();
+  const obj = {
+    id: id || 'char_' + Date.now(),
+    name: document.getElementById('eCharName').value.trim(),
+    role: document.getElementById('eCharRole').value.trim(),
+    description: document.getElementById('eCharDesc').value.trim(),
+    personality: { traits: splitCSV('eCharTraits'), strengths: [], weaknesses: [] },
+    background: document.getElementById('eCharBg').value.trim(),
+    goals: splitCSV('eCharGoals'),
+    relationships: [],
+    inventory: splitCSV('eCharInv'),
+    status: { alive: document.getElementById('eCharAlive').checked, location: document.getElementById('eCharLoc').value.trim() }
+  };
+  if (!obj.name) return alert('Nom requis');
+  if (id) { const i = s.characters.findIndex(c => c.id === id); if (i >= 0) s.characters[i] = { ...s.characters[i], ...obj }; }
+  else s.characters.push(obj);
+  s.updatedAt = Date.now(); saveData(); closeModal('editModal'); switchTab('characters');
+}
+
+// ===== LOCATIONS =====
+function renderLocations(el, s) {
+  el.innerHTML = `
+    <div class="card-header"><span class="card-title">📍 Lieux (${s.locations.length})</span>
+      <button class="btn btn-sm btn-primary" onclick="editLocation()">+ Ajouter</button></div>
+    <div class="grid grid-2">${s.locations.length ? s.locations.map(l => `
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">${esc(l.name)}</span>
+          <div style="display:flex;gap:4px">
+            <button class="btn btn-sm" onclick="editLocation('${l.id}')">✏️</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteItem('locations','${l.id}')">🗑️</button>
+          </div>
+        </div>
+        <span class="badge badge-warning">${esc(l.type || '')}</span>
+        <p style="margin-top:8px;font-size:12px;color:var(--text2)">${esc(l.description || '')}</p>
+      </div>`).join('') : '<div class="empty"><p>Aucun lieu</p></div>'}</div>`;
+}
+
+function editLocation(id) {
+  const s = activeStory();
+  const l = id ? s.locations.find(x => x.id === id) : { id: '', name: '', type: '', description: '', atmosphere: [], visual_details: [], important_places: [], history: [] };
+  const isNew = !id;
+  document.getElementById('editModalContent').innerHTML = `
+    <h3>${isNew ? 'Nouveau lieu' : 'Modifier ' + esc(l.name)}</h3>
+    <div class="form-group"><label>Nom</label><input class="input" id="eLocName" value="${esc(l.name)}"></div>
+    <div class="form-group"><label>Type</label><input class="input" id="eLocType" value="${esc(l.type || '')}"></div>
+    <div class="form-group"><label>Description</label><textarea class="input" id="eLocDesc">${esc(l.description || '')}</textarea></div>
+    <div class="form-group"><label>Atmosphère (virgules)</label><input class="input" id="eLocAtmo" value="${(l.atmosphere || []).join(', ')}"></div>
+    <div class="form-group"><label>Détails visuels (virgules)</label><input class="input" id="eLocVis" value="${(l.visual_details || []).join(', ')}"></div>
+    <div class="form-group"><label>Lieux importants (virgules)</label><input class="input" id="eLocPlaces" value="${(l.important_places || []).join(', ')}"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('editModal')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveLocation('${id || ''}')">Sauvegarder</button>
+    </div>`;
+  openModal('editModal');
+}
+
+function saveLocation(id) {
+  const s = activeStory();
+  const obj = {
+    id: id || 'loc_' + Date.now(),
+    name: document.getElementById('eLocName').value.trim(),
+    type: document.getElementById('eLocType').value.trim(),
+    description: document.getElementById('eLocDesc').value.trim(),
+    atmosphere: splitCSV('eLocAtmo'),
+    visual_details: splitCSV('eLocVis'),
+    important_places: splitCSV('eLocPlaces'),
+    connected_locations: [], history: [], events: []
+  };
+  if (!obj.name) return alert('Nom requis');
+  if (id) { const i = s.locations.findIndex(l => l.id === id); if (i >= 0) s.locations[i] = { ...s.locations[i], ...obj }; }
+  else s.locations.push(obj);
+  s.updatedAt = Date.now(); saveData(); closeModal('editModal'); switchTab('locations');
+}
+
+// ===== OBJECTS =====
+function renderObjects(el, s) {
+  el.innerHTML = `
+    <div class="card-header"><span class="card-title">🗡️ Objets (${s.objects.length})</span>
+      <button class="btn btn-sm btn-primary" onclick="editObject()">+ Ajouter</button></div>
+    <div class="grid grid-2">${s.objects.length ? s.objects.map(o => `
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">${esc(o.name)}</span>
+          <div style="display:flex;gap:4px">
+            <button class="btn btn-sm" onclick="editObject('${o.id}')">✏️</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteItem('objects','${o.id}')">🗑️</button>
+          </div>
+        </div>
+        <span class="badge badge-success">${esc(o.type || '')}</span>
+        <p style="margin-top:8px;font-size:12px;color:var(--text2)">${esc(o.description || '')}</p>
+        ${o.owner ? `<p style="font-size:11px;margin-top:4px">Propriétaire: ${esc(o.owner)}</p>` : ''}
+      </div>`).join('') : '<div class="empty"><p>Aucun objet</p></div>'}</div>`;
+}
+
+function editObject(id) {
+  const s = activeStory();
+  const o = id ? s.objects.find(x => x.id === id) : { id: '', name: '', type: '', description: '', owner: '', powers: [], origin: '', importance: 5 };
+  document.getElementById('editModalContent').innerHTML = `
+    <h3>${!id ? 'Nouvel objet' : 'Modifier ' + esc(o.name)}</h3>
+    <div class="form-group"><label>Nom</label><input class="input" id="eObjName" value="${esc(o.name)}"></div>
+    <div class="form-group"><label>Type</label><input class="input" id="eObjType" value="${esc(o.type || '')}"></div>
+    <div class="form-group"><label>Description</label><textarea class="input" id="eObjDesc">${esc(o.description || '')}</textarea></div>
+    <div class="form-group"><label>Propriétaire</label><input class="input" id="eObjOwner" value="${esc(o.owner || '')}"></div>
+    <div class="form-group"><label>Pouvoirs (virgules)</label><input class="input" id="eObjPow" value="${(o.powers || []).join(', ')}"></div>
+    <div class="form-group"><label>Origine</label><input class="input" id="eObjOrig" value="${esc(o.origin || '')}"></div>
+    <div class="form-group"><label>Importance (1-10)</label><input type="number" class="input" id="eObjImp" min="1" max="10" value="${o.importance || 5}"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('editModal')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveObject('${id || ''}')">Sauvegarder</button>
+    </div>`;
+  openModal('editModal');
+}
+
+function saveObject(id) {
+  const s = activeStory();
+  const obj = {
+    id: id || 'obj_' + Date.now(),
+    name: document.getElementById('eObjName').value.trim(),
+    type: document.getElementById('eObjType').value.trim(),
+    description: document.getElementById('eObjDesc').value.trim(),
+    owner: document.getElementById('eObjOwner').value.trim(),
+    powers: splitCSV('eObjPow'),
+    origin: document.getElementById('eObjOrig').value.trim(),
+    status: { location: document.getElementById('eObjOwner').value.trim(), state: 'intact' },
+    importance: parseInt(document.getElementById('eObjImp').value) || 5
+  };
+  if (!obj.name) return alert('Nom requis');
+  if (id) { const i = s.objects.findIndex(o => o.id === id); if (i >= 0) s.objects[i] = { ...s.objects[i], ...obj }; }
+  else s.objects.push(obj);
+  s.updatedAt = Date.now(); saveData(); closeModal('editModal'); switchTab('objects');
+}
+
+// ===== TIMELINE =====
+function renderTimeline(el, s) {
+  el.innerHTML = `
+    <div class="card-header"><span class="card-title">📅 Timeline (${s.timeline.length})</span>
+      <button class="btn btn-sm btn-primary" onclick="editEvent()">+ Ajouter</button></div>
+    <div style="max-width:600px">${s.timeline.length ? s.timeline.map(e => `
+      <div class="timeline-item">
+        <div style="display:flex;justify-content:space-between;align-items:start">
+          <div>
+            <strong style="font-size:13px">${esc(e.title)}</strong>
+            <div style="font-size:11px;color:var(--accent);margin:2px 0">${esc(e.timestamp || '')}</div>
+            <p style="font-size:12px;color:var(--text2)">${esc(e.description || '')}</p>
+          </div>
+          <div style="display:flex;gap:4px;flex-shrink:0">
+            <button class="btn btn-sm" onclick="editEvent('${e.id}')">✏️</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteItem('timeline','${e.id}')">🗑️</button>
+          </div>
+        </div>
+      </div>`).join('') : '<div class="empty"><p>Aucun événement</p></div>'}</div>`;
+}
+
+function editEvent(id) {
+  const s = activeStory();
+  const e = id ? s.timeline.find(x => x.id === id) : { id: '', title: '', description: '', timestamp: '', characters_involved: [], location: '', consequences: [], importance: 5 };
+  document.getElementById('editModalContent').innerHTML = `
+    <h3>${!id ? 'Nouvel événement' : 'Modifier'}</h3>
+    <div class="form-group"><label>Titre</label><input class="input" id="eEvtTitle" value="${esc(e.title)}"></div>
+    <div class="form-group"><label>Horodatage</label><input class="input" id="eEvtTime" value="${esc(e.timestamp || '')}" placeholder="jour 1 - matin"></div>
+    <div class="form-group"><label>Description</label><textarea class="input" id="eEvtDesc">${esc(e.description || '')}</textarea></div>
+    <div class="form-group"><label>Lieu</label><input class="input" id="eEvtLoc" value="${esc(e.location || '')}"></div>
+    <div class="form-group"><label>Personnages impliqués (virgules)</label><input class="input" id="eEvtChars" value="${(e.characters_involved || []).join(', ')}"></div>
+    <div class="form-group"><label>Conséquences (virgules)</label><input class="input" id="eEvtCons" value="${(e.consequences || []).join(', ')}"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('editModal')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveEvent('${id || ''}')">Sauvegarder</button>
+    </div>`;
+  openModal('editModal');
+}
+
+function saveEvent(id) {
+  const s = activeStory();
+  const obj = {
+    id: id || 'event_' + Date.now(),
+    title: document.getElementById('eEvtTitle').value.trim(),
+    timestamp: document.getElementById('eEvtTime').value.trim(),
+    description: document.getElementById('eEvtDesc').value.trim(),
+    location: document.getElementById('eEvtLoc').value.trim(),
+    characters_involved: splitCSV('eEvtChars'),
+    consequences: splitCSV('eEvtCons'),
+    importance: 5
+  };
+  if (!obj.title) return alert('Titre requis');
+  if (id) { const i = s.timeline.findIndex(e => e.id === id); if (i >= 0) s.timeline[i] = { ...s.timeline[i], ...obj }; }
+  else s.timeline.push(obj);
+  s.updatedAt = Date.now(); saveData(); closeModal('editModal'); switchTab('timeline');
+}
+
+// ===== STYLE =====
+function renderStyle(el, s) {
+  el.innerHTML = `
+    <div style="max-width:500px">
+      <h3 style="margin-bottom:16px">🎨 Style d'écriture</h3>
+      <div class="form-group"><label>Titre de l'histoire</label><input class="input" id="sTitle" value="${esc(s.title)}" onchange="saveStyle()"></div>
+      <div class="form-group"><label>Ton</label><input class="input" id="sTone" value="${esc(s.style.tone)}" onchange="saveStyle()" placeholder="sombre, léger, humoristique..."></div>
+      <div class="form-group"><label>Style d'écriture</label><input class="input" id="sWriting" value="${esc(s.style.writing_style)}" onchange="saveStyle()"></div>
+      <div class="form-group"><label>Point de vue (POV)</label>
+        <select class="input" id="sPov" onchange="saveStyle()">
+          <option ${s.style.pov==='1st person'?'selected':''}>1st person</option>
+          <option ${s.style.pov==='2nd person'?'selected':''}>2nd person</option>
+          <option ${s.style.pov==='3rd person'?'selected':''}>3rd person</option>
+        </select></div>
+      <div class="form-group"><label>Temps</label>
+        <select class="input" id="sTense" onchange="saveStyle()">
+          <option ${s.style.tense==='past'?'selected':''}>past</option>
+          <option ${s.style.tense==='present'?'selected':''}>present</option>
+        </select></div>
+    </div>`;
+}
+
+function saveStyle() {
+  const s = activeStory();
+  s.title = document.getElementById('sTitle').value.trim() || s.title;
+  s.style.tone = document.getElementById('sTone').value.trim();
+  s.style.writing_style = document.getElementById('sWriting').value.trim();
+  s.style.pov = document.getElementById('sPov').value;
+  s.style.tense = document.getElementById('sTense').value;
+  s.updatedAt = Date.now(); saveData(); renderSidebar();
+}
+
+// ===== MERGE =====
+function openMergeModal() {
+  if (stories.length < 2) { alert('Il faut au moins 2 histoires pour fusionner.'); return; }
+  const opts = stories.map(s => `<option value="${s.id}">${esc(s.title)}</option>`).join('');
+  document.getElementById('mergeA').innerHTML = opts;
+  document.getElementById('mergeB').innerHTML = opts;
+  if (stories.length > 1) document.getElementById('mergeB').selectedIndex = 1;
+  document.getElementById('mergeTitle').value = 'Histoire fusionnée';
+  openModal('mergeModal');
+}
+
+async function mergeStories() {
+  const idA = document.getElementById('mergeA').value;
+  const idB = document.getElementById('mergeB').value;
+  if (idA === idB) { alert('Sélectionnez deux histoires différentes.'); return; }
+
+  const a = getStory(idA), b = getStory(idB);
+  const btn = document.getElementById('mergeBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="loading"></span> Fusion...';
+
+  const now = Date.now();
+  const merged = {
+    id: 'story_' + now, title: document.getElementById('mergeTitle').value.trim() || 'Fusionnée',
+    createdAt: now, updatedAt: now,
+    style: { ...a.style },
+    story_summary: '',
+    characters: mergeArrays(a.characters, b.characters),
+    locations: mergeArrays(a.locations, b.locations),
+    objects: mergeArrays(a.objects, b.objects),
+    timeline: mergeArrays(a.timeline, b.timeline),
+    recent_messages: []
+  };
+
+  // Generate summary via AI
+  const settings = getSettings();
+  if (settings.apiKey) {
+    try {
+      const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${settings.apiKey}` },
+        body: JSON.stringify({
+          model: settings.model,
+          messages: [
+            { role: 'system', content: 'Tu fusionne deux histoires. Génère un résumé cohérent combinant les deux. En français.' },
+            { role: 'user', content: `Histoire A: ${a.story_summary || a.title}\n\nHistoire B: ${b.story_summary || b.title}\n\nPersonnages: ${JSON.stringify(merged.characters.map(c=>c.name))}\nLieux: ${JSON.stringify(merged.locations.map(l=>l.name))}` }
+          ],
+          temperature: 0.7, max_tokens: 500
+        })
+      });
+      const data = await resp.json();
+      merged.story_summary = data.choices[0].message.content;
+    } catch {}
+  } else {
+    merged.story_summary = `Fusion de "${a.title}" et "${b.title}".`;
+  }
+
+  stories.unshift(merged);
+  saveData(); renderSidebar(); selectStory(merged.id);
+  btn.disabled = false; btn.textContent = 'Fusionner';
+  closeModal('mergeModal');
+}
+
+function mergeArrays(arrA, arrB) {
+  const map = new Map();
+  [...arrA, ...arrB].forEach(item => {
+    if (map.has(item.id)) map.set(item.id, { ...map.get(item.id), ...item });
+    else map.set(item.id, { ...item });
+  });
+  return [...map.values()];
+}
+
+// ===== UTILS =====
+function deleteItem(category, id) {
+  if (!confirm('Supprimer ?')) return;
+  const s = activeStory();
+  s[category] = s[category].filter(x => x.id !== id);
+  s.updatedAt = Date.now(); saveData(); switchTab(currentTab);
+}
+function splitCSV(elId) { return document.getElementById(elId).value.split(',').map(s => s.trim()).filter(Boolean); }
+function esc(str) { const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function openSettingsModal() { loadSettings(); openModal('settingsModal'); }
+function toggleKeyVisibility() {
+  const el = document.getElementById('apiKeyInput');
+  el.type = el.type === 'password' ? 'text' : 'password';
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); });
+});
+
+async function autoSummarize(s, settings) {
+  if (!settings.apiKey) return;
+  try {
+    const convo = s.recent_messages.map(m => `${m.role === 'user' ? 'Auteur' : 'IA'}: ${m.content}`).join('\n\n');
+    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${settings.apiKey}` },
+      body: JSON.stringify({
+        model: 'gpt-4.1',
+        max_tokens: 400,
+        messages: [{
+          role: 'user',
+          content: `Résume cette narration en 200 mots max pour une mémoire interne : personnages présents, où en est l'histoire, le ton, les enjeux narratifs actuels. Sois précis et factuel.\n\n${convo}`
+        }]
+      })
+    });
+    const data = await resp.json();
+    if (data.choices?.[0]?.message?.content) {
+      s.story_summary = data.choices[0].message.content;
+      s.updatedAt = Date.now();
+      saveData();
+      // Refresh summary tab si actif
+      if (currentTab === 'summary') switchTab('summary');
+    }
+  } catch(e) { /* silent fail */ }
+}
+
+function exportStory(id) {
+  const s = getStory(id);
+  if (!s) return;
+  const backup = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    story: s
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toLocaleDateString('fr-FR').replace(/\//g, '-');
+  const title = s.title.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+  a.href = url;
+  a.download = `story-${title}-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function exportAllStories() {
+  const backup = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    stories,
+    settings: getSettings()
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toLocaleDateString('fr-FR').replace(/\//g, '-');
+  a.href = url;
+  a.download = `stories-backup-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importStories(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const backup = JSON.parse(e.target.result);
+      if (!backup.stories || !Array.isArray(backup.stories)) throw new Error('Format invalide');
+      if (!confirm(`Restaurer ${backup.stories.length} histoire(s) depuis le ${new Date(backup.exportedAt).toLocaleDateString('fr-FR')} ?\n\nCela remplacera toutes tes histoires actuelles.`)) return;
+      stories = backup.stories;
+      saveData();
+      renderSidebar();
+      document.getElementById('storyView').style.display = 'none';
+      document.getElementById('noStory').style.display = 'flex';
+      alert(`✓ ${stories.length} histoire(s) restaurée(s) !`);
+    } catch(err) {
+      alert('❌ Fichier invalide : ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+// ===== START =====
+init();
+</script>
+</body>
+</html>
