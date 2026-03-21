@@ -306,6 +306,7 @@ function createStory() {
   saveData();
   renderSidebar();
   selectStory(story.id);
+  if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
 }
 
 function deleteStory(id) {
@@ -345,6 +346,7 @@ function selectStory(id) {
   document.getElementById('storyView').style.display = 'flex';
   renderSidebar();
   switchTab(currentTab);
+  if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
 }
 
 function showNoStory() {
