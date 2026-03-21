@@ -1095,16 +1095,51 @@ function importStories(input) {
   reader.onload = e => {
     try {
       const backup = JSON.parse(e.target.result);
-      if (!backup.stories || !Array.isArray(backup.stories)) throw new Error('Format invalide');
-      if (!confirm(`Restaurer ${backup.stories.length} histoire(s) depuis le ${new Date(backup.exportedAt).toLocaleDateString('fr-FR')} ?\n\nCela remplacera toutes tes histoires actuelles.`)) return;
-      stories = backup.stories;
+      let imported = [];
+
+      // Format nouveau story-manager : { stories: [...] }
+      if (backup.stories && Array.isArray(backup.stories)) {
+        imported = backup.stories;
+      }
+      // Format ancienne app marina : { convs: [...] }
+      else if (backup.convs && Array.isArray(backup.convs)) {
+        const now = Date.now();
+        imported = backup.convs.map(c => ({
+          id: c.id || 'story_' + now,
+          title: c.name || 'Discussion importée',
+          createdAt: c.createdAt ? new Date(c.createdAt).getTime() : now,
+          updatedAt: now,
+          style: { tone: 'neutre', writing_style: 'descriptif', pov: '3rd person', tense: 'past' },
+          story_summary: '',
+          characters: [],
+          locations: [],
+          objects: [],
+          timeline: [],
+          recent_messages: (c.messages || []).map(m => ({
+            role: m.role === 'ai' ? 'assistant' : 'user',
+            content: m.content
+          }))
+        }));
+      }
+      // Format export histoire individuelle : { story: {...} }
+      else if (backup.story && backup.story.id) {
+        imported = [backup.story];
+      }
+      else {
+        throw new Error('Format non reconnu');
+      }
+
+      if (imported.length === 0) throw new Error('Aucune histoire trouvée');
+      const date = backup.exportedAt ? new Date(backup.exportedAt).toLocaleDateString('fr-FR') : 'date inconnue';
+      if (!confirm(`Restaurer ${imported.length} histoire(s) depuis le ${date} ?\n\nCela remplacera toutes tes histoires actuelles.`)) return;
+      stories = imported;
       saveData();
       renderSidebar();
       document.getElementById('storyView').style.display = 'none';
       document.getElementById('noStory').style.display = 'flex';
       alert(`✓ ${stories.length} histoire(s) restaurée(s) !`);
     } catch(err) {
-      alert('❌ Fichier invalide : ' + err.message);
+      alert('❌ ' + err.message);
     }
   };
   reader.readAsText(file);
