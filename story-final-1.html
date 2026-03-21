@@ -305,8 +305,14 @@ function createStory() {
   stories.unshift(story);
   saveData();
   renderSidebar();
-  selectStory(story.id);
-  if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+  // Forcer fermeture sidebar AVANT selectStory
+  document.getElementById('sidebar').classList.remove('open');
+  // Forcer l'affichage directement
+  document.getElementById('noStory').style.display = 'none';
+  document.getElementById('storyView').style.display = 'flex';
+  activeStoryId = story.id;
+  renderSidebar();
+  switchTab('chat');
 }
 
 function deleteStory(id) {
