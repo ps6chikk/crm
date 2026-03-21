@@ -126,7 +126,6 @@ textarea.input{min-height:60px;resize:vertical}
   .btn{font-size:14px;padding:10px 14px}
   .story-item .btn{padding:6px 10px;font-size:12px}
 }
-.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:49}
 .sidebar-toggle{display:none;position:fixed;top:12px;left:12px;z-index:51;width:36px;height:36px;border-radius:8px;background:var(--surface);border:1px solid var(--border);align-items:center;justify-content:center;cursor:pointer;font-size:16px}
 
 /* Scrollbar */
@@ -157,7 +156,6 @@ textarea.input{min-height:60px;resize:vertical}
 </head>
 <body>
 
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 <button class="btn sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">☰</button>
 
 <div id="app">
@@ -972,15 +970,11 @@ document.querySelectorAll('.modal-overlay').forEach(el => {
 
 // ===== MOBILE + UI UTILS =====
 function toggleSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('sidebarOverlay');
-  sidebar.classList.toggle('open');
-  overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+  document.getElementById('sidebar').classList.toggle('open');
 }
 
 function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sidebarOverlay').style.display = 'none';
 }
 
 function autoResizeChat(el) {
