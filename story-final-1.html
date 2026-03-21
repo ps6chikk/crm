@@ -1047,7 +1047,21 @@ async function compressAllStories() {
   saveData(); renderSidebar();
   btn.disabled = false; btn.textContent = '🗜️ Moulinette — Compresser toutes les histoires';
   closeModal('settingsModal');
-  alert(`✓ ${done} histoire(s) compressée(s). Exporte maintenant et vide ton cache.`);
+  // Export automatique du résultat compressé
+  const backup = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    stories,
+    settings: getSettings()
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `stories-compressees-${new Date().toLocaleDateString('fr-FR').replace(/\//g, '-')}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  alert(`✓ ${done} histoire(s) compressée(s) et sauvegardées automatiquement !`);
 }
 
 // ===== START =====
