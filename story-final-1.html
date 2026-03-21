@@ -153,8 +153,8 @@ textarea.input{min-height:60px;resize:vertical}
     </div>
   </div>
 
-  <div id="main">
-    <div id="noStory" class="content" style="display:flex;align-items:center;justify-content:center;height:100%">
+  <div id="main" style="position:relative;flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0">
+    <div id="noStory" style="display:flex;flex:1;align-items:center;justify-content:center;height:100%">
       <div class="empty">
         <p style="font-size:24px;margin-bottom:8px">📖</p>
         <p>Sélectionnez ou créez une histoire pour commencer.</p>
@@ -162,7 +162,7 @@ textarea.input{min-height:60px;resize:vertical}
       </div>
     </div>
 
-    <div id="storyView" style="display:none;flex-direction:column;height:100%">
+    <div id="storyView" style="display:none;flex-direction:column;flex:1;overflow:hidden">
       <div class="tabs" id="tabs" style="align-items:center;">
         <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
         <div class="tab active" data-tab="chat" onclick="switchTab('chat')">💬 Chat</div>
@@ -342,16 +342,20 @@ function renderSidebar() {
 
 function selectStory(id) {
   activeStoryId = id;
-  document.getElementById('noStory').style.display = 'none';
-  document.getElementById('storyView').style.display = 'flex';
+  const noStory = document.getElementById('noStory');
+  const storyView = document.getElementById('storyView');
+  noStory.style.display = 'none';
+  storyView.style.display = 'flex';
   renderSidebar();
   switchTab(currentTab);
   if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
 }
 
 function showNoStory() {
-  document.getElementById('noStory').style.display = 'flex';
-  document.getElementById('storyView').style.display = 'none';
+  const noStory = document.getElementById('noStory');
+  const storyView = document.getElementById('storyView');
+  noStory.style.display = 'flex';
+  storyView.style.display = 'none';
 }
 
 // ===== TABS =====
