@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, interactive-widget=resizes-content">
 <title>Story Manager — Gestion de projets d'écriture IA</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -17,13 +17,13 @@
   --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   --mono:'SF Mono',SFMono-Regular,Consolas,monospace;
 }
-html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;overflow:hidden}
 a{color:var(--accent);text-decoration:none}
 
 /* Layout */
-#app{display:flex;height:100vh;overflow:hidden}
-#sidebar{width:280px;min-width:280px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
-#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#app{display:flex;height:100dvh;overflow:hidden;position:fixed;inset:0}
+#sidebar{width:280px;min-width:280px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:transform .25s ease;z-index:50}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
 
 /* Sidebar */
 .sidebar-header{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
@@ -64,8 +64,8 @@ a{color:var(--accent);text-decoration:none}
 .message .bubble{padding:12px 16px;border-radius:12px;font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
 .message.user .bubble{background:var(--accent);color:#fff;border-bottom-right-radius:4px}
 .message.assistant .bubble{background:var(--surface2);border:1px solid var(--border);border-bottom-left-radius:4px}
-.chat-input{padding:16px;border-top:1px solid var(--border);display:flex;gap:8px}
-.chat-input textarea{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;color:var(--text);font-size:13px;font-family:var(--font);resize:none;min-height:44px;max-height:120px}
+.chat-input{padding:16px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0}
+.chat-input textarea{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;color:var(--text);font-size:16px;font-family:var(--font);resize:none;min-height:44px;max-height:120px;line-height:1.5}
 .chat-input textarea:focus{outline:none;border-color:var(--accent)}
 
 /* Cards */
@@ -114,11 +114,20 @@ textarea.input{min-height:60px;resize:vertical}
 
 /* Responsive */
 @media(max-width:768px){
-  #sidebar{position:fixed;left:-300px;top:0;bottom:0;z-index:50;transition:left .2s}
-  #sidebar.open{left:0}
-  .sidebar-toggle{display:block!important}
+  #sidebar{position:fixed;left:0;top:0;bottom:0;transform:translateX(-100%);z-index:50}
+  #sidebar.open{transform:translateX(0)}
+  .sidebar-overlay{display:block!important}
+  .sidebar-toggle{display:flex!important}
+  .tab{padding:10px 10px;font-size:11px}
+  .content{padding:12px}
+  .message .bubble{font-size:14px;padding:10px 14px}
+  .chat-input{padding:10px}
+  .chat-input textarea{font-size:16px}/* prevent zoom on iOS */
+  .btn{font-size:14px;padding:10px 14px}
+  .story-item .btn{padding:6px 10px;font-size:12px}
 }
-.sidebar-toggle{display:none;position:fixed;top:12px;left:12px;z-index:40}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:49;backdrop-filter:blur(2px)}
+.sidebar-toggle{display:none;position:fixed;top:12px;left:12px;z-index:51;width:36px;height:36px;border-radius:8px;background:var(--surface);border:1px solid var(--border);align-items:center;justify-content:center;cursor:pointer;font-size:16px}
 
 /* Scrollbar */
 ::-webkit-scrollbar{width:6px}
@@ -129,13 +138,27 @@ textarea.input{min-height:60px;resize:vertical}
 .loading{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-.settings-row{display:flex;align-items:center;gap:8px;padding:8px 0}
-.api-key-display{flex:1;padding:6px 10px;background:var(--surface2);border-radius:var(--radius);font-size:12px;font-family:var(--mono);color:var(--text2)}
+/* Typing indicator */
+.typing-indicator{display:flex;gap:4px;padding:12px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;border-bottom-left-radius:4px;width:fit-content}
+.typing-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);animation:typing 1.2s infinite}
+.typing-dot:nth-child(2){animation-delay:.2s}
+.typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes typing{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.1)}}
+
+/* Message actions */
+.msg-actions{display:none;gap:4px;margin-top:4px;justify-content:flex-end}
+.message:hover .msg-actions{display:flex}
+.msg-action-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px;padding:2px 6px;border-radius:4px;transition:color .15s}
+.msg-action-btn:hover{color:var(--text);background:var(--surface3)}
+
+/* Token counter */
+.token-counter{font-size:11px;color:var(--text3);padding:4px 16px;text-align:right;border-top:1px solid var(--border)}
 </style>
 </head>
 <body>
 
-<button class="btn sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<button class="btn sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">☰</button>
 
 <div id="app">
   <div id="sidebar">
@@ -257,7 +280,24 @@ function loadData() {
   try { stories = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { stories = []; }
 }
 function saveData() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(stories)); } catch(e) { alert('Erreur de sauvegarde: espace insuffisant.'); }
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stories));
+    showSaveIndicator();
+  } catch(e) { alert('Erreur de sauvegarde: espace insuffisant.'); }
+}
+
+function showSaveIndicator() {
+  let el = document.getElementById('saveIndicator');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'saveIndicator';
+    el.style.cssText = 'position:fixed;bottom:80px;right:12px;background:var(--success);color:#fff;padding:4px 10px;border-radius:6px;font-size:11px;opacity:0;transition:opacity 0.3s;z-index:999;pointer-events:none;';
+    el.textContent = '✓ Sauvegardé';
+    document.body.appendChild(el);
+  }
+  el.style.opacity = '1';
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => { el.style.opacity = '0'; }, 1500);
 }
 function getStory(id) { return stories.find(s => s.id === id); }
 function activeStory() { return getStory(activeStoryId); }
@@ -324,10 +364,10 @@ function renderSidebar() {
     <div class="story-item ${s.id === activeStoryId ? 'active' : ''}" onclick="selectStory('${s.id}')">
       <div class="title">${esc(s.title)}</div>
       <div class="meta">${s.characters.length} perso · ${s.timeline.length} events · ${new Date(s.updatedAt).toLocaleDateString('fr')}</div>
-      <div style="display:flex;gap:4px;margin-top:6px" onclick="event.stopPropagation()">
-        <button class="btn btn-sm" onclick="exportStory('${s.id}')" title="Exporter">💾</button>
-        <button class="btn btn-sm" onclick="renameStory('${s.id}')">✏️</button>
-        <button class="btn btn-sm btn-danger" onclick="deleteStory('${s.id}')">🗑️</button>
+      <div style="display:flex;gap:6px;margin-top:8px" onclick="event.stopPropagation()">
+        <button class="btn btn-sm" style="min-width:44px;min-height:36px;" onclick="exportStory('${s.id}')" title="Exporter">💾</button>
+        <button class="btn btn-sm" style="min-width:44px;min-height:36px;" onclick="renameStory('${s.id}')">✏️</button>
+        <button class="btn btn-sm btn-danger" style="min-width:44px;min-height:36px;" onclick="deleteStory('${s.id}')">🗑️</button>
       </div>
     </div>
   `).join('');
@@ -339,6 +379,8 @@ function selectStory(id) {
   document.getElementById('storyView').style.display = 'flex';
   renderSidebar();
   switchTab(currentTab);
+  // Fermeture auto sidebar sur mobile
+  if (window.innerWidth <= 768) closeSidebar();
 }
 
 function showNoStory() {
@@ -368,22 +410,36 @@ function switchTab(tab) {
 
 // ===== CHAT =====
 function renderChat(el, s) {
+  const msgCount = s.recent_messages.length;
+  const estimatedTokens = Math.round(s.recent_messages.slice(-10).reduce((acc, m) => acc + m.content.length / 4, 0));
   el.innerHTML = `
     <div class="chat-container" style="height:100%;display:flex;flex-direction:column">
-      <div class="messages" id="chatMessages" style="flex:1;overflow-y:auto">
-        ${s.recent_messages.length ? s.recent_messages.map(m => `
+      <div class="messages" id="chatMessages" style="flex:1;overflow-y:auto;padding:16px">
+        ${s.recent_messages.length ? s.recent_messages.map((m, i) => `
           <div class="message ${m.role}">
             <div class="bubble">${esc(m.content)}</div>
+            ${m.role === 'assistant' ? `<div class="msg-actions"><button class="msg-action-btn" onclick="regenerateLast()">↺ Régénérer</button></div>` : ''}
           </div>
         `).join('') : '<div class="empty"><p>Commencez à écrire pour interagir avec l\'IA.</p></div>'}
       </div>
+      <div class="token-counter">~${estimatedTokens} tokens en contexte · ${msgCount} messages</div>
       <div class="chat-input">
-        <textarea id="chatInput" placeholder="Écrivez votre message ou instruction..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"></textarea>
-        <button class="btn btn-primary" id="sendBtn" onclick="sendMessage()">Envoyer</button>
+        <textarea id="chatInput" placeholder="Écrivez la suite…" rows="1" oninput="autoResizeChat(this)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"></textarea>
+        <button class="btn btn-primary" id="sendBtn" onclick="sendMessage()">➤</button>
       </div>
     </div>`;
   const msgs = document.getElementById('chatMessages');
   msgs.scrollTop = msgs.scrollHeight;
+  // Fix clavier mobile — scroll vers input au focus
+  const chatInput = document.getElementById('chatInput');
+  if (chatInput) {
+    chatInput.addEventListener('focus', () => {
+      setTimeout(() => {
+        chatInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        msgs.scrollTop = msgs.scrollHeight;
+      }, 300);
+    });
+  }
 }
 
 async function sendMessage() {
@@ -398,9 +454,19 @@ async function sendMessage() {
   const s = activeStory();
   s.recent_messages.push({ role: 'user', content: text });
   input.value = '';
+  input.style.height = 'auto';
   btn.disabled = true;
   btn.innerHTML = '<span class="loading"></span>';
+
+  // Afficher typing indicator
   renderChat(document.getElementById('tabContent'), s);
+  const msgs = document.getElementById('chatMessages');
+  const typingEl = document.createElement('div');
+  typingEl.className = 'message assistant';
+  typingEl.id = 'typingIndicator';
+  typingEl.innerHTML = '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  msgs.appendChild(typingEl);
+  msgs.scrollTop = msgs.scrollHeight;
 
   try {
     const systemPrompt = buildSystemPrompt(s);
@@ -458,13 +524,15 @@ Style : ton=${s.style.tone}, style=${s.style.writing_style}, POV=${s.style.pov},
 
 RÉSUMÉ : ${s.story_summary || '(aucun résumé)'}
 
-PERSONNAGES : ${JSON.stringify(s.characters.map(c => ({ name: c.name, role: c.role, status: c.status })))}
-LIEUX : ${JSON.stringify(s.locations.map(l => ({ name: l.name, type: l.type })))}
+PERSONNAGES : ${JSON.stringify(s.characters.map(c => ({ name: c.name, role: c.role, status: c.status, description: c.description })))}
+LIEUX : ${JSON.stringify(s.locations.map(l => ({ name: l.name, type: l.type, description: l.description })))}
 OBJETS : ${JSON.stringify(s.objects.map(o => ({ name: o.name, owner: o.owner })))}
-TIMELINE : ${JSON.stringify(s.timeline.slice(-5).map(e => ({ title: e.title, timestamp: e.timestamp })))}
+TIMELINE : ${JSON.stringify(s.timeline.slice(-5).map(e => ({ title: e.title, timestamp: e.timestamp, description: e.description })))}
 
 INSTRUCTIONS :
 - Réponds de manière créative en respectant le style défini.
+- Ne prends pas le contrôle de l'histoire — tu proposes, l'auteur décide.
+- Tu ne démares JAMAIS la narration de toi-même. Tu attends que l'auteur écrive quelque chose et tu continues dans son élan. Si l'auteur te pose une question ou donne une instruction, tu réponds sans partir en narration.
 - Si tu crées un nouveau personnage, lieu, objet ou événement, inclus un bloc JSON entre \`\`\`memory_update et \`\`\` avec les mises à jour.
 - Format du bloc memory_update :
 \`\`\`memory_update
@@ -476,6 +544,7 @@ INSTRUCTIONS :
   "story_summary": "résumé mis à jour (optionnel)"
 }
 \`\`\`
+- N'inclus ce bloc QUE si des éléments nouveaux et importants apparaissent — pas à chaque message.
 - Si aucune mise à jour n'est nécessaire, n'inclus pas ce bloc.`;
 }
 
@@ -901,6 +970,61 @@ document.querySelectorAll('.modal-overlay').forEach(el => {
   el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); });
 });
 
+// ===== MOBILE + UI UTILS =====
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  sidebar.classList.toggle('open');
+  overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').style.display = 'none';
+}
+
+function autoResizeChat(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+async function regenerateLast() {
+  const s = activeStory();
+  if (!s || s.recent_messages.length < 2) return;
+  const lastIdx = [...s.recent_messages].reverse().findIndex(m => m.role === 'assistant');
+  if (lastIdx === -1) return;
+  s.recent_messages.splice(s.recent_messages.length - 1 - lastIdx, 1);
+  saveData();
+  const settings = getSettings();
+  if (!settings.apiKey) return;
+  const btn = document.getElementById('sendBtn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="loading"></span>'; }
+  renderChat(document.getElementById('tabContent'), s);
+  try {
+    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${settings.apiKey}` },
+      body: JSON.stringify({ model: settings.model, messages: [{ role: 'system', content: buildSystemPrompt(s) }, ...s.recent_messages.slice(-10).map(m => ({ role: m.role, content: m.content }))], temperature: 0.9, max_tokens: 2000 })
+    });
+    const data = await resp.json();
+    const reply = data.choices[0].message.content;
+    const memUpdate = extractMemoryUpdate(reply);
+    if (memUpdate) applyMemoryUpdate(s, memUpdate);
+    s.recent_messages.push({ role: 'assistant', content: cleanResponse(reply) });
+    s.updatedAt = Date.now();
+    saveData();
+  } catch(e) {
+    s.recent_messages.push({ role: 'assistant', content: '❌ Erreur : ' + e.message });
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '➤'; }
+  renderChat(document.getElementById('tabContent'), s);
+  setTimeout(() => {
+    const msgs = document.getElementById('chatMessages');
+    if (msgs) msgs.scrollTop = msgs.scrollHeight;
+  }, 50);
+}
+
+// ===== EXPORT / IMPORT =====
 async function autoSummarize(s, settings) {
   if (!settings.apiKey) return;
   try {
