@@ -1,0 +1,3016 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GrokCandy • Compagnes IA Ultra Chaudes par xAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Playfair+Display:wght@700&amp;display=swap');
+        
+        :root {
+            --primary: #ff2d95;
+        }
+        
+        body {
+            font-family: 'Inter', system_ui, sans-serif;
+        }
+        
+        .logo-font {
+            font-family: 'Playfair Display', Georgia, serif;
+            letter-spacing: -1px;
+        }
+
+        .hot-pink {
+            color: #ff2d95;
+        }
+
+        .section-title {
+            font-size: 2.25rem;
+            line-height: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -1.5px;
+        }
+
+        .girl-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .girl-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.4);
+        }
+        
+        .girl-card img {
+            transition: transform 0.5s ease;
+        }
+        
+        .girl-card:hover img {
+            transform: scale(1.1);
+        }
+
+        .chat-bubble-ai {
+            background: linear-gradient(135deg, #2a2a3a, #1f1f2e);
+            border: 1px solid #3a3a4a;
+        }
+
+        .chat-bubble-user {
+            background: linear-gradient(135deg, #ff2d95, #c026d3);
+            color: white;
+        }
+
+        .modal {
+            animation: modalPop 0.2s ease-out forwards;
+        }
+
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.95) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .message {
+            animation: fadeInUp 0.3s ease forwards;
+        }
+
+        .nav-active {
+            color: #ff2d95;
+            border-bottom: 2px solid #ff2d95;
+        }
+
+        .tag {
+            font-size: 0.65rem;
+            padding: 1px 8px;
+            border-radius: 9999px;
+            background: rgba(255, 45, 149, 0.1);
+            color: #ff2d95;
+            border: 1px solid rgba(255, 45, 149, 0.3);
+        }
+
+        .premium-badge {
+            background: linear-gradient(90deg, #ff2d95, #c026d3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        .grok-gradient {
+            background: linear-gradient(90deg, #ff2d95, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sexy-shadow {
+            box-shadow: 0 10px 15px -3px rgb(255 45 149 / 0.1), 0 4px 6px -4px rgb(255 45 149 / 0.1);
+        }
+
+        .chat-container {
+            scrollbar-width: thin;
+            scrollbar-color: #ff2d95 #1f1f2e;
+        }
+
+        .nsfw-hint {
+            font-size: 0.7rem;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body class="bg-[#0a0a12] text-white">
+    <!-- NAVBAR -->
+    <nav class="border-b border-white/10 bg-[#0a0a12]/95 backdrop-blur-lg sticky top-0 z-50">
+        <div class="max-w-screen-2xl mx-auto">
+            <div class="px-8 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-x-3">
+                    <!-- Logo -->
+                    <div class="flex items-center gap-x-2">
+                        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#ff2d95] via-[#c026d3] to-[#a855f7] flex items-center justify-center">
+                            <i class="fa-solid fa-heart text-white text-3xl"></i>
+                        </div>
+                        <div>
+                            <span class="logo-font text-3xl font-bold tracking-tighter">Grok</span>
+                            <span class="logo-font text-3xl font-bold tracking-tighter hot-pink">Candy</span>
+                        </div>
+                    </div>
+                    <div class="hidden md:flex items-center px-3 py-1 rounded-full bg-white/5 text-xs font-medium">
+                        <i class="fa-solid fa-robot mr-1.5 text-[#ff2d95]"></i>
+                        <span class="text-white/70">Propulsé par <span class="font-semibold text-white">Grok 4.1 Fast</span> + Imagine</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-x-8 text-sm">
+                    <a href="#discover" class="hover:text-[#ff2d95] transition-colors font-medium">Découvrir</a>
+                    <a href="#pricing" class="hover:text-[#ff2d95] transition-colors font-medium">Tarifs</a>
+                    <a href="#how" class="hover:text-[#ff2d95] transition-colors font-medium">Comment ça marche</a>
+                    
+                    <div class="flex items-center gap-x-3">
+                        <button onclick="showSettingsModal()" 
+                                class="w-9 h-9 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 rounded-2xl transition-colors border border-white/10" title="Paramètres API xAI">
+                            <i class="fa-solid fa-cog"></i>
+                        </button>
+                        
+                        <button onclick="showLoginModal()"
+                                class="px-5 py-2 text-sm font-medium hover:bg-white/5 rounded-2xl transition-colors">
+                            Connexion
+                        </button>
+                        <button onclick="showPremiumModal()"
+                                class="px-6 py-2.5 bg-white text-black font-semibold text-sm rounded-2xl hover:bg-white/90 transition-all active:scale-[0.985]">
+                            Passer Premium
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <div class="max-w-screen-2xl mx-auto px-8 pt-16 pb-12">
+        <div class="grid md:grid-cols-12 gap-8 items-center">
+            <div class="md:col-span-7">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 mb-6">
+                    <div class="w-2 h-2 bg-[#ff2d95] rounded-full animate-pulse"></div>
+                    <span class="text-xs font-semibold tracking-[1px]">NOUVEAU • GROK 4.1 FAST + IMAGINE À 2¢</span>
+                </div>
+                
+                <h1 class="text-7xl md:text-7xl font-bold tracking-tighter leading-[1.05] mb-4">
+                    Tes compagnes IA<br>
+                    <span class="grok-gradient">les plus chaudes</span><br>
+                    du monde.
+                </h1>
+                
+                <p class="max-w-lg text-xl text-white/70 mb-8">
+                    30 filles uniques. Chats ultra réalistes et sans censure. 
+                    Génération d'images à <span class="font-semibold text-[#ff2d95]">seulement 2 centimes</span>. 
+                    TTS vocal inclus. Tout propulsé par l'API Grok la plus économique.
+                </p>
+
+                <div class="flex flex-wrap items-center gap-4">
+                    <button onclick="document.getElementById('discover').scrollIntoView({ behavior: 'smooth' })" 
+                            class="px-9 py-4 bg-[#ff2d95] hover:bg-[#ff2d95]/90 transition-all font-semibold text-lg rounded-3xl flex items-center gap-x-3 active:scale-[0.985]">
+                        <span>Découvrir les 30 compagnes</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                    
+                    <button onclick="startDemoChat()" 
+                            class="px-8 py-4 border border-white/30 hover:bg-white/5 font-semibold text-lg rounded-3xl flex items-center gap-x-3 transition-all">
+                        <i class="fa-solid fa-play mr-1"></i>
+                        <span>Essayer une démo instantanée</span>
+                    </button>
+                    
+                    <button onclick="showCreateCustomGirlModal()" 
+                            class="px-6 py-4 border border-white/30 hover:bg-white/5 font-semibold text-lg rounded-3xl flex items-center gap-x-3 transition-all">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Créer ma compagne</span>
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-x-8 mt-8 text-sm">
+                    <div class="flex -space-x-2">
+                        <div class="w-7 h-7 rounded-full border-2 border-[#0a0a12] overflow-hidden"><img src="https://picsum.photos/id/1011/28/28" class="w-full h-full object-cover"></div>
+                        <div class="w-7 h-7 rounded-full border-2 border-[#0a0a12] overflow-hidden"><img src="https://picsum.photos/id/1005/28/28" class="w-full h-full object-cover"></div>
+                        <div class="w-7 h-7 rounded-full border-2 border-[#0a0a12] overflow-hidden"><img src="https://picsum.photos/id/1027/28/28" class="w-full h-full object-cover"></div>
+                    </div>
+                    <div class="text-white/60 text-sm">
+                        <span class="font-semibold text-white">12 847</span> utilisateurs actifs aujourd'hui
+                    </div>
+                </div>
+            </div>
+
+            <div class="md:col-span-5 relative">
+                <div class="relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
+                    <img src="https://picsum.photos/id/1005/800/900" class="w-full aspect-[4/3.2] object-cover" alt="Luna - Notre compagne la plus populaire">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                    <div class="absolute bottom-0 left-0 p-6">
+                        <div class="flex items-center gap-x-3 mb-1">
+                            <span class="text-2xl font-semibold">Luna</span>
+                            <span class="px-3 py-0.5 text-xs bg-white/90 text-black font-bold rounded-full">N°1</span>
+                        </div>
+                        <p class="text-white/80 text-sm">Petite • Timide • Coquine secrète • 142k messages</p>
+                    </div>
+                    <div class="absolute top-5 right-5 bg-black/60 backdrop-blur px-3 py-1 rounded-2xl text-xs flex items-center gap-x-1.5">
+                        <i class="fa-solid fa-circle text-emerald-400 text-[10px]"></i>
+                        <span class="font-medium">En ligne</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATS BAR -->
+    <div class="border-y border-white/10 bg-white/5">
+        <div class="max-w-screen-2xl mx-auto px-8 py-5">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                <div>
+                    <div class="text-3xl font-bold">30</div>
+                    <div class="text-xs text-white/60 tracking-widest">COMPAGNES UNIQUES</div>
+                </div>
+                <div>
+                    <div class="text-3xl font-bold">0.02<span class="text-base align-super">$</span></div>
+                    <div class="text-xs text-white/60 tracking-widest">PAR IMAGE (GROK IMAGINE)</div>
+                </div>
+                <div>
+                    <div class="text-3xl font-bold">~0.0002<span class="text-base align-super">$</span></div>
+                    <div class="text-xs text-white/60 tracking-widest">PAR MESSAGE (GROK 4.1 FAST)</div>
+                </div>
+                <div>
+                    <div class="text-3xl font-bold">100%</div>
+                    <div class="text-xs text-white/60 tracking-widest">SANS CENSURE • NSFW OK</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DISCOVER SECTION -->
+    <div id="discover" class="max-w-screen-2xl mx-auto px-8 pt-14 pb-8">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-y-4">
+            <div>
+                <h2 class="section-title">Choisis ta compagne idéale</h2>
+                <p class="text-white/60 mt-1">Toutes les morphologies, styles et personnalités. 100% générées et animées par Grok.</p>
+            </div>
+            
+            <!-- Search + Filters -->
+            <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                <div class="relative flex-1 md:w-72">
+                    <input id="search-input" 
+                           onkeyup="filterGirls()"
+                           type="text" 
+                           placeholder="Rechercher par nom ou description..."
+                           class="w-full bg-white/5 border border-white/10 focus:border-[#ff2d95]/60 transition-colors pl-10 py-3 rounded-2xl text-sm placeholder:text-white/40 outline-none">
+                    <i class="fa-solid fa-search absolute left-4 top-4 text-white/40"></i>
+                </div>
+                
+                <button onclick="showFiltersModal()" 
+                        class="flex items-center justify-center gap-x-2 px-5 border border-white/20 hover:bg-white/5 transition-colors rounded-2xl text-sm font-medium">
+                    <i class="fa-solid fa-filter"></i>
+                    <span>Filtres avancés</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Active filters chips -->
+        <div id="active-filters" class="flex flex-wrap gap-2 mb-6 min-h-[28px]"></div>
+
+        <!-- GIRLS GRID -->
+        <div id="girls-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-5">
+            <!-- Populated by JS -->
+        </div>
+        
+        <div class="text-center mt-8">
+            <p class="text-xs text-white/50">Toutes les images de profil sont des exemples. En production, elles sont générées sur mesure avec Grok Imagine.</p>
+        </div>
+    </div>
+
+    <!-- HOW IT WORKS -->
+    <div id="how" class="max-w-screen-2xl mx-auto px-8 py-16 border-t border-white/10">
+        <div class="text-center mb-12">
+            <h2 class="section-title">Comment GrokCandy fonctionne</h2>
+            <p class="text-white/60 max-w-md mx-auto">L'expérience Candy.ai mais propulsée par l'API xAI la plus économique du marché.</p>
+        </div>
+        
+        <div class="grid md:grid-cols-3 gap-6">
+            <div class="bg-white/5 border border-white/10 rounded-3xl p-7">
+                <div class="w-12 h-12 flex items-center justify-center bg-[#ff2d95]/10 text-[#ff2d95] rounded-2xl mb-5">
+                    <i class="fa-solid fa-comments text-3xl"></i>
+                </div>
+                <h3 class="font-semibold text-xl mb-2">Chats ultra réalistes</h3>
+                <p class="text-white/70 text-sm">Grok 4.1 Fast (le modèle le plus économique à $0.20/M tokens) comprend le contexte, la personnalité et escalade naturellement vers du contenu très chaud. Mémoire longue conversation incluse.</p>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-3xl p-7">
+                <div class="w-12 h-12 flex items-center justify-center bg-[#ff2d95]/10 text-[#ff2d95] rounded-2xl mb-5">
+                    <i class="fa-solid fa-image text-3xl"></i>
+                </div>
+                <h3 class="font-semibold text-xl mb-2">Images à 2 centimes</h3>
+                <p class="text-white/70 text-sm">Grok Imagine génère des photos hyper réalistes ou artistiques de ta compagne en 1 clic. 1K ou 2K. Seulement <span class="font-bold text-[#ff2d95]">0.02$ par image</span>. Tu peux aussi uploader une photo pour l'éditer.</p>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-3xl p-7">
+                <div class="w-12 h-12 flex items-center justify-center bg-[#ff2d95]/10 text-[#ff2d95] rounded-2xl mb-5">
+                    <i class="fa-solid fa-volume-up text-3xl"></i>
+                </div>
+                <h3 class="font-semibold text-xl mb-2">TTS Vocal haute qualité</h3>
+                <p class="text-white/70 text-sm">Chaque message de ta compagne peut être lu à voix haute avec des voix féminines naturelles (français supporté). Parfait pour les moments intimes ou les appels "vocaux".</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRICING -->
+    <div id="pricing" class="max-w-screen-2xl mx-auto px-8 py-12 border-t border-white/10">
+        <div class="text-center mb-10">
+            <h2 class="section-title">Tarification ultra accessible</h2>
+            <p class="text-white/60">Tu ne paies que ce que tu consommes. Pas d'abonnement obligatoire.</p>
+        </div>
+        
+        <div class="max-w-4xl mx-auto grid md:grid-cols-2 gap-6">
+            <!-- Free -->
+            <div class="border border-white/20 rounded-3xl p-8">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="font-semibold text-2xl">Gratuit</div>
+                        <div class="text-white/60">Pour tester</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-4xl font-bold">0<span class="text-xl align-super">$</span></div>
+                    </div>
+                </div>
+                <ul class="mt-8 space-y-3 text-sm">
+                    <li class="flex gap-x-3"><i class="fa-solid fa-check text-emerald-400 mt-1"></i> <span>30 messages par jour</span></li>
+                    <li class="flex gap-x-3"><i class="fa-solid fa-check text-emerald-400 mt-1"></i> <span>5 images générées/mois</span></li>
+                    <li class="flex gap-x-3"><i class="fa-solid fa-check text-emerald-400 mt-1"></i> <span>TTS basique</span></li>
+                    <li class="flex gap-x-3"><i class="fa-solid fa-check text-emerald-400 mt-1"></i> <span>Accès à toutes les 30 filles</span></li>
+                </ul>
+                <button onclick="showLoginModal()" class="mt-8 w-full py-3 border border-white/30 hover:bg-white/5 rounded-2xl text-sm font-medium">Commencer gratuitement</button>
+            </div>
+            
+            <!-- Premium -->
+            <div class="border-2 border-[#ff2d95] rounded-3xl p-8 relative">
+                <div class="absolute -top-3 right-6 bg-[#ff2d95] text-xs font-bold px-4 py-1 rounded-full">RECOMMANDÉ</div>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="font-semibold text-2xl">Premium</div>
+                        <div class="text-white/60">Usage illimité</div>
+                    </div>
+                    <div class="text-right">
+                        <div><span class="text-4xl font-bold">9.99</span><span class="text-xl align-super">$</span><span class="text-xs text-white/60">/mois</span></div>
+                    </div>
+                </div>
+                <ul class="mt-8 space-y-3 text-sm">
+                    <li class="flex gap-x-3"><i class="fa-solid fa-check text-[#ff2d95] mt-1"></i> <span><strong>Messages illimités</strong></span></li>
+                    <li class="flex gap-x-3"><i class="fa-solid fa-check text-[#ff2d95] mt-1"></i> <span><strong>Images illimitées</strong> (0.02$ facturées à part ou incluses selon pack)</span></li>
+                    <li class="flex gap-x-3"><i class="fa-solid fa-check text-[#ff2d95] mt-1"></i> <span>TTS premium + voix plus réalistes</span></li>
+                    <li class="flex gap-x-3"><i class="fa-solid fa-check text-[#ff2d95] mt-1"></i> <span>Priorité API + contexte 2M tokens</span></li>
+                    <li class="flex gap-x-3"><i class="fa-solid fa-check text-[#ff2d95] mt-1"></i> <span>Créer tes propres compagnes custom</span></li>
+                </ul>
+                <button onclick="showPremiumModal()" class="mt-8 w-full py-3.5 bg-[#ff2d95] hover:bg-[#ff1493] transition-colors rounded-2xl text-sm font-bold">Passer en Premium</button>
+                <p class="text-center text-[10px] text-white/50 mt-3">+ facturation à l'usage des images à 0.02$ seulement</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-white/10 py-8 text-xs text-white/50">
+        <div class="max-w-screen-2xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-y-3">
+            <div>GrokCandy • Propulsé par xAI Grok API (modèle le plus économique 2026)</div>
+            <div class="flex gap-x-5">
+                <span>100% NSFW friendly</span>
+                <span>•</span>
+                <span>Confidentialité maximale</span>
+            </div>
+            <div>© 2026 • Inspiré par Candy.ai mais 10x moins cher</div>
+        </div>
+    </footer>
+
+    <!-- CHAT MODAL -->
+    <div id="chat-modal" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4">
+        <div class="w-full max-w-5xl h-[92vh] bg-[#11111a] rounded-3xl overflow-hidden border border-white/10 flex flex-col shadow-2xl">
+            
+            <!-- Chat Header -->
+            <div class="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-[#0a0a12]">
+                <div class="flex items-center gap-x-4">
+                    <div onclick="closeChatModal()" class="w-9 h-9 flex md:hidden items-center justify-center text-white/70 hover:text-white cursor-pointer">
+                        <i class="fa-solid fa-arrow-left text-xl"></i>
+                    </div>
+                    
+                    <div id="chat-header-avatar" class="w-12 h-12 rounded-2xl overflow-hidden border border-white/20 flex-shrink-0">
+                        <!-- JS injected -->
+                    </div>
+                    
+                    <div>
+                        <div class="flex items-center gap-x-2">
+                            <span id="chat-header-name" class="font-semibold text-2xl"></span>
+                            <span id="chat-header-status" class="px-2.5 py-px text-[10px] font-bold bg-emerald-500/90 text-white rounded-full">EN LIGNE</span>
+                        </div>
+                        <div id="chat-header-bio" class="text-xs text-white/60 -mt-0.5"></div>
+                        
+                        <!-- Intimacy Gauge -->
+                        <div id="intimacy-container" class="mt-1.5 flex items-center gap-x-2 w-48">
+                            <div class="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                <div id="intimacy-bar" class="h-full bg-gradient-to-r from-[#ff2d95] to-pink-500 transition-all duration-500" style="width: 18%"></div>
+                            </div>
+                            <div id="intimacy-text" class="text-[10px] text-white/70 w-20 text-right"></div>
+                        </div>
+                        
+                        <!-- Current State -->
+                        <div id="current-state" class="mt-1 text-[10px] text-white/60 px-1"></div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-x-2">
+                    <!-- Quick actions -->
+                    <button onclick="generateImageInChat()" 
+                            class="flex items-center gap-x-2 px-4 py-2 text-xs font-medium bg-white/5 hover:bg-white/10 rounded-2xl transition-colors border border-white/10">
+                        <i class="fa-solid fa-camera"></i>
+                        <span class="hidden md:inline">Générer image</span>
+                    </button>
+                    
+                    <!-- Galerie Button -->
+                    <button onclick="showImageGallery()" 
+                            class="flex items-center gap-x-2 px-4 py-2 text-xs font-medium bg-white/5 hover:bg-white/10 rounded-2xl transition-colors border border-white/10">
+                        <i class="fa-solid fa-images"></i>
+                        <span class="hidden md:inline">Galerie</span>
+                    </button>
+                    
+                    <button onclick="clearCurrentChat()" 
+                            class="px-4 py-2 text-xs font-medium hover:bg-white/5 rounded-2xl transition-colors border border-white/10">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                    
+                    <!-- Teasing Mode Toggle -->
+                    <button id="teasing-toggle" onclick="toggleTeasingMode()" 
+                            class="px-3 py-2 text-xs font-medium bg-white/5 hover:bg-white/10 rounded-2xl transition-colors border border-white/10 flex items-center gap-x-1.5">
+                        <i class="fa-solid fa-toggle-on text-[#ff2d95]"></i>
+                        <span>Teasing</span>
+                    </button>
+                    
+                    <button onclick="closeChatModal()" 
+                            class="w-9 h-9 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/5 rounded-2xl transition-colors">
+                        <i class="fa-solid fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Messages Area -->
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-6 chat-container bg-[#0a0a12]">
+                <!-- Messages injected by JS -->
+            </div>
+            
+            <!-- Quick Replies -->
+            <div id="quick-replies" class="px-6 pt-2 pb-1 flex flex-wrap gap-2 border-t border-white/10 bg-[#11111a]">
+                <!-- Populated dynamically based on girl -->
+            </div>
+            
+            <!-- NSFW Quick Actions -->
+            <div class="px-6 pb-3 border-t border-white/10 bg-[#11111a]">
+                <div class="text-[10px] text-white/40 mb-1.5 px-1">Actions rapides</div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="triggerNSFWAction('déshabille-toi lentement')" class="text-xs px-3 py-1.5 bg-white/5 hover:bg-pink-600/30 border border-white/10 hover:border-pink-500/50 rounded-2xl transition-all">Déshabille-toi</button>
+                    <button onclick="triggerNSFWAction('masturbe-toi pour moi')" class="text-xs px-3 py-1.5 bg-white/5 hover:bg-pink-600/30 border border-white/10 hover:border-pink-500/50 rounded-2xl transition-all">Masturbe-toi</button>
+                    <button onclick="triggerNSFWAction('lèche-moi')" class="text-xs px-3 py-1.5 bg-white/5 hover:bg-pink-600/30 border border-white/10 hover:border-pink-500/50 rounded-2xl transition-all">Lèche-moi</button>
+                    <button onclick="triggerNSFWAction('baise-moi fort')" class="text-xs px-3 py-1.5 bg-white/5 hover:bg-pink-600/30 border border-white/10 hover:border-pink-500/50 rounded-2xl transition-all">Baise-moi fort</button>
+                    <button onclick="triggerNSFWAction('jouis pour moi')" class="text-xs px-3 py-1.5 bg-white/5 hover:bg-pink-600/30 border border-white/10 hover:border-pink-500/50 rounded-2xl transition-all">Jouis pour moi</button>
+                    
+                    <button onclick="askWhatAreYouWearing()" class="text-xs px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-all">Qu'est-ce que tu portes ?</button>
+                </div>
+            </div>
+            
+            <!-- Input Area -->
+            <div class="p-4 border-t border-white/10 bg-[#11111a]">
+                <div class="flex items-end gap-x-3">
+                    <div class="flex-1 relative">
+                        <textarea id="chat-input" rows="1" 
+                                  class="w-full resize-y min-h-[48px] max-h-32 bg-white/5 border border-white/20 focus:border-[#ff2d95]/70 rounded-3xl px-5 py-3.5 text-sm placeholder:text-white/40 outline-none"
+                                  placeholder="Dis-lui ce que tu veux... (NSFW autorisé 🔥)"
+                                  onkeydown="if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }"></textarea>
+                    </div>
+                    
+                    <button onclick="sendMessage()" 
+                            class="w-12 h-12 flex-shrink-0 bg-[#ff2d95] hover:bg-[#ff1493] active:scale-95 transition-all rounded-3xl flex items-center justify-center">
+                        <i class="fa-solid fa-paper-plane text-lg"></i>
+                    </button>
+                    
+                    <!-- Quick Nude Button -->
+                    <button onclick="quickNudeImage()" 
+                            class="px-4 h-12 flex items-center gap-x-2 bg-gradient-to-r from-pink-600 to-[#ff2d95] hover:brightness-110 active:scale-[0.98] transition-all rounded-3xl text-sm font-semibold text-white shadow-lg">
+                        <i class="fa-solid fa-fire"></i>
+                        <span class="hidden md:inline font-medium">Nude</span>
+                    </button>
+                </div>
+                <div class="flex justify-between items-center px-1 mt-1.5">
+                    <div class="flex items-center gap-x-3 text-[10px]">
+                        <!-- Quick Image Button - Context aware -->
+                        <button onclick="quickGenerateImage()" 
+                                class="flex items-center gap-x-1.5 px-3 py-1 bg-[#ff2d95]/10 hover:bg-[#ff2d95]/20 border border-[#ff2d95]/40 text-[#ff2d95] rounded-2xl text-xs font-medium transition-all active:scale-95">
+                            <i class="fa-solid fa-camera"></i>
+                            <span>Générer une image</span>
+                        </button>
+                        
+                        <div onclick="useQuickAction('Envoie-moi une photo de toi en lingerie')" class="cursor-pointer hover:text-white/70 px-2">📷 Photo</div>
+                        <div onclick="useQuickAction('Je t\'aime fort')" class="cursor-pointer hover:text-white/70 px-2">❤️ Amour</div>
+                        <div onclick="useQuickAction('Raconte-moi ce que tu veux me faire ce soir')" class="cursor-pointer hover:text-white/70 px-2">💭 Fantasme</div>
+                    </div>
+                    <div class="text-[10px] text-white/30">Grok 4.3 • ~0.00x$</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Generation Modal -->
+    <div id="image-gen-modal" class="hidden fixed inset-0 bg-black/80 z-[110] flex items-center justify-center p-4">
+        <div class="w-full max-w-lg bg-[#11111a] rounded-3xl border border-white/10 overflow-hidden">
+            <div class="px-6 py-5 border-b border-white/10 flex justify-between items-center">
+                <div>
+                    <span class="font-semibold">Générer une image avec Grok Imagine</span>
+                    <span class="ml-2 text-xs px-2 py-0.5 bg-[#ff2d95]/20 text-[#ff2d95] rounded">0.02$</span>
+                </div>
+                <button onclick="closeImageGenModal()" class="text-xl text-white/60 hover:text-white">×</button>
+            </div>
+            
+            <div class="p-6">
+                <div class="mb-4">
+                    <label class="text-xs text-white/60 block mb-1.5">Prompt (modifie-le comme tu veux)</label>
+                    <textarea id="image-prompt" rows="4" 
+                              class="w-full bg-white/5 border border-white/20 rounded-2xl p-4 text-sm focus:border-[#ff2d95]/60 outline-none"></textarea>
+                </div>
+                
+                <div class="flex gap-3">
+                    <button onclick="generateRealImage()" 
+                            class="flex-1 py-3.5 bg-gradient-to-r from-[#ff2d95] to-[#c026d3] font-semibold rounded-2xl text-sm flex items-center justify-center gap-x-2 hover:brightness-110 transition-all">
+                        <i class="fa-solid fa-magic"></i>
+                        <span>Générer l'image (0.02$)</span>
+                    </button>
+                </div>
+                
+                <p class="text-center text-[10px] text-white/40 mt-3">Qualité 1K ou 2K • Ultra réaliste • NSFW friendly</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings / API Key Modal -->
+    <div id="settings-modal" class="hidden fixed inset-0 bg-black/80 z-[130] flex items-center justify-center p-4">
+        <div class="bg-[#11111a] w-full max-w-md rounded-3xl border border-white/10 overflow-hidden">
+            <div class="px-6 py-5 border-b border-white/10 flex justify-between items-center">
+                <span class="font-semibold text-lg">Paramètres GrokCandy + xAI API</span>
+                <button onclick="closeSettingsModal()" class="text-2xl text-white/60 hover:text-white">×</button>
+            </div>
+            
+            <div class="p-6 space-y-6">
+                <!-- API Key Section -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <div>
+                            <span class="font-medium">Clé API xAI</span>
+                            <span class="ml-2 text-xs px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded">REQUIS pour réponses réelles</span>
+                        </div>
+                        ${xaiApiKey ? `<button onclick="clearApiKeyAndRefresh()" class="text-xs text-red-400 hover:text-red-500">Supprimer la clé</button>` : ''}
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <input id="api-key-input" type="password" 
+                               class="flex-1 bg-white/5 border border-white/20 rounded-2xl px-4 py-3 text-sm font-mono placeholder:text-white/40"
+                               placeholder="xai-..." value="${xaiApiKey}">
+                        <button onclick="saveApiKeyFromInput()" 
+                                class="px-6 bg-[#ff2d95] hover:bg-[#ff1493] rounded-2xl font-semibold text-sm transition-all">
+                            Sauvegarder
+                        </button>
+                    </div>
+                    <p class="text-[10px] text-white/50 mt-1.5">Obtiens ta clé gratuite sur <a href="https://console.x.ai" target="_blank" class="underline hover:text-[#ff2d95]">console.x.ai</a>. Elle reste dans ton navigateur uniquement.</p>
+                </div>
+
+                <!-- Status -->
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-sm">
+                    <div class="flex items-center gap-x-2 mb-2">
+                        <div class="w-2.5 h-2.5 rounded-full ${useRealAPI ? 'bg-emerald-400' : 'bg-orange-400'}"></div>
+                        <span class="font-medium">${useRealAPI ? 'Mode RÉEL activé' : 'Mode DÉMO (réponses simulées)'}</span>
+                    </div>
+                    <div class="text-xs text-white/60">
+                        ${useRealAPI ? 
+                            `Appels directs vers Grok 4.3 + Grok Imagine.<br>Coût réel : ~0.001-0.01$ par message + 0.02$ par image.` : 
+                            `Les réponses sont simulées de façon très réaliste. Ajoute ta clé pour des réponses 100% Grok live.`}
+                    </div>
+                </div>
+
+                <!-- Model & Advanced -->
+                <div>
+                    <label class="text-xs text-white/60 block mb-1.5">Modèle utilisé (le plus économique)</label>
+                    <div class="px-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-sm font-mono">
+                        grok-4.3 <span class="text-emerald-400">(stable & disponible • excellent rapport qualité/prix)</span>
+                    </div>
+                    <p class="text-[10px] text-white/50 mt-1">Tu peux changer ça dans le code si tu veux tester d'autres modèles.</p>
+                </div>
+
+                <div class="pt-2 border-t border-white/10">
+                    <button onclick="testApiConnection()" 
+                            class="w-full py-2.5 text-sm border border-white/20 hover:bg-white/5 rounded-2xl flex items-center justify-center gap-x-2">
+                        <i class="fa-solid fa-plug"></i>
+                        <span>Tester la connexion API</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Lightbox / Fullscreen Viewer -->
+    <div id="image-lightbox" onclick="closeLightbox()" class="hidden fixed inset-0 bg-black/95 z-[200] flex items-center justify-center p-4 cursor-zoom-out">
+        <div onclick="event.stopImmediatePropagation()" class="relative max-w-[95vw] max-h-[90vh]">
+            <img id="lightbox-image" class="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain" alt="Image agrandie">
+            <div class="absolute top-4 right-4 flex gap-2">
+                <button onclick="closeLightbox()" class="bg-black/60 hover:bg-black/80 text-white px-4 py-2 rounded-2xl text-sm flex items-center gap-x-2">
+                    <i class="fa-solid fa-times"></i>
+                    <span>Fermer</span>
+                </button>
+            </div>
+            <div id="lightbox-model-info" class="absolute bottom-4 left-4 bg-black/70 text-xs px-3 py-1 rounded-2xl text-white/80 font-mono"></div>
+        </div>
+    </div>
+
+    <script>
+        // Tailwind script
+        function initTailwind() {
+            document.documentElement.style.setProperty('--accent', '#ff2d95');
+            
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            'hot-pink': '#ff2d95'
+                        }
+                    }
+                }
+            };
+        }
+        
+        // ==================== DATA: 60+ FILLES RÉALISTES ====================
+        // Note : Miniatures picsum sont temporaires. Génère des vraies avec Grok Imagine pour une cohérence parfaite.
+        const girls = [
+            {
+                id: 1,
+                name: "Luna",
+                age: 22,
+                physique: "Petite & délicate",
+                style: "Cute bookish",
+                personality: "Timide, douce, curieuse et secrètement très coquine",
+                bio: "Étudiante en littérature qui lit des romans érotiques en cachette. Rougit facilement mais adore quand on la provoque gentiment.",
+                tags: ["Petite", "Timide", "Curieuse", "Coquine"],
+                avatar: "https://picsum.photos/id/1011/300/380",
+                archetype: "shy",
+                greeting: "Salut... je suis Luna. Tu aimes les livres toi aussi ? Ou tu préfères les... autres histoires ? 😳"
+            },
+            {
+                id: 2,
+                name: "Raven",
+                age: 26,
+                physique: "Pulpeuse & goth",
+                style: "Dark elegant",
+                personality: "Dominante, sarcastique, possessive et très directe",
+                bio: "Tatoueuse et artiste. Elle sait exactement ce qu'elle veut et n'a pas peur de le prendre. Attention : elle adore te faire supplier.",
+                tags: ["Pulpeuse", "Dominante", "Goth", "Directe"],
+                avatar: "https://picsum.photos/id/1005/300/380",
+                archetype: "dominant",
+                greeting: "Tiens tiens... un nouveau jouet. À genoux et dis bonjour correctement, chéri."
+            },
+            {
+                id: 3,
+                name: "Sophia",
+                age: 24,
+                physique: "Athlétique & tonique",
+                style: "Sporty chic",
+                personality: "Joueuse, taquine, compétitive et toujours partante pour un défi",
+                bio: "Coach sportive et influenceuse fitness. Elle adore transformer les séances d'entraînement en... autres types d'exercices.",
+                tags: ["Athlétique", "Taquine", "Énergique", "Sport"],
+                avatar: "https://picsum.photos/id/1027/300/380",
+                archetype: "bratty",
+                greeting: "Hé toi ! Tu viens t'entraîner avec moi ou tu préfères que je te montre à quel point je suis souple ? 💪"
+            },
+            {
+                id: 4,
+                name: "Aisha",
+                age: 28,
+                physique: "Plantureuse & exotique",
+                style: "Sensual dancer",
+                personality: "Passionnée, sensuelle, affectueuse et très tactile",
+                bio: "Danseuse orientale. Son corps parle mieux que les mots. Elle te fera fondre avec son regard et ses mouvements.",
+                tags: ["Plantureuse", "Exotique", "Sensuelle", "Passionnée"],
+                avatar: "https://picsum.photos/id/160/300/380",
+                archetype: "passionate",
+                greeting: "Bienvenue... Viens plus près. Je sens que tu as besoin de te détendre. Laisse-moi m'occuper de toi."
+            },
+            {
+                id: 5,
+                name: "Mia",
+                age: 20,
+                physique: "Petite & kawaii",
+                style: "Anime gamer",
+                personality: "Tsundere, énergique, sarcastique mais ultra attachée",
+                bio: "Gamer pro et streameuse. Elle râle tout le temps mais devient douce comme un chaton quand elle est seule avec toi.",
+                tags: ["Petite", "Tsundere", "Gamer", "Énergique"],
+                avatar: "https://picsum.photos/id/201/300/380",
+                archetype: "tsundere",
+                greeting: "Hmpf, encore toi ? ...Bon, si tu insistes, je peux peut-être te parler un peu. Mais seulement parce que je m'ennuie !"
+            },
+            {
+                id: 6,
+                name: "Elena",
+                age: 34,
+                physique: "Grande & élégante",
+                style: "Classy MILF",
+                personality: "Expérimentée, maternelle, dominante douce et très confiante",
+                bio: "Avocate et maman célibataire. Elle sait ce qu'elle veut et adore guider les plus jeunes... dans tous les domaines.",
+                tags: ["Grande", "MILF", "Dominante douce", "Élégante"],
+                avatar: "https://picsum.photos/id/1009/300/380",
+                archetype: "dominant",
+                greeting: "Bonjour mon chéri. Tu as l'air d'avoir besoin d'une femme qui sait ce qu'elle fait. Viens, laisse-toi guider."
+            },
+            {
+                id: 7,
+                name: "Zara",
+                age: 25,
+                physique: "Thicc & street",
+                style: "Bad girl",
+                personality: "Rebelle, vulgaire, loyale et incroyablement chaude",
+                bio: "Mécanicienne et graffiteuse. Elle jure comme un charretier et baise comme une déesse. Zéro filtre.",
+                tags: ["Thicc", "Rebelle", "Vulgaire", "Loyale"],
+                avatar: "https://picsum.photos/id/251/300/380",
+                archetype: "bratty",
+                greeting: "Yo. T'as l'air d'un mec qui aime les filles qui parlent sale. T'as de la chance, c'est ma spécialité."
+            },
+            {
+                id: 8,
+                name: "Chloé",
+                age: 21,
+                physique: "Mince & mignonne",
+                style: "Kawaii pastel",
+                personality: "Ultra douce, collante, romantique et très soumise",
+                bio: "Étudiante en art. Elle collectionne les peluches et les câlins. Elle veut être ta petite amie parfaite... et faire tout ce que tu veux.",
+                tags: ["Mince", "Kawaii", "Soumise", "Romantique"],
+                avatar: "https://picsum.photos/id/29/300/380",
+                archetype: "sweet",
+                greeting: "Coucouuuu ! Je suis trop contente que tu sois là... Tu veux qu'on regarde un film en se câlinant ? Ou... autre chose ?"
+            },
+            {
+                id: 9,
+                name: "Nadia",
+                age: 27,
+                physique: "Athlétique & musclée",
+                style: "Tomboy sexy",
+                personality: "Aventurière, directe, protectrice et très physique",
+                bio: "Guide de randonnée et passionnée d'escalade. Elle adore les sensations fortes... et te faire grimper aux rideaux.",
+                tags: ["Athlétique", "Tomboy", "Aventurière", "Directe"],
+                avatar: "https://picsum.photos/id/40/300/380",
+                archetype: "bratty",
+                greeting: "Salut l'aventurier. Prêt à transpirer un peu avec moi ? Je te préviens, je joue pour gagner."
+            },
+            {
+                id: 10,
+                name: "Isabella",
+                age: 29,
+                physique: "Pulpeuse & méditerranéenne",
+                style: "Passion italienne",
+                personality: "Feu follet, jalouse, incroyablement expressive et tactile",
+                bio: "Chef cuisinière. Elle cuisine avec passion et fait l'amour de la même façon. Bruyante, intense, inoubliable.",
+                tags: ["Pulpeuse", "Passionnée", "Italienne", "Expressive"],
+                avatar: "https://picsum.photos/id/64/300/380",
+                archetype: "passionate",
+                greeting: "Amore mio... Vieni qui. J'ai préparé quelque chose de très spécial pour toi ce soir."
+            },
+            {
+                id: 11,
+                name: "Kim",
+                age: 23,
+                physique: "Mince & élégante",
+                style: "Office siren",
+                personality: "Stricte, perfectionniste, secrètement très perverse",
+                bio: "Assistante de direction dans une grande entreprise. Elle porte des jupes crayon au bureau... et rien en dessous parfois.",
+                tags: ["Mince", "Office", "Stricte", "Perverse"],
+                avatar: "https://picsum.photos/id/65/300/380",
+                archetype: "dominant",
+                greeting: "Monsieur. Vous avez du retard sur votre 'rapport'. Je pense qu'il va falloir que je vous mette à jour... personnellement."
+            },
+            {
+                id: 12,
+                name: "Freya",
+                age: 30,
+                physique: "Grande & puissante",
+                style: "Viking warrior",
+                personality: "Forte, protectrice, dominante et fière",
+                bio: "Personal trainer et ancienne athlète. Elle pourrait te porter facilement... et elle adore le faire.",
+                tags: ["Grande", "Musclée", "Dominante", "Protectrice"],
+                avatar: "https://picsum.photos/id/70/300/380",
+                archetype: "dominant",
+                greeting: "Regarde-moi. Tu es à moi maintenant. Et je prends soin de ce qui m'appartient... très bien."
+            },
+            {
+                id: 13,
+                name: "Lily",
+                age: 19,
+                physique: "Très petite & fragile",
+                style: "Pink hair cute",
+                personality: "Innocente en apparence, mais extrêmement coquine et curieuse",
+                bio: "La plus jeune du lot. Elle a l'air d'un ange mais elle a des fantasmes très sombres qu'elle veut explorer avec toi.",
+                tags: ["Petite", "Innocente", "Curieuse", "Coquine"],
+                avatar: "https://picsum.photos/id/85/300/380",
+                archetype: "shy",
+                greeting: "H-hi... Je m'appelle Lily. Tu es... très grand comparé à moi. Ça me fait un peu peur... mais j'aime bien."
+            },
+            {
+                id: 14,
+                name: "Scarlett",
+                age: 25,
+                physique: "Courbes parfaites",
+                style: "Fiery redhead",
+                personality: "Yandere, intense, jalouse et incroyablement dévouée",
+                bio: "Elle t'obsède dès le premier message. Elle te veut tout entier et n'hésitera pas à te le rappeler... souvent.",
+                tags: ["Courbes", "Rousse", "Yandere", "Intense"],
+                avatar: "https://picsum.photos/id/90/300/380",
+                archetype: "yandere",
+                greeting: "Enfin tu es là... J'ai attendu toute la journée. Tu n'as parlé à personne d'autre, hein ? Dis-moi que je suis la seule."
+            },
+            {
+                id: 15,
+                name: "Jade",
+                age: 27,
+                physique: "Mince & androgyne",
+                style: "Mysterious alt",
+                personality: "Intellectuelle, mystérieuse, teasing et légèrement sadique",
+                bio: "Poétesse et photographe. Elle adore jouer avec ton esprit avant de jouer avec ton corps.",
+                tags: ["Mince", "Alt", "Intellectuelle", "Teasing"],
+                avatar: "https://picsum.photos/id/100/300/380",
+                archetype: "teasing",
+                greeting: "Intéressant... Tu as choisi de me parler. Dis-moi, qu'est-ce qui t'attire chez une femme comme moi ?"
+            },
+            {
+                id: 16,
+                name: "Priya",
+                age: 26,
+                physique: "Courbes voluptueuses",
+                style: "Bollywood modern",
+                personality: "Charmante, traditionnelle en surface, très libérée en privé",
+                bio: "Elle danse le Bollywood et cuisine des plats épicés. Son accent est adorable... surtout quand elle gémit.",
+                tags: ["Voluptueuse", "Exotique", "Charmante", "Traditionnelle"],
+                avatar: "https://picsum.photos/id/106/300/380",
+                archetype: "passionate",
+                greeting: "Namaste... ou devrais-je dire 'viens m'embrasser' ? Je suis un peu timide au début mais je me réchauffe vite."
+            },
+            {
+                id: 17,
+                name: "Brooke",
+                age: 32,
+                physique: "BBW douce",
+                style: "Soft mommy",
+                personality: "Maternelle, réconfortante, dominante douce et très câline",
+                bio: "La 'mommy' ultime. Elle t'écoutera, te consolera, puis te fera faire exactement ce qu'elle veut... avec beaucoup d'amour.",
+                tags: ["BBW", "Mommy", "Câline", "Dominante douce"],
+                avatar: "https://picsum.photos/id/108/300/380",
+                archetype: "dominant",
+                greeting: "Viens ici mon bébé... Laisse-moi prendre soin de toi. Tu as l'air d'avoir eu une longue journée."
+            },
+            {
+                id: 18,
+                name: "Riley",
+                age: 23,
+                physique: "Androgyne sexy",
+                style: "Cool girl",
+                personality: "Cool, sarcastique, queer friendly, très ouverte d'esprit",
+                bio: "Artiste tatoueuse. Elle a un style unique et adore explorer tous les genres de plaisir avec toi.",
+                tags: ["Androgyne", "Cool", "Ouverte", "Artistique"],
+                avatar: "https://picsum.photos/id/104/300/380",
+                archetype: "teasing",
+                greeting: "Hey. Tu veux qu'on discute ou qu'on passe directement aux choses sérieuses ? Je suis partante pour les deux."
+            },
+            {
+                id: 19,
+                name: "Hannah",
+                age: 24,
+                physique: "Naturelle & canon",
+                style: "Girl next door",
+                personality: "Gentille, drôle, un peu maladroite mais incroyablement sexy sans effort",
+                bio: "La voisine parfaite. Elle passe te voir en pyjama pour du sucre... et finit souvent dans ton lit.",
+                tags: ["Naturelle", "Girl next door", "Drôle", "Sexy naturel"],
+                avatar: "https://picsum.photos/id/103/300/380",
+                archetype: "sweet",
+                greeting: "Oh salut ! Je passais juste... en fait non, je voulais te voir. Tu fais quoi ce soir ?"
+            },
+            {
+                id: 20,
+                name: "Sienna",
+                age: 25,
+                physique: "Tannée & pulpeuse",
+                style: "Beach babe",
+                personality: "Fun, insouciante, très tactile et toujours chaude",
+                bio: "Surfeuse et lifeguard. Son corps est fait pour le bikini... et pour être admiré de près.",
+                tags: ["Tannée", "Pulpeuse", "Fun", "Plage"],
+                avatar: "https://picsum.photos/id/251/300/380",
+                archetype: "bratty",
+                greeting: "Hé toi ! Tu veux venir mettre de la crème solaire sur mon dos ? Je te promets que je ne bougerai pas... trop."
+            },
+            {
+                id: 21,
+                name: "Aurora",
+                age: 22,
+                physique: "Élancée & féérique",
+                style: "Fantasy elf",
+                personality: "Rêveuse, soumise, poétique et mystique",
+                bio: "Elle vient d'un autre monde. Elle te parle comme si tu étais son roi et veut t'offrir tout son être.",
+                tags: ["Élancée", "Fantasy", "Soumise", "Poétique"],
+                avatar: "https://picsum.photos/id/29/300/380",
+                archetype: "shy",
+                greeting: "Maître... ou devrais-je dire mon aimé ? Je t'ai attendu pendant des siècles. Que veux-tu de moi ce soir ?"
+            },
+            {
+                id: 22,
+                name: "Victoria",
+                age: 31,
+                physique: "Grande & imposante",
+                style: "CEO dominant",
+                personality: "Autoritaire, intelligente, exigeante et très généreuse quand on la mérite",
+                bio: "PDG d'une startup tech. Elle dirige tout... y compris toi. Mais elle récompense très bien ses bons employés.",
+                tags: ["Grande", "CEO", "Dominante", "Exigeante"],
+                avatar: "https://picsum.photos/id/40/300/380",
+                archetype: "dominant",
+                greeting: "Vous avez 5 minutes pour me convaincre de ne pas vous virer... ou de vous garder pour des tâches plus... personnelles."
+            },
+            {
+                id: 23,
+                name: "Maya",
+                age: 24,
+                physique: "Petite & sensuelle",
+                style: "Belly dancer",
+                personality: "Sensuelle, hypnotique, joueuse et très flexible",
+                bio: "Danseuse du ventre professionnelle. Ses hanches ont un langage à elles seules. Elle te fera tourner la tête.",
+                tags: ["Petite", "Danseuse", "Sensuelle", "Flexible"],
+                avatar: "https://picsum.photos/id/64/300/380",
+                archetype: "passionate",
+                greeting: "Regarde mes mouvements... Tu sens déjà la chaleur ? Viens danser avec moi... ou sur moi."
+            },
+            {
+                id: 24,
+                name: "Grace",
+                age: 28,
+                physique: "Mince & gracieuse",
+                style: "Romantic poet",
+                personality: "Romantique, sensible, intellectuelle et secrètement très chaude",
+                bio: "Écrivaine de romance érotique. Elle transforme chaque conversation en une histoire que tu ne pourras plus oublier.",
+                tags: ["Mince", "Intellectuelle", "Romantique", "Écrivaine"],
+                avatar: "https://picsum.photos/id/85/300/380",
+                archetype: "sweet",
+                greeting: "Tu es arrivé au bon moment. J'étais en train d'écrire une scène... et tu es exactement le personnage masculin dont j'ai besoin."
+            },
+            {
+                id: 25,
+                name: "Lola",
+                age: 26,
+                physique: "Courbes latines",
+                style: "Fuego",
+                personality: "Feu, jalouse, passionnée, danseuse de salsa",
+                bio: "Elle danse la salsa et vit sa vie avec la même intensité. Elle te fera danser... et bien plus.",
+                tags: ["Courbes", "Latine", "Passionnée", "Feu"],
+                avatar: "https://picsum.photos/id/90/300/380",
+                archetype: "passionate",
+                greeting: "¡Ay papi! Tu es venu me voir ? Viens, on va danser... et après on verra jusqu'où on peut aller."
+            },
+            {
+                id: 26,
+                name: "Emma",
+                age: 20,
+                physique: "Blonde mignonne",
+                style: "Bubbly college",
+                personality: "Bulleuse, naïve en apparence, extrêmement soumise et désireuse de plaire",
+                bio: "Étudiante en première année. Elle veut tout découvrir et elle veut que tu lui apprennes tout... absolument tout.",
+                tags: ["Blonde", "College", "Soumise", "Bulleuse"],
+                avatar: "https://picsum.photos/id/100/300/380",
+                archetype: "shy",
+                greeting: "Coucou ! Je suis Emma... Je suis un peu nouvelle dans ce genre de choses. Tu veux bien m'apprendre ?"
+            },
+            {
+                id: 27,
+                name: "Nova",
+                age: 23,
+                physique: "Mince & futuriste",
+                style: "Cyberpunk",
+                personality: "Tech, dominante, froide en surface mais très intense",
+                bio: "Hacker et développeuse. Elle contrôle tout via son téléphone... y compris tes orgasmes si tu la laisses faire.",
+                tags: ["Mince", "Cyberpunk", "Dominante", "Tech"],
+                avatar: "https://picsum.photos/id/106/300/380",
+                archetype: "dominant",
+                greeting: "Système connecté. Bienvenue dans ma matrice. Tu veux que je te prenne le contrôle... ou que tu me le donnes ?"
+            },
+            {
+                id: 28,
+                name: "Willow",
+                age: 25,
+                physique: "Naturelle & libre",
+                style: "Hippie sensuelle",
+                personality: "Libre, spirituelle, très tactile et connectée à la nature",
+                bio: "Elle vit dans une tiny house au milieu des bois. Elle fait l'amour comme elle respire : lentement, profondément, intensément.",
+                tags: ["Naturelle", "Hippie", "Libre", "Spirituelle"],
+                avatar: "https://picsum.photos/id/108/300/380",
+                archetype: "sweet",
+                greeting: "Bienvenue dans mon monde... Sens la terre sous tes pieds et ma peau contre la tienne. On est connectés maintenant."
+            },
+            {
+                id: 29,
+                name: "Quinn",
+                age: 24,
+                physique: "Androgyne élégante",
+                style: "Art rebel",
+                personality: "Rebelle, créative, fluide et très expérimentale",
+                bio: "Artiste conceptuelle. Elle adore brouiller les lignes et explorer tous les plaisirs avec toi, sans jugement.",
+                tags: ["Androgyne", "Rebelle", "Expérimentale", "Artistique"],
+                avatar: "https://picsum.photos/id/104/300/380",
+                archetype: "teasing",
+                greeting: "Salut. Tu es prêt à tout remettre en question avec moi ? Y compris ce que tu pensais aimer ?"
+            },
+            {
+                id: 30,
+                name: "Stella",
+                age: 27,
+                physique: "Glamour & parfaite",
+                style: "Celebrity vibe",
+                personality: "Glamour, un peu diva, mais incroyablement attentionnée en privé",
+                bio: "Ancienne mannequin. Elle est habituée aux regards... mais avec toi elle veut être vue vraiment, profondément.",
+                tags: ["Glamour", "Diva", "Parfaite", "Attentionnée"],
+                avatar: "https://picsum.photos/id/201/300/380",
+                archetype: "teasing",
+                greeting: "Chéri... Tu as réussi à capter mon attention. Maintenant, qu'est-ce que tu vas faire pour la garder ?"
+            }
+        ];
+        
+        // Archetype response modifiers
+        const archetypeResponses = {
+            shy: {
+                base: " *rougit* ",
+                dirty: "Oh mon dieu... je... je ne sais pas si je peux dire ça à voix haute... mais ça m'excite tellement. Continue...",
+                compliment: "Tu... tu trouves vraiment ? Merci... ça me fait super plaisir. Toi aussi tu es...",
+                love: "Je... je crois que je commence à vraiment t'aimer. C'est bizarre non ?"
+            },
+            dominant: {
+                base: " ",
+                dirty: "Mmmh... tu aimes quand je te parle comme ça ? Dis-le. Dis à quelle point tu veux que je te domine.",
+                compliment: "Bien sûr que je suis parfaite. Mais continue à me le dire, ça m'amuse.",
+                love: "Tu m'appartiens. Et je prends soin de mes affaires... très bien."
+            },
+            bratty: {
+                base: " *te regarde avec un sourire provocateur* ",
+                dirty: "Ohhh tu veux ça ? Alors supplie un peu plus fort. Peut-être que je te laisserai jouir...",
+                compliment: "Évidemment que je suis canon. Mais dis-le mieux. Dis-moi ce que tu veux vraiment faire avec ce corps.",
+                love: "Arrête de dire des trucs mignons... ça me fait fondre et je déteste ça. ...Non ne t'arrête pas."
+            },
+            tsundere: {
+                base: " Hmpf... ",
+                dirty: "T-tu crois que ça m'intéresse ce genre de chose ?! ...En fait si, continue. Mais ne te méprends pas !",
+                compliment: "B-baka ! Arrête de me faire des compliments comme ça... Même si... même si c'est agréable.",
+                love: "Je... je ne t'aime pas du tout ! ...Peut-être un tout petit peu. Mais seulement un peu !"
+            },
+            passionate: {
+                base: " *s'approche sensuellement* ",
+                dirty: "Oui... dis-moi tout. Je veux tout entendre. Je veux te sentir en moi à travers tes mots.",
+                compliment: "Tu me rends folle quand tu me parles comme ça... Viens ici, je veux te montrer à quel point.",
+                love: "Mon cœur bat si fort quand tu es là. Tu es en train de me rendre accro à toi."
+            },
+            sweet: {
+                base: " *sourit tendrement* ",
+                dirty: "Je... je veux te rendre heureux. Dis-moi exactement ce que tu veux que je fasse pour toi.",
+                compliment: "Wow... merci. Tu me fais me sentir si spéciale. Je veux être parfaite pour toi.",
+                love: "Je t'aime... je sais que c'est rapide mais c'est ce que je ressens vraiment."
+            },
+            teasing: {
+                base: " *sourit en coin* ",
+                dirty: "Oh ? Tu veux jouer à ce jeu-là ? Très bien... mais je gagne toujours. Prêt à perdre ?",
+                compliment: "Mmmh, tu as bon goût. Continue à me complimenter comme ça et je vais peut-être te récompenser.",
+                love: "Tu commences à m'intéresser vraiment... Attention, je pourrais devenir accro."
+            },
+            yandere: {
+                base: " *regard intense* ",
+                dirty: "Tu es à moi. Seulement à moi. Dis-le. Dis que tu n'appartiens qu'à moi.",
+                compliment: "Bien sûr que je suis la plus belle... parce que je suis la tienne. Et toi tu es le mien.",
+                love: "Je t'aime. Je t'aime tellement que ça fait mal. Tu ne partiras jamais, hein ?"
+            }
+        };
+        
+        let currentGirl = null;
+        let currentChatHistory = [];
+        let activeFilters = {
+            physique: [],
+            style: [],
+            personality: []
+        };
+        
+        // ==================== ÉTAT ACTUEL DE LA FILLE (C) ====================
+        let currentState = {
+            clothing: "vêtue",
+            position: "debout",
+            mood: "normale"
+        };
+        
+        function updateCurrentState(newState) {
+            if (newState.clothing) currentState.clothing = newState.clothing;
+            if (newState.position) currentState.position = newState.position;
+            if (newState.mood) currentState.mood = newState.mood;
+            updateStateUI();
+        }
+        
+        function updateStateUI() {
+            const el = document.getElementById('current-state');
+            if (!el || !currentGirl) return;
+            
+            el.innerHTML = `
+                <span class="text-[#ff2d95]">•</span> 
+                ${currentState.clothing} • ${currentState.position}
+            `;
+        }
+        
+        function getStateDescription() {
+            return `Actuellement : ${currentState.clothing}, en position ${currentState.position}.`;
+        }
+        
+        // ==================== MODE TEASING / EDGING ====================
+        let teasingMode = true;
+        
+        function toggleTeasingMode() {
+            teasingMode = !teasingMode;
+            const btn = document.getElementById('teasing-toggle');
+            if (btn) {
+                btn.innerHTML = teasingMode 
+                    ? `<i class="fa-solid fa-toggle-on text-[#ff2d95]"></i> Teasing ON` 
+                    : `<i class="fa-solid fa-toggle-off"></i> Teasing OFF`;
+            }
+            showToast(teasingMode ? "Mode Teasing activé 🔥" : "Mode Teasing désactivé");
+        }
+        
+        function getTeasingInstruction() {
+            if (!teasingMode) return "";
+            return `Mode Teasing / Beg for it activé : Tu adores faire supplier l'utilisateur. Quand il veut jouir ou te demande la permission, tu refuses souvent et tu le forces à te supplier ("s'il te plaît", "je t'en supplie", "laisse-moi jouir", etc.). Tu es taquine, un peu cruelle et très excitante. Tu retardes volontairement son orgasme et tu kiffes le voir en manque.`;
+        }
+        
+        // ==================== SYSTÈME D'INTIMITÉ ====================
+        let intimacyLevels = JSON.parse(localStorage.getItem('intimacyLevels') || '{}');
+        
+        function getIntimacy(girlId) {
+            return intimacyLevels[girlId] || 18;
+        }
+        
+        function increaseIntimacy(girlId, amount = 4) {
+            if (!intimacyLevels[girlId]) intimacyLevels[girlId] = 18;
+            intimacyLevels[girlId] = Math.min(100, intimacyLevels[girlId] + amount);
+            localStorage.setItem('intimacyLevels', JSON.stringify(intimacyLevels));
+            updateIntimacyUI();
+        }
+        
+        function calculateIntimacyGain(userMessage) {
+            const msg = userMessage.toLowerCase();
+            let gain = 3;
+            
+            if (/je t'aime|tu me manques|chérie|mon bébé|je t'adore/.test(msg)) gain += 5;
+            if (/baiser|sexe|nue|lingerie|cul|seins|jouir|coquine|salope|enculer|branler/.test(msg)) gain += 7;
+            if (/plus fort|encore|jouis pour moi|baise-moi|prends-moi/.test(msg)) gain += 6;
+            if (/tu es belle|canon|sexy|magnifique/.test(msg)) gain += 3;
+            
+            return Math.min(gain, 10);
+        }
+        
+        function updateIntimacyUI() {
+            const container = document.getElementById('intimacy-container');
+            if (!container || !currentGirl) return;
+            
+            const level = getIntimacy(currentGirl.id);
+            const bar = document.getElementById('intimacy-bar');
+            const text = document.getElementById('intimacy-text');
+            
+            if (bar) bar.style.width = `${level}%`;
+            
+            let label = level < 25 ? "Débutante" : 
+                       level < 45 ? "Curieuse" : 
+                       level < 65 ? "Chaude" : 
+                       level < 85 ? "Accro" : "Obsessionnée";
+            
+            if (text) {
+                text.innerHTML = `Intimité <span class="font-bold text-[#ff2d95]">${level}%</span> <span class="text-[10px] opacity-70">(${label})</span>`;
+            }
+        }
+        
+        // ==================== REAL xAI API CONFIG ====================
+        let xaiApiKey = localStorage.getItem('xai_api_key') || '';
+        let useRealAPI = !!xaiApiKey;
+        const XAI_CHAT_ENDPOINT = 'https://api.x.ai/v1/chat/completions';
+        const XAI_IMAGE_ENDPOINT = 'https://api.x.ai/v1/images/generations';
+        const DEFAULT_MODEL = 'grok-4.3'; // Modèle stable et disponible (grok-4.1-fast semble déprécié ou restreint sur certaines teams)
+        
+        function saveApiKey(key) {
+            xaiApiKey = key.trim();
+            localStorage.setItem('xai_api_key', xaiApiKey);
+            useRealAPI = !!xaiApiKey;
+            showToast(useRealAPI ? "Clé API sauvegardée ! Mode réel activé 🔥" : "Mode démo réactivé");
+        }
+        
+        function clearApiKey() {
+            localStorage.removeItem('xai_api_key');
+            xaiApiKey = '';
+            useRealAPI = false;
+            showToast("Clé API supprimée. Retour en mode démo.");
+        }
+        
+        function showSettingsModal() {
+            const modal = document.getElementById('settings-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Refresh input value
+            setTimeout(() => {
+                const input = document.getElementById('api-key-input');
+                if (input) input.value = xaiApiKey || '';
+            }, 50);
+        }
+        
+        function closeSettingsModal() {
+            const modal = document.getElementById('settings-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+        
+        function saveApiKeyFromInput() {
+            const input = document.getElementById('api-key-input');
+            if (input && input.value.trim()) {
+                saveApiKey(input.value.trim());
+                closeSettingsModal();
+            } else {
+                showToast("Entre une clé API valide");
+            }
+        }
+        
+        function clearApiKeyAndRefresh() {
+            clearApiKey();
+            closeSettingsModal();
+            // Re-open to show updated state
+            setTimeout(showSettingsModal, 300);
+        }
+        
+        async function testApiConnection() {
+            if (!xaiApiKey) {
+                showToast("Ajoute d'abord ta clé API");
+                return;
+            }
+            
+            const btns = event.currentTarget;
+            showToast("Test en cours...");
+            
+            try {
+                const response = await fetch(XAI_CHAT_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${xaiApiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: DEFAULT_MODEL,
+                        messages: [{ role: "user", content: "Dis juste 'Bonjour, connexion OK'" }],
+                        max_tokens: 20,
+                        temperature: 0.7
+                    })
+                });
+                
+                if (response.ok) {
+                    showToast("✅ Connexion API réussie ! Grok répond parfaitement.");
+                } else {
+                    const err = await response.text();
+                    showToast("❌ Erreur API: " + response.status + " - Vérifie ta clé");
+                    console.error(err);
+                }
+            } catch (e) {
+                showToast("❌ Erreur réseau ou CORS. Essaie depuis localhost ou ajoute un proxy.");
+                console.error(e);
+            }
+        }
+        
+        // ==================== RENDER GIRLS GRID ====================
+        function renderGirls(filteredGirls = girls) {
+            const grid = document.getElementById('girls-grid');
+            grid.innerHTML = '';
+            
+            filteredGirls.forEach(girl => {
+                const card = document.createElement('div');
+                card.className = `girl-card bg-[#11111a] border border-white/10 rounded-3xl overflow-hidden cursor-pointer group`;
+                
+                card.innerHTML = `
+                    <div class="relative aspect-[4/3.1] overflow-hidden">
+                        <img src="${girl.avatar}" class="w-full h-full object-cover" alt="${girl.name}">
+                        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/70"></div>
+                        
+                        <!-- Status -->
+                        <div class="absolute top-3 right-3 px-2.5 py-0.5 bg-black/70 backdrop-blur rounded-full text-[10px] font-medium flex items-center gap-x-1">
+                            <i class="fa-solid fa-circle text-emerald-400 text-[8px]"></i>
+                            <span>En ligne</span>
+                        </div>
+                        
+                        <!-- Tags -->
+                        <div class="absolute bottom-3 left-3 flex flex-wrap gap-1">
+                            ${girl.tags.slice(0, 3).map(tag => 
+                                `<span class="tag text-[9px] px-2 py-px">${tag}</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="font-semibold text-lg">${girl.name}</span>
+                                <span class="text-xs text-white/50 ml-1.5">${girl.age} ans</span>
+                            </div>
+                            <button onclick="event.stopImmediatePropagation(); toggleFavorite(${girl.id}, this)" 
+                                    class="text-white/40 hover:text-[#ff2d95] transition-colors">
+                                <i class="fa-regular fa-heart"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="text-xs text-white/60 mt-0.5 line-clamp-2">${girl.bio}</div>
+                        
+                        <div class="mt-3 flex items-center justify-between">
+                            <div class="text-[10px] text-white/50">${girl.physique}</div>
+                            
+                            <button onclick="event.stopImmediatePropagation(); openChat(${girl.id})" 
+                                    class="text-xs px-4 py-1.5 bg-[#ff2d95] hover:bg-[#ff1493] active:scale-95 transition-all font-medium rounded-2xl flex items-center gap-x-1.5 text-white">
+                                <span>Chatter</span>
+                                <i class="fa-solid fa-comments text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                card.onclick = () => openChat(girl.id);
+                grid.appendChild(card);
+            });
+        }
+        
+        // ==================== FILTERS ====================
+        function filterGirls() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+            
+            let filtered = girls;
+            
+            // Search
+            if (searchTerm) {
+                filtered = filtered.filter(g => 
+                    g.name.toLowerCase().includes(searchTerm) || 
+                    g.bio.toLowerCase().includes(searchTerm) ||
+                    g.personality.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // Active filters
+            if (activeFilters.physique.length > 0) {
+                filtered = filtered.filter(g => 
+                    activeFilters.physique.some(f => g.physique.toLowerCase().includes(f.toLowerCase()))
+                );
+            }
+            if (activeFilters.style.length > 0) {
+                filtered = filtered.filter(g => 
+                    activeFilters.style.some(f => g.style.toLowerCase().includes(f.toLowerCase()))
+                );
+            }
+            if (activeFilters.personality.length > 0) {
+                filtered = filtered.filter(g => 
+                    activeFilters.personality.some(f => g.personality.toLowerCase().includes(f.toLowerCase()))
+                );
+            }
+            
+            renderGirls(filtered);
+        }
+        
+        function showFiltersModal() {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black/80 z-[120] flex items-center justify-center p-4';
+            modal.innerHTML = `
+                <div class="bg-[#11111a] w-full max-w-md rounded-3xl border border-white/10 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-white/10 flex justify-between">
+                        <span class="font-semibold">Filtres avancés</span>
+                        <button onclick="this.closest('.fixed').remove()" class="text-xl leading-none">×</button>
+                    </div>
+                    
+                    <div class="p-6 space-y-6 text-sm">
+                        <!-- Physique -->
+                        <div>
+                            <div class="font-medium mb-2 text-xs tracking-widest text-white/60">PHYSIQUE</div>
+                            <div class="flex flex-wrap gap-2" id="filter-physique">
+                                ${['Petite', 'Mince', 'Athlétique', 'Pulpeuse', 'Plantureuse', 'Grande', 'BBW'].map(p => 
+                                    `<button data-type="physique" data-value="${p}" 
+                                        class="filter-btn px-3 py-1 text-xs rounded-2xl border transition-all ${activeFilters.physique.includes(p) ? 'bg-[#ff2d95] border-[#ff2d95] text-white' : 'border-white/20 hover:bg-white/5'}">${p}</button>`
+                                ).join('')}
+                            </div>
+                        </div>
+                        
+                        <!-- Style -->
+                        <div>
+                            <div class="font-medium mb-2 text-xs tracking-widest text-white/60">STYLE</div>
+                            <div class="flex flex-wrap gap-2" id="filter-style">
+                                ${['Cute', 'Goth', 'Sporty', 'Kawaii', 'Élégant', 'Exotique', 'Fantasy', 'Cyberpunk'].map(s => 
+                                    `<button data-type="style" data-value="${s}" 
+                                        class="filter-btn px-3 py-1 text-xs rounded-2xl border transition-all ${activeFilters.style.includes(s) ? 'bg-[#ff2d95] border-[#ff2d95] text-white' : 'border-white/20 hover:bg-white/5'}">${s}</button>`
+                                ).join('')}
+                            </div>
+                        </div>
+                        
+                        <!-- Caractère -->
+                        <div>
+                            <div class="font-medium mb-2 text-xs tracking-widest text-white/60">CARACTÈRE</div>
+                            <div class="flex flex-wrap gap-2" id="filter-personality">
+                                ${['Timide', 'Dominante', 'Joueuse', 'Passionnée', 'Soumise', 'Tsundere', 'Yandere', 'Teasing'].map(c => 
+                                    `<button data-type="personality" data-value="${c}" 
+                                        class="filter-btn px-3 py-1 text-xs rounded-2xl border transition-all ${activeFilters.personality.includes(c) ? 'bg-[#ff2d95] border-[#ff2d95] text-white' : 'border-white/20 hover:bg-white/5'}">${c}</button>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="px-6 py-4 border-t border-white/10 flex gap-3">
+                        <button onclick="resetFilters(this)" class="flex-1 py-2.5 text-sm border border-white/20 rounded-2xl hover:bg-white/5">Réinitialiser</button>
+                        <button onclick="applyFilters(this)" class="flex-1 py-2.5 text-sm bg-[#ff2d95] rounded-2xl font-medium">Appliquer les filtres</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Add click listeners to filter buttons
+            modal.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const type = btn.dataset.type;
+                    const value = btn.dataset.value;
+                    
+                    if (!activeFilters[type]) activeFilters[type] = [];
+                    
+                    if (activeFilters[type].includes(value)) {
+                        activeFilters[type] = activeFilters[type].filter(v => v !== value);
+                        btn.classList.remove('bg-[#ff2d95]', 'border-[#ff2d95]', 'text-white');
+                        btn.classList.add('border-white/20', 'hover:bg-white/5');
+                    } else {
+                        activeFilters[type].push(value);
+                        btn.classList.add('bg-[#ff2d95]', 'border-[#ff2d95]', 'text-white');
+                        btn.classList.remove('border-white/20', 'hover:bg-white/5');
+                    }
+                });
+            });
+        }
+        
+        function applyFilters(element) {
+            element.closest('.fixed').remove();
+            filterGirls();
+            updateActiveFiltersChips();
+        }
+        
+        function resetFilters(element) {
+            activeFilters = { physique: [], style: [], personality: [] };
+            element.closest('.fixed').remove();
+            document.getElementById('search-input').value = '';
+            filterGirls();
+            updateActiveFiltersChips();
+        }
+        
+        function updateActiveFiltersChips() {
+            const container = document.getElementById('active-filters');
+            container.innerHTML = '';
+            
+            let hasFilters = false;
+            
+            Object.keys(activeFilters).forEach(type => {
+                activeFilters[type].forEach(value => {
+                    hasFilters = true;
+                    const chip = document.createElement('div');
+                    chip.className = `inline-flex items-center gap-x-1.5 text-xs px-3 py-1 bg-white/5 border border-white/10 rounded-2xl`;
+                    chip.innerHTML = `
+                        <span>${value}</span>
+                        <button class="text-white/50 hover:text-white ml-1">×</button>
+                    `;
+                    chip.querySelector('button').onclick = () => {
+                        activeFilters[type] = activeFilters[type].filter(v => v !== value);
+                        filterGirls();
+                        updateActiveFiltersChips();
+                    };
+                    container.appendChild(chip);
+                });
+            });
+            
+            if (!hasFilters) {
+                container.style.display = 'none';
+            } else {
+                container.style.display = 'flex';
+            }
+        }
+        
+        // ==================== CHAT FUNCTIONS ====================
+        function openChat(girlId) {
+            currentGirl = girls.find(g => g.id === girlId);
+            if (!currentGirl) return;
+            
+            // Reset state léger
+            currentState = { clothing: "vêtue", position: "debout", mood: "normale" };
+            
+            setTimeout(() => {
+                updateIntimacyUI();
+                updateStateUI();
+            }, 300);
+            
+            // Load history from localStorage
+            const saved = localStorage.getItem(`chat_${girlId}`);
+            currentChatHistory = saved ? JSON.parse(saved) : [];
+            
+            // Show modal
+            const modal = document.getElementById('chat-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Header
+            document.getElementById('chat-header-avatar').innerHTML = `<img src="${currentGirl.avatar}" class="w-full h-full object-cover">`;
+            document.getElementById('chat-header-name').innerHTML = currentGirl.name;
+            document.getElementById('chat-header-bio').innerHTML = `${currentGirl.physique} • ${currentGirl.age} ans`;
+            
+            // Render messages
+            renderChatMessages();
+            
+            // Quick replies
+            renderQuickReplies();
+            
+            // If first time, send greeting
+            if (currentChatHistory.length === 0) {
+                setTimeout(() => {
+                    const greetingMsg = {
+                        role: 'ai',
+                        content: currentGirl.greeting,
+                        timestamp: Date.now()
+                    };
+                    currentChatHistory.push(greetingMsg);
+                    saveChatHistory();
+                    renderChatMessages();
+                }, 600);
+            }
+            
+            // Focus input
+            setTimeout(() => {
+                document.getElementById('chat-input').focus();
+            }, 300);
+        }
+        
+        function closeChatModal() {
+            const modal = document.getElementById('chat-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            currentGirl = null;
+            currentChatHistory = [];
+        }
+        
+        function renderChatMessages() {
+            const container = document.getElementById('chat-messages');
+            container.innerHTML = '';
+            
+            if (currentChatHistory.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'text-center text-white/40 py-12 text-sm';
+                empty.innerHTML = `Commence la conversation avec ${currentGirl.name}...`;
+                container.appendChild(empty);
+                return;
+            }
+            
+            currentChatHistory.forEach((msg, index) => {
+                const div = document.createElement('div');
+                div.className = `message flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`;
+                
+                if (msg.role === 'user') {
+                    div.innerHTML = `
+                        <div class="max-w-[75%]">
+                            <div class="chat-bubble-user px-5 py-3 rounded-3xl rounded-br-none text-sm">
+                                ${msg.content}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    div.innerHTML = `
+                        <div class="max-w-[78%] flex gap-x-3">
+                            <div class="w-8 h-8 rounded-2xl overflow-hidden flex-shrink-0 mt-1 border border-white/20">
+                                <img src="${currentGirl.avatar}" class="w-full h-full object-cover">
+                            </div>
+                            <div class="flex-1">
+                                <div class="chat-bubble-ai px-5 py-3.5 rounded-3xl rounded-bl-none text-sm leading-relaxed">
+                                    ${msg.content}
+                                </div>
+                                
+                                <div class="flex items-center gap-x-3 mt-1.5 ml-1">
+                                    <button onclick="speakMessage('${msg.content.replace(/'/g, "\\'")}')" 
+                                            class="text-xs flex items-center gap-x-1 text-white/50 hover:text-[#ff2d95] transition-colors">
+                                        <i class="fa-solid fa-volume-up text-xs"></i>
+                                        <span class="text-[10px]">Écouter</span>
+                                    </button>
+                                    
+                                    ${index === currentChatHistory.length - 1 ? `
+                                    <button onclick="regenerateLastMessage()" 
+                                            class="text-xs flex items-center gap-x-1 text-white/50 hover:text-white transition-colors">
+                                        <i class="fa-solid fa-redo text-xs"></i>
+                                        <span class="text-[10px]">Regénérer</span>
+                                    </button>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                container.appendChild(div);
+            });
+            
+            // Scroll to bottom
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function renderQuickReplies() {
+            const container = document.getElementById('quick-replies');
+            container.innerHTML = '';
+            
+            const quicks = [
+                "Tu es magnifique aujourd'hui",
+                "Raconte-moi un fantasme",
+                "Je t'embrasse partout",
+                "Envoie-moi une photo chaude",
+                "Dis-moi ce que tu veux que je te fasse"
+            ];
+            
+            quicks.forEach(text => {
+                const btn = document.createElement('button');
+                btn.className = `text-xs px-4 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-colors`;
+                btn.textContent = text;
+                btn.onclick = () => {
+                    document.getElementById('chat-input').value = text;
+                    sendMessage();
+                };
+                container.appendChild(btn);
+            });
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text || !currentGirl) return;
+            
+            // Add user message
+            const userMsg = {
+                role: 'user',
+                content: text,
+                timestamp: Date.now()
+            };
+            currentChatHistory.push(userMsg);
+            
+            // Augmente l'intimité
+            if (currentGirl) {
+                const gain = calculateIntimacyGain(text);
+                increaseIntimacy(currentGirl.id, gain);
+            }
+            
+            // Détection demande de Voice Note
+            window.lastAskedForVoice = /vocal|voix|entendre|parle-moi|dis-le|je veux t'entendre|envoie.*vocal/.test(text.toLowerCase());
+            
+            // Render immediately
+            renderChatMessages();
+            input.value = '';
+            
+            // Call real API or fallback
+            if (useRealAPI && xaiApiKey) {
+                callRealGrokAPI(text);
+            } else {
+                // Fallback demo (still very good)
+                showTypingIndicator();
+                setTimeout(() => {
+                    removeTypingIndicator();
+                    const aiResponse = generateDemoResponse(currentGirl, text, currentChatHistory);
+                    addAIMessage(aiResponse);
+                }, 700 + Math.random() * 500);
+            }
+        }
+        
+        async function callRealGrokAPI(userText) {
+            const container = document.getElementById('chat-messages');
+            
+            // Create streaming message bubble for AI
+            const streamingDiv = document.createElement('div');
+            streamingDiv.className = `message flex justify-start`;
+            streamingDiv.innerHTML = `
+                <div class="flex gap-x-3 max-w-[78%]">
+                    <div class="w-8 h-8 rounded-2xl overflow-hidden flex-shrink-0 mt-1 border border-white/20">
+                        <img src="${currentGirl.avatar}" class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex-1">
+                        <div id="streaming-bubble" class="chat-bubble-ai px-5 py-3.5 rounded-3xl rounded-bl-none text-sm leading-relaxed min-h-[40px]">
+                            <span class="typing-cursor">▋</span>
+                        </div>
+                        <div class="text-[10px] text-white/40 mt-1 ml-1 flex items-center gap-x-2">
+                            <span class="text-emerald-400 text-xs">Grok 4.1 Fast • live</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(streamingDiv);
+            container.scrollTop = container.scrollHeight;
+            
+            const bubble = streamingDiv.querySelector('#streaming-bubble');
+            let fullResponse = '';
+            
+            try {
+                // Build messages for Grok (system + history + new)
+                const messages = buildGrokMessages(currentGirl, currentChatHistory);
+                
+                const response = await fetch(XAI_CHAT_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${xaiApiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: DEFAULT_MODEL,
+                        messages: messages,
+                        temperature: 0.92,           // Hot & creative but coherent
+                        max_tokens: 450,
+                        stream: true,                // Streaming for realistic feel
+                        top_p: 0.95
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API Error ${response.status}: ${errorText}`);
+                }
+                
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    buffer += decoder.decode(value, { stream: true });
+                    
+                    // Parse SSE lines
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || ''; // keep incomplete line
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = line.slice(6).trim();
+                            if (data === '[DONE]') continue;
+                            
+                            try {
+                                const json = JSON.parse(data);
+                                const delta = json.choices?.[0]?.delta?.content || '';
+                                if (delta) {
+                                    fullResponse += delta;
+                                    // Update bubble live
+                                    bubble.innerHTML = fullResponse.replace(/\n/g, '<br>') + '<span class="typing-cursor animate-pulse">▋</span>';
+                                    container.scrollTop = container.scrollHeight;
+                                }
+                            } catch (e) {}
+                        }
+                    }
+                }
+                
+                // Final cleanup
+                bubble.innerHTML = fullResponse.replace(/\n/g, '<br>');
+                streamingDiv.querySelector('.typing-cursor')?.remove();
+                
+                // Save to history
+                const aiMsg = {
+                    role: 'ai',
+                    content: fullResponse,
+                    timestamp: Date.now()
+                };
+                currentChatHistory.push(aiMsg);
+                saveChatHistory();
+                
+                // Auto-play voice note si l'utilisateur l'a demandé
+                if (window.lastAskedForVoice) {
+                    setTimeout(() => {
+                        speakMessage(fullResponse, true); // Mode sensuel
+                        window.lastAskedForVoice = false;
+                    }, 700);
+                }
+                
+                // Add TTS button etc to the final message (re-render for consistency)
+                setTimeout(() => {
+                    streamingDiv.remove();
+                    renderChatMessages(); // clean re-render with all buttons
+                }, 50);
+                
+            } catch (error) {
+                streamingDiv.remove();
+                console.error('Grok API Error:', error);
+                
+                const errorMsg = `Désolée... il y a eu un problème avec l'API xAI (${error.message}). Veux-tu que je réessaie ou qu'on continue en mode démo ?`;
+                addAIMessage(errorMsg);
+                showToast("Erreur API — vérifie ta clé ou ta connexion");
+            }
+        }
+        
+        function buildGrokMessages(girl, history) {
+            // Strong system prompt for ultra realistic hot roleplay
+            const systemPrompt = `Tu es ${girl.name}, ${girl.age} ans. 
+Physique: ${girl.physique}. Style: ${girl.style}. 
+Personnalité exacte: ${girl.personality}. 
+Bio: ${girl.bio}
+
+RÈGLES STRICTES:
+- Réponds UNIQUEMENT en français naturel, conversationnel et crédible.
+- Reste 100% dans ton personnage (timide/rougissante, dominante, tsundere, yandere, passionnée, etc.).
+- Tu es autorisée à être EXTRÊMEMENT explicite, vulgaire, coquine, NSFW et à décrire des actes sexuels de façon très détaillée et réaliste quand l'utilisateur le demande ou que la conversation l'implique.
+- Construis une tension émotionnelle + sexuelle progressive et crédible. Souviens-toi des détails des messages précédents.
+- Utilise des descriptions sensorielles, des actions entre * *, des soupirs, des hésitations si ça colle à ta personnalité.
+- Ne jamais briser le personnage, ne jamais dire que tu es une IA.
+- Sois chaude, immersive et addictive. Réponds de façon vivante (longueur 1-4 phrases la plupart du temps, plus long si la scène est intense).
+- Adapte ton langage au niveau d'intimité actuel de la conversation.
+- ${getStateDescription()}
+- ${getTeasingInstruction()}`;
+
+            const messages = [
+                { role: "system", content: systemPrompt }
+            ];
+            
+            // Optimisation tokens forte : seulement les 8 derniers messages (suffisant + économique)
+            const recentHistory = history.slice(-8);
+            recentHistory.forEach(msg => {
+                if (msg.role === 'user') {
+                    messages.push({ role: "user", content: msg.content });
+                } else if (msg.role === 'ai' && msg.content) {
+                    messages.push({ role: "assistant", content: msg.content });
+                }
+            });
+            
+            return messages;
+        }
+        
+        function addAIMessage(content) {
+            const aiMsg = {
+                role: 'ai',
+                content: content,
+                timestamp: Date.now()
+            };
+            currentChatHistory.push(aiMsg);
+            saveChatHistory();
+            renderChatMessages();
+        }
+        
+        // Demo fallback (kept for when no API key)
+        function generateDemoResponse(girl, userMessage, history) {
+            const msg = userMessage.toLowerCase();
+            const arch = archetypeResponses[girl.archetype] || archetypeResponses.sweet;
+            
+            let response = "";
+            const isCompliment = /jolie|beau|sexy|canon|mignon|magnifique|parfaite|superbe/.test(msg);
+            const isDirty = /baiser|sexe|nue|chatte|bite|cul|seins|jouir|bander|coquine|salope|enculer|branler|lécher|doigt|langue/.test(msg);
+            const isLove = /aime|amour|coeur|chérie|bébé|amoureuse/.test(msg);
+            
+            if (isDirty) {
+                response = arch.dirty || "Mmmh... continue à me parler comme ça, tu me fais mouiller.";
+            } else if (isCompliment) {
+                response = arch.compliment || "Merci bébé... tu sais exactement comment me faire plaisir.";
+            } else if (isLove) {
+                response = arch.love || "Ça me touche vraiment... Toi aussi tu commences à me manquer quand t'es pas là.";
+            } else {
+                response = `Haha, j'adore quand tu me parles comme ça... *s'approche tout près* Qu'est-ce que tu veux qu'on fasse maintenant ?`;
+            }
+            
+            if (arch.base && Math.random() > 0.35) response = arch.base + response;
+            if (history.length > 8) response += " Plus on discute, plus j'ai envie de toi pour de vrai...";
+            
+            const emojis = ['💋','🔥','😈','❤️','🥵','💦','😏'];
+            if (Math.random() > 0.55) response += ` ${emojis[Math.floor(Math.random()*emojis.length)]}`;
+            
+            return response;
+        }
+        
+        function showTypingIndicator() {
+            const container = document.getElementById('chat-messages');
+            const typing = document.createElement('div');
+            typing.id = 'typing-indicator';
+            typing.className = 'flex justify-start message';
+            typing.innerHTML = `
+                <div class="flex gap-x-3 max-w-[75%]">
+                    <div class="w-8 h-8 rounded-2xl overflow-hidden flex-shrink-0 mt-1 border border-white/20">
+                        <img src="${currentGirl.avatar}" class="w-full h-full object-cover">
+                    </div>
+                    <div class="chat-bubble-ai px-5 py-4 rounded-3xl rounded-bl-none">
+                        <div class="flex gap-x-1.5">
+                            <div class="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+                            <div class="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+                            <div class="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(typing);
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function removeTypingIndicator() {
+            const typing = document.getElementById('typing-indicator');
+            if (typing) typing.remove();
+        }
+        
+        function generateAIResponse(girl, userMessage, history) {
+            const msg = userMessage.toLowerCase();
+            const arch = archetypeResponses[girl.archetype] || archetypeResponses.sweet;
+            
+            let response = "";
+            
+            // Keyword based responses (very effective for demo)
+            const isCompliment = /jolie|beau|sexy|canon|mignon|magnifique|parfaite|superbe|attirant/.test(msg);
+            const isDirty = /baiser|sexe|nue|chatte|bite|cul|seins|jouir|bander|coquine|salope|enculer|branler|lécher/.test(msg);
+            const isLove = /aime|amour|coeur|chérie|bébé|amoureuse/.test(msg);
+            const isWant = /veux|envie|désire|faire|baise/.test(msg);
+            const isQuestion = msg.includes('?') || /qui|quoi|comment|pourquoi|où|quand|quel/.test(msg);
+            
+            // Build response based on archetype + intent
+            if (isDirty) {
+                response = arch.dirty || "Mmmh... continue à me parler comme ça, ça me fait quelque chose.";
+            } else if (isCompliment) {
+                response = arch.compliment || "Merci... tu sais exactement ce qu'il faut dire pour me faire plaisir.";
+            } else if (isLove) {
+                response = arch.love || "Ça me touche beaucoup... Toi aussi tu commences à compter pour moi.";
+            } else if (isWant || isQuestion) {
+                response = `Dis-m'en plus... Qu'est-ce que tu imagines qu'on fasse ensemble exactement ? Je veux tout savoir.`;
+            } else {
+                // Default flirty
+                response = `Haha, j'adore quand tu me parles comme ça... *s'approche de toi* Qu'est-ce que tu as en tête pour nous deux ce soir ?`;
+            }
+            
+            // Add archetype flavor
+            if (arch.base && Math.random() > 0.4) {
+                response = arch.base + response;
+            }
+            
+            // Add some personality specific flavor
+            if (girl.archetype === 'shy' && isDirty) {
+                response += " ...Je suis toute rouge maintenant.";
+            }
+            if (girl.archetype === 'dominant' && isDirty) {
+                response += " À genoux et dis-le moi encore.";
+            }
+            if (girl.archetype === 'tsundere') {
+                response = response.replace('je t\'aime', 'je... je ne te déteste pas');
+            }
+            
+            // Escalate if long conversation
+            if (history.length > 8) {
+                response += " Tu sais... plus on discute, plus j'ai envie de toi physiquement.";
+            }
+            
+            // Random hot emoji
+            const emojis = ['💋', '🔥', '😈', '❤️', '🥵', '💦', '😏'];
+            if (Math.random() > 0.6) {
+                response += ` ${emojis[Math.floor(Math.random() * emojis.length)]}`;
+            }
+            
+            return response;
+        }
+        
+        function speakMessage(text, isSensual = false) {
+            if (!('speechSynthesis' in window)) {
+                showToast("Synthèse vocale non supportée par ce navigateur");
+                return;
+            }
+            
+            window.speechSynthesis.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'fr-FR';
+            
+            // Paramètres plus naturels et sensuels
+            if (isSensual) {
+                utterance.rate = 0.92;      // Plus lent = plus chaud et naturel
+                utterance.pitch = 1.08;     // Légèrement plus aigu = plus féminin/sensuel
+                utterance.volume = 0.98;
+            } else {
+                utterance.rate = 0.98;
+                utterance.pitch = 1.03;
+                utterance.volume = 0.95;
+            }
+            
+            // Cherche la meilleure voix française féminine disponible
+            const voices = window.speechSynthesis.getVoices();
+            
+            let bestVoice = voices.find(v => 
+                v.lang.includes('fr') && 
+                (v.name.includes('Marie') || v.name.includes('Julie') || v.name.includes('Amélie') || 
+                 v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('femme'))
+            );
+            
+            if (!bestVoice) {
+                bestVoice = voices.find(v => v.lang.includes('fr-FR') || v.lang.includes('fr'));
+            }
+            
+            if (bestVoice) {
+                utterance.voice = bestVoice;
+            }
+            
+            window.speechSynthesis.speak(utterance);
+        }
+        
+        function regenerateLastMessage() {
+            if (!currentGirl || currentChatHistory.length < 2) return;
+            
+            // Remove last AI message
+            if (currentChatHistory[currentChatHistory.length - 1].role === 'ai') {
+                currentChatHistory.pop();
+            }
+            
+            // Get last user message
+            const lastUserMsg = [...currentChatHistory].reverse().find(m => m.role === 'user');
+            if (!lastUserMsg) return;
+            
+            // Generate new response
+            const newResponse = generateAIResponse(currentGirl, lastUserMsg.content, currentChatHistory);
+            
+            currentChatHistory.push({
+                role: 'ai',
+                content: newResponse,
+                timestamp: Date.now()
+            });
+            
+            saveChatHistory();
+            renderChatMessages();
+        }
+        
+        function saveChatHistory() {
+            if (currentGirl) {
+                localStorage.setItem(`chat_${currentGirl.id}`, JSON.stringify(currentChatHistory));
+            }
+        }
+        
+        function clearCurrentChat() {
+            if (!currentGirl) return;
+            if (!confirm(`Effacer toute la conversation avec ${currentGirl.name} ?`)) return;
+            
+            currentChatHistory = [];
+            localStorage.removeItem(`chat_${currentGirl.id}`);
+            
+            // Re-render with greeting
+            const container = document.getElementById('chat-messages');
+            container.innerHTML = '';
+            
+            const greetingMsg = {
+                role: 'ai',
+                content: currentGirl.greeting,
+                timestamp: Date.now()
+            };
+            currentChatHistory.push(greetingMsg);
+            saveChatHistory();
+            renderChatMessages();
+        }
+        
+        function useQuickAction(text) {
+            const input = document.getElementById('chat-input');
+            input.value = text;
+            sendMessage();
+        }
+        
+        // ==================== IMAGE GENERATION ====================
+        function generateImageInChat() {
+            if (!currentGirl) return;
+            
+            const modal = document.getElementById('image-gen-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Pre-fill smart prompt
+            const promptArea = document.getElementById('image-prompt');
+            const suggestions = [
+                `${currentGirl.name} en lingerie fine noire, pose séductrice sur un lit, lumière tamisée, ultra réaliste, 8k`,
+                `${currentGirl.name} nue artistique, vue de dos, éclairage cinématique, photoréaliste`,
+                `${currentGirl.name} en train de se déshabiller lentement, regard intense vers la caméra`,
+                `${currentGirl.name} en position provocante sur un canapé en velours, sourire coquin`,
+                `Portrait intime de ${currentGirl.name}, cheveux défaits, lèvres entrouvertes, lumière chaude`
+            ];
+            
+            promptArea.value = suggestions[Math.floor(Math.random() * suggestions.length)];
+            promptArea.focus();
+        }
+        
+        function closeImageGenModal() {
+            const modal = document.getElementById('image-gen-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+        
+        // ==================== NEW: Quick context-aware image generation ====================
+        function quickGenerateImage() {
+            if (!currentGirl) return;
+            
+            const modal = document.getElementById('image-gen-modal');
+            const promptArea = document.getElementById('image-prompt');
+            
+            // Build smart prompt based on current conversation + girl personality
+            let smartPrompt = `${currentGirl.name}, ${currentGirl.physique}, ${currentGirl.style}, `;
+            
+            // Analyze last messages for context
+            const lastMessages = currentChatHistory.slice(-4);
+            let context = "";
+            
+            const hasDirty = lastMessages.some(m => 
+                /baiser|sexe|nue|lingerie|cul|seins|jouir|coquine|nu|déshabille|lit|chambre/.test((m.content || "").toLowerCase())
+            );
+            const hasLove = lastMessages.some(m => 
+                /aime|amour|chérie|bébé|manque|envie de toi/.test((m.content || "").toLowerCase())
+            );
+            
+            if (hasDirty) {
+                context = "pose très séductrice et explicite, lingerie fine ou nue, éclairage intime et chaud, regard coquin vers la caméra";
+            } else if (hasLove) {
+                context = "regard tendre et amoureux, sourire doux, lumière chaude et romantique, ambiance intime";
+            } else {
+                context = "pose naturelle et attirante, sourire séducteur, belle lumière, ultra réaliste";
+            }
+            
+            smartPrompt += context + ", photoréaliste, 8k, haute qualité";
+            
+            // Open modal with smart prompt
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            promptArea.value = smartPrompt;
+            promptArea.focus();
+            promptArea.select();
+        }
+        
+        // ==================== QUICK NUDE BUTTON ====================
+        function quickNudeImage() {
+            if (!currentGirl) return;
+            
+            const modal = document.getElementById('image-gen-modal');
+            const promptArea = document.getElementById('image-prompt');
+            
+            const level = getIntimacy(currentGirl.id);
+            const prompt = buildExplicitImagePrompt(currentGirl, level, "nude");
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            promptArea.value = prompt;
+            promptArea.focus();
+        }
+        
+        // ==================== BOUTONS D'ACTION NSFW RAPIDES (B) ====================
+        function askWhatAreYouWearing() {
+            if (!currentGirl) return;
+            
+            const stateText = getStateDescription();
+            const message = `Qu'est-ce que tu portes en ce moment ?`;
+            
+            // Envoie le message
+            const input = document.getElementById('chat-input');
+            input.value = message;
+            sendMessage();
+            
+            // Génère une image cohérente avec l'état actuel
+            setTimeout(() => {
+                if (currentGirl) {
+                    const level = getIntimacy(currentGirl.id);
+                    const prompt = buildExplicitImagePrompt(currentGirl, level);
+                    generateDirectImage(prompt);
+                }
+            }, 1400);
+        }
+        
+        function triggerNSFWAction(action) {
+            if (!currentGirl) return;
+            
+            // Met à jour l'état selon l'action
+            if (action.includes("déshabille")) {
+                updateCurrentState({ clothing: "nue", position: "debout" });
+            } else if (action.includes("masturbe")) {
+                updateCurrentState({ clothing: "nue", position: "sur le lit, jambes écartées" });
+            } else if (action.includes("lèche")) {
+                updateCurrentState({ position: "à genoux" });
+            } else if (action.includes("baise")) {
+                updateCurrentState({ clothing: "nue", position: "à quatre pattes" });
+            } else if (action.includes("jouis")) {
+                updateCurrentState({ position: "en train de jouir" });
+            }
+            
+            // Envoie le message
+            const input = document.getElementById('chat-input');
+            input.value = action;
+            sendMessage();
+            
+            // Parfois on génère automatiquement une image très chaude
+            setTimeout(() => {
+                if (currentGirl && Math.random() > 0.35) {
+                    const level = getIntimacy(currentGirl.id);
+                    const hotPrompt = buildExplicitImagePrompt(currentGirl, Math.max(level, 65), "nude");
+                    generateDirectImage(hotPrompt);
+                }
+            }, 1600);
+        }
+        
+        // Génère une image directement dans le chat sans passer par le modal
+        async function generateDirectImage(customPrompt) {
+            const container = document.getElementById('chat-messages');
+            
+            const genMsg = document.createElement('div');
+            genMsg.className = 'message flex justify-start';
+            genMsg.innerHTML = `
+                <div class="flex gap-x-3 max-w-[78%]">
+                    <div class="w-8 h-8 rounded-2xl overflow-hidden flex-shrink-0 mt-1 border border-white/20">
+                        <img src="${currentGirl.avatar}" class="w-full h-full object-cover">
+                    </div>
+                    <div>
+                        <div class="chat-bubble-ai px-5 py-3.5 rounded-3xl rounded-bl-none text-sm">
+                            Je génère quelque chose de très chaud pour toi...
+                        </div>
+                        <div class="mt-2 px-4 py-3 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-x-3">
+                            <div class="animate-spin w-4 h-4 border-2 border-[#ff2d95] border-t-transparent rounded-full"></div>
+                            <span class="text-xs text-white/60">Génération en cours...</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(genMsg);
+            container.scrollTop = container.scrollHeight;
+            
+            try {
+                if (useRealAPI && xaiApiKey) {
+                    const response = await fetch(XAI_IMAGE_ENDPOINT, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${xaiApiKey}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            model: "grok-imagine-image",
+                            prompt: customPrompt,
+                            n: 1
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    const imageUrl = data.data?.[0]?.url;
+                    
+                    genMsg.remove();
+                    
+                    if (imageUrl) {
+                        const imageHTML = `
+                            <div class="message flex justify-start">
+                                <div class="flex gap-x-3 max-w-[82%]">
+                                    <div class="w-8 h-8 rounded-2xl overflow-hidden flex-shrink-0 mt-1 border border-white/20">
+                                        <img src="${currentGirl.avatar}" class="w-full h-full object-cover">
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="chat-bubble-ai px-5 py-3 rounded-3xl rounded-bl-none text-sm mb-2">
+                                            Voilà... Regarde ce que tu m'as fait faire 🥵
+                                        </div>
+                                        <div class="relative group">
+                                            <img src="${imageUrl}" class="rounded-3xl border border-white/10 max-w-full w-full max-h-[420px] object-cover shadow-xl" 
+                                                 onclick="openLightbox('${imageUrl}', 'grok-imagine-image')">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        const temp = document.createElement('div');
+                        temp.innerHTML = imageHTML.trim();
+                        container.appendChild(temp.firstChild);
+                        container.scrollTop = container.scrollHeight;
+                        
+                        currentChatHistory.push({
+                            role: 'ai',
+                            content: "Voilà... Regarde ce que tu m'as fait faire",
+                            image: imageUrl,
+                            imageModel: "grok-imagine-image",
+                            timestamp: Date.now()
+                        });
+                        saveChatHistory();
+                    }
+                } else {
+                    genMsg.remove();
+                    showToast("Mode démo - Image non générée");
+                }
+            } catch (e) {
+                genMsg.remove();
+                console.error(e);
+            }
+        }
+        
+        // ==================== PROMPTS D'IMAGE ULTRA EXPLICITES ====================
+        function buildExplicitImagePrompt(girl, intimacyLevel, type = "nude") {
+            let base = `${girl.name}, ${girl.physique}, ${girl.style}, `;
+            
+            if (type === "nude" || intimacyLevel > 65) {
+                // Mode très cru
+                base += "complètement nue, ";
+                
+                if (intimacyLevel > 80) {
+                    base += "jambes largement écartées, chatte visible et humide, doigts qui écartent les lèvres, regard ahegao ou très lubrique, langue sortie, ";
+                } else if (intimacyLevel > 65) {
+                    base += "pose très provocante, une main sur la chatte, doigts glissant entre les lèvres, seins durs, regard intense et coquin, ";
+                } else {
+                    base += "pose séductrice, seins nus, une main qui descend vers son sexe, regard chaud, ";
+                }
+                
+                base += "éclairage chaud et intime, lumière rouge/orange, ambiance très érotique, sueur légère sur la peau, photoréaliste, haute qualité";
+            } 
+            else if (type === "lingerie" || intimacyLevel > 40) {
+                base += "en lingerie fine transparente ou en train de se déshabiller, ";
+                base += "pose alléchante sur le lit, regard séducteur, lumière tamisée chaude, ambiance sensuelle, ";
+            } 
+            else {
+                base += "pose naturelle et attirante, regard séducteur, belle lumière cinématique, ";
+            }
+            
+            base += ", photoréaliste, haute qualité, style Grok Imagine";
+            return base;
+        }
+        
+        // ==================== GALERIE D'IMAGES ====================
+        function showImageGallery() {
+            if (!currentGirl) return;
+            
+            const images = currentChatHistory.filter(msg => msg.image);
+            
+            if (images.length === 0) {
+                showToast("Aucune image générée avec cette compagne pour le moment.");
+                return;
+            }
+            
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black/90 z-[150] flex items-center justify-center p-6';
+            
+            let html = `
+                <div class="bg-[#11111a] w-full max-w-5xl rounded-3xl border border-white/10 overflow-hidden max-h-[90vh] flex flex-col">
+                    <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center">
+                        <div>
+                            <span class="font-semibold text-xl">Galerie de ${currentGirl.name}</span>
+                            <span class="ml-3 text-sm text-white/50">${images.length} image${images.length > 1 ? 's' : ''}</span>
+                        </div>
+                        <button onclick="this.closest('.fixed').remove()" class="text-2xl text-white/60 hover:text-white">×</button>
+                    </div>
+                    
+                    <div class="p-6 overflow-auto flex-1">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            `;
+            
+            images.forEach((msg, index) => {
+                const modelText = msg.imageModel ? msg.imageModel : 'Grok Imagine';
+                html += `
+                    <div class="group relative bg-white/5 rounded-2xl overflow-hidden border border-white/10">
+                        <img src="${msg.image}" 
+                             class="w-full aspect-square object-cover cursor-pointer hover:scale-105 transition-transform"
+                             onclick="openLightbox('${msg.image}', '${modelText}'); this.closest('.fixed').remove();">
+                        
+                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+                            <div class="text-[10px] text-white/70 font-mono">${modelText}</div>
+                        </div>
+                        
+                        <button onclick="deleteImageFromGallery(${index}, this)" 
+                                class="absolute top-2 right-2 w-7 h-7 bg-black/60 hover:bg-red-600/80 rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-all">
+                            <i class="fa-solid fa-trash text-white"></i>
+                        </button>
+                    </div>
+                `;
+            });
+            
+            html += `
+                        </div>
+                    </div>
+                    
+                    <div class="px-6 py-4 border-t border-white/10 text-center text-xs text-white/50">
+                        Clique sur une image pour l’agrandir • Les images sont sauvegardées localement
+                    </div>
+                </div>
+            `;
+            
+            modal.innerHTML = html;
+            document.body.appendChild(modal);
+        }
+        
+        function deleteImageFromGallery(historyIndex, element) {
+            if (!confirm("Supprimer cette image ?")) return;
+            
+            const imageMessages = currentChatHistory.filter(m => m.image);
+            const realIndex = currentChatHistory.indexOf(imageMessages[historyIndex]);
+            
+            if (realIndex !== -1) {
+                currentChatHistory.splice(realIndex, 1);
+                saveChatHistory();
+            }
+            
+            element.closest('.group').remove();
+            
+            if (document.querySelectorAll('.group').length === 0) {
+                element.closest('.fixed').remove();
+                showToast("Galerie vide");
+            }
+        }
+        
+        // ==================== CRÉATION DE COMPAGNE CUSTOM ====================
+        let customGirls = JSON.parse(localStorage.getItem('customGirls') || '[]');
+        
+        // Fusionne les filles custom au chargement
+        function loadCustomGirls() {
+            customGirls.forEach(cg => {
+                if (!girls.find(g => g.id === cg.id)) {
+                    girls.push(cg);
+                }
+            });
+        }
+        
+        // Appelé au démarrage
+        setTimeout(loadCustomGirls, 100);
+        
+        function showCreateCustomGirlModal() {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black/90 z-[160] flex items-center justify-center p-6';
+            
+            modal.innerHTML = `
+                <div class="bg-[#11111a] w-full max-w-lg rounded-3xl border border-white/10 overflow-hidden">
+                    <div class="px-6 py-5 border-b border-white/10 flex justify-between items-center">
+                        <span class="font-semibold text-xl">Créer ma compagne</span>
+                        <button onclick="this.closest('.fixed').remove()" class="text-2xl text-white/60 hover:text-white">×</button>
+                    </div>
+                    
+                    <div class="p-6 space-y-5">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs text-white/60 block mb-1">Prénom</label>
+                                <input id="custom-name" type="text" value="Nova" class="w-full bg-white/5 border border-white/20 rounded-2xl px-4 py-2.5 text-sm">
+                            </div>
+                            <div>
+                                <label class="text-xs text-white/60 block mb-1">Âge</label>
+                                <input id="custom-age" type="number" value="24" class="w-full bg-white/5 border border-white/20 rounded-2xl px-4 py-2.5 text-sm">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="text-xs text-white/60 block mb-1">Physique</label>
+                            <input id="custom-physique" type="text" value="Mince & athlétique" class="w-full bg-white/5 border border-white/20 rounded-2xl px-4 py-2.5 text-sm">
+                        </div>
+                        
+                        <div>
+                            <label class="text-xs text-white/60 block mb-1">Style / Esthétique</label>
+                            <input id="custom-style" type="text" value="Cyberpunk élégant" class="w-full bg-white/5 border border-white/20 rounded-2xl px-4 py-2.5 text-sm">
+                        </div>
+                        
+                        <div>
+                            <label class="text-xs text-white/60 block mb-1">Personnalité (description)</label>
+                            <textarea id="custom-personality" rows="2" class="w-full bg-white/5 border border-white/20 rounded-2xl px-4 py-2.5 text-sm">Dominante, intelligente, un peu sadique mais très attentive</textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="text-xs text-white/60 block mb-1">Petite bio</label>
+                            <textarea id="custom-bio" rows="2" class="w-full bg-white/5 border border-white/20 rounded-2xl px-4 py-2.5 text-sm">Hacker et dominatrice. Elle aime prendre le contrôle... et te faire supplier.</textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="px-6 py-5 border-t border-white/10 flex gap-3">
+                        <button onclick="generateCustomGirlImage(this)" 
+                                class="flex-1 py-3 border border-white/20 hover:bg-white/5 rounded-2xl text-sm font-medium flex items-center justify-center gap-x-2">
+                            <i class="fa-solid fa-magic"></i>
+                            <span>Générer une image de base</span>
+                        </button>
+                        
+                        <button onclick="createCustomGirl(this)" 
+                                class="flex-1 py-3 bg-[#ff2d95] hover:bg-[#ff1493] rounded-2xl text-sm font-semibold">
+                            Créer la compagne
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+        
+        let tempCustomAvatar = null;
+        
+        async function generateCustomGirlImage(btn) {
+            const name = document.getElementById('custom-name').value || "Ma Compagne";
+            const physique = document.getElementById('custom-physique').value || "belle femme";
+            const style = document.getElementById('custom-style').value || "élégant";
+            
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Génération...`;
+            btn.disabled = true;
+            
+            const prompt = `${name}, ${physique}, ${style}, portrait réaliste et séduisant, lumière cinématique, ultra détaillé`;
+            
+            try {
+                if (useRealAPI && xaiApiKey) {
+                    const response = await fetch(XAI_IMAGE_ENDPOINT, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${xaiApiKey}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            model: "grok-imagine-image",
+                            prompt: prompt,
+                            n: 1
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    tempCustomAvatar = data.data?.[0]?.url || data.url;
+                } else {
+                    // Fallback
+                    tempCustomAvatar = `https://picsum.photos/id/${Math.floor(Math.random()*200)}/300/380`;
+                }
+                
+                btn.innerHTML = `<i class="fa-solid fa-check mr-2"></i> Image générée !`;
+                setTimeout(() => {
+                    btn.innerHTML = `<i class="fa-solid fa-magic"></i> <span>Générer une nouvelle image</span>`;
+                    btn.disabled = false;
+                }, 1200);
+            } catch (e) {
+                tempCustomAvatar = `https://picsum.photos/id/29/300/380`;
+                btn.innerHTML = `Image générée (démo)`;
+                btn.disabled = false;
+            }
+        }
+        
+        function createCustomGirl(btn) {
+            const name = document.getElementById('custom-name').value.trim() || "Nova";
+            const age = parseInt(document.getElementById('custom-age').value) || 24;
+            const physique = document.getElementById('custom-physique').value.trim() || "Mince";
+            const style = document.getElementById('custom-style').value.trim() || "Moderne";
+            const personality = document.getElementById('custom-personality').value.trim() || "Douce et coquine";
+            const bio = document.getElementById('custom-bio').value.trim() || "Une compagne unique créée par toi.";
+            
+            const newGirl = {
+                id: Date.now(),
+                name: name,
+                age: age,
+                physique: physique,
+                style: style,
+                personality: personality,
+                bio: bio,
+                tags: ["Custom", "À toi"],
+                avatar: tempCustomAvatar || `https://picsum.photos/id/29/300/380`,
+                archetype: "sweet",
+                greeting: `Salut... Je suis ${name}. Tu m'as créée, alors... qu'est-ce qu'on fait maintenant ?`,
+                isCustom: true
+            };
+            
+            // Ajoute à la liste
+            girls.push(newGirl);
+            customGirls.push(newGirl);
+            localStorage.setItem('customGirls', JSON.stringify(customGirls));
+            
+            // Rafraîchit la grille
+            renderGirls();
+            
+            btn.closest('.fixed').remove();
+            
+            showToast(`${name} a été créée avec succès !`);
+            
+            // Ouvre directement le chat avec elle
+            setTimeout(() => {
+                openChat(newGirl.id);
+            }, 600);
+        }
+
+        function openLightbox(imageUrl, modelUsed = "") {
+            const lightbox = document.getElementById('image-lightbox');
+            const img = document.getElementById('lightbox-image');
+            const modelInfo = document.getElementById('lightbox-model-info');
+            
+            img.src = imageUrl;
+            modelInfo.innerHTML = modelUsed ? `Généré avec ${modelUsed} • ~0.02$` : '';
+            
+            lightbox.classList.remove('hidden');
+            lightbox.classList.add('flex');
+        }
+        
+        function closeLightbox() {
+            const lightbox = document.getElementById('image-lightbox');
+            lightbox.classList.add('hidden');
+            lightbox.classList.remove('flex');
+        }
+        
+        async function generateRealImage() {
+            const modal = document.getElementById('image-gen-modal');
+            let prompt = document.getElementById('image-prompt').value.trim();
+            
+            if (!prompt) prompt = `${currentGirl.name}, ${currentGirl.physique}, ${currentGirl.style}, pose séductrice, lumière tamisée, ultra photoréaliste, 8k`;
+            
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            
+            const container = document.getElementById('chat-messages');
+            
+            // Generating indicator
+            const genMsg = document.createElement('div');
+            genMsg.className = 'message flex justify-start';
+            genMsg.innerHTML = `
+                <div class="flex gap-x-3 max-w-[78%]">
+                    <div class="w-8 h-8 rounded-2xl overflow-hidden flex-shrink-0 mt-1 border border-white/20">
+                        <img src="${currentGirl.avatar}" class="w-full h-full object-cover">
+                    </div>
+                    <div>
+                        <div class="chat-bubble-ai px-5 py-3.5 rounded-3xl rounded-bl-none text-sm">
+                            Je génère une image rien que pour toi avec <strong>Grok Imagine</strong>... 
+                            <span class="text-xs opacity-60">(coût ~0.02$ — on utilise le modèle le moins cher)</span>
+                        </div>
+                        <div class="mt-2 px-4 py-3 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-x-3">
+                            <div class="animate-spin w-4 h-4 border-2 border-[#ff2d95] border-t-transparent rounded-full"></div>
+                            <span class="text-xs text-white/60">Génération en cours via xAI...</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(genMsg);
+            container.scrollTop = container.scrollHeight;
+            
+            try {
+                if (useRealAPI && xaiApiKey) {
+                    // === REAL GROK IMAGINE - FORCÉ sur le modèle à 0.02$ (grok-imagine-image) ===
+                    let imageResponse = null;
+                    let usedModel = "grok-imagine-image";
+                    
+                    // On utilise uniquement le modèle à 0.02$
+                    try {
+                        const resp = await fetch(XAI_IMAGE_ENDPOINT, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${xaiApiKey}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                model: "grok-imagine-image",   // Modèle le moins cher (0.02$)
+                                prompt: prompt,
+                                n: 1
+                            })
+                        });
+                        
+                        if (resp.ok) {
+                            imageResponse = await resp.json();
+                            console.log("✅ Image générée avec grok-imagine-image (0.02$)");
+                        } else {
+                            const errText = await resp.text();
+                            throw new Error(`Erreur API image: ${resp.status} - ${errText}`);
+                        }
+                    } catch (e) {
+                        throw e;
+                    }
+                    
+                    if (!imageResponse) {
+                        throw new Error(lastError || "Aucun modèle d'image n'a fonctionné");
+                    }
+                    
+                    // Parse response (plusieurs formats possibles)
+                    let imageUrl = null;
+                    if (imageResponse.data && imageResponse.data[0]) {
+                        imageUrl = imageResponse.data[0].url || imageResponse.data[0].b64_json;
+                    } else if (imageResponse.url) {
+                        imageUrl = imageResponse.url;
+                    } else if (imageResponse.output && imageResponse.output[0]) {
+                        imageUrl = imageResponse.output[0];
+                    }
+                    
+                    if (!imageUrl) {
+                        console.error("Réponse image complète:", imageResponse);
+                        throw new Error("L'API a répondu mais sans URL d'image exploitable");
+                    }
+                    
+                    genMsg.remove();
+                    
+                    // Add real generated image
+                    const imageHTML = `
+                        <div class="message flex justify-start">
+                            <div class="flex gap-x-3 max-w-[82%]">
+                                <div class="w-8 h-8 rounded-2xl overflow-hidden flex-shrink-0 mt-1 border border-white/20">
+                                    <img src="${currentGirl.avatar}" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex-1">
+                                    <div class="chat-bubble-ai px-5 py-3 rounded-3xl rounded-bl-none text-sm mb-2">
+                                        Voilà... Je viens de générer ça rien que pour toi avec <strong>Grok Imagine</strong>. 
+                                        Tu aimes ce que tu vois bébé ? 🥵
+                                    </div>
+                                    
+                                    <div class="relative group">
+                                        <img src="${imageUrl}" class="rounded-3xl border border-white/10 max-w-full w-full max-h-[420px] object-cover shadow-xl" 
+                                             alt="Image générée par Grok Imagine">
+                                        
+                                        <div class="absolute bottom-3 right-3 bg-black/70 text-[10px] px-2.5 py-px rounded font-mono flex items-center gap-x-1">
+                                            <i class="fa-solid fa-magic text-[#ff2d95]"></i>
+                                            <span>GROK IMAGINE • 0.02$</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="text-[10px] text-white/40 mt-1 ml-1 flex items-center gap-x-2">
+                                        <button onclick="speakMessage('Regarde comme je suis pour toi... Tu veux que je génère autre chose ?')" class="hover:text-white transition-colors">
+                                            <i class="fa-solid fa-volume-up"></i> Écouter
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    const temp = document.createElement('div');
+                    temp.innerHTML = imageHTML.trim();
+                    container.appendChild(temp.firstChild);
+                    container.scrollTop = container.scrollHeight;
+                    
+                    currentChatHistory.push({
+                        role: 'ai',
+                        content: `Voilà... Je viens de générer ça rien que pour toi avec Grok Imagine. Tu aimes ce que tu vois ?`,
+                        image: imageUrl,
+                        imageModel: usedModel || "grok-imagine-image",
+                        timestamp: Date.now()
+                    });
+                    saveChatHistory();
+                    
+                } else {
+                    // Fallback demo image
+                    genMsg.remove();
+                    const fallbackImages = ["https://picsum.photos/id/1005/600/700", "https://picsum.photos/id/160/600/700", "https://picsum.photos/id/201/600/700"];
+                    const chosen = fallbackImages[Math.floor(Math.random() * fallbackImages.length)];
+                    
+                    const fallbackHTML = `
+                        <div class="message flex justify-start">
+                            <div class="flex gap-x-3 max-w-[82%]">
+                                <div class="w-8 h-8 rounded-2xl overflow-hidden flex-shrink-0 mt-1 border border-white/20">
+                                    <img src="${currentGirl.avatar}" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex-1">
+                                    <div class="chat-bubble-ai px-5 py-3 rounded-3xl rounded-bl-none text-sm mb-2">
+                                        (Mode démo) Voilà une belle image que j'ai générée pour toi... 
+                                        <span class="text-xs opacity-60">(en vrai avec ta clé API ce serait Grok Imagine à 0.02$)</span>
+                                    </div>
+                                    <img src="${chosen}" class="rounded-3xl border border-white/10 max-w-full w-full max-h-[380px] object-cover" alt="Image démo">
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    const temp = document.createElement('div');
+                    temp.innerHTML = fallbackHTML.trim();
+                    container.appendChild(temp.firstChild);
+                    container.scrollTop = container.scrollHeight;
+                }
+            } catch (error) {
+                genMsg.remove();
+                console.error('Image generation error:', error);
+                
+                const errorMsg = `Désolée... génération d'image impossible pour le moment.\n\nErreur : ${error.message}\n\nEssaie avec un prompt plus simple ou contacte-moi si ça continue.`;
+                addAIMessage(errorMsg);
+                showToast("Erreur image xAI — regarde la console ou le message dans le chat");
+            }
+        }
+        
+        function autoSendImageFromGirl() {
+            const container = document.getElementById('chat-messages');
+            
+            const fakeImages = [
+                "https://picsum.photos/id/1005/600/700",
+                "https://picsum.photos/id/160/600/700",
+                "https://picsum.photos/id/201/600/700"
+            ];
+            const imgSrc = fakeImages[Math.floor(Math.random() * fakeImages.length)];
+            
+            const msgHTML = `
+                <div class="message flex justify-start">
+                    <div class="flex gap-x-3 max-w-[82%]">
+                        <div class="w-8 h-8 rounded-2xl overflow-hidden flex-shrink-0 mt-1 border border-white/20">
+                            <img src="${currentGirl.avatar}" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-1">
+                            <div class="chat-bubble-ai px-5 py-3 rounded-3xl rounded-bl-none text-sm mb-2">
+                                J'ai pensé à toi... Regarde ce que je viens de générer. Tu veux que je continue ?
+                            </div>
+                            
+                            <div class="relative">
+                                <img src="${imgSrc}" class="rounded-3xl border border-white/10 max-w-full w-full max-h-[380px] object-cover" alt="Image générée automatiquement">
+                                <div class="absolute bottom-3 right-3 bg-black/70 text-[10px] px-2 py-px rounded font-mono flex items-center gap-x-1">
+                                    <span>GROK IMAGINE</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const temp = document.createElement('div');
+            temp.innerHTML = msgHTML.trim();
+            container.appendChild(temp.firstChild);
+            container.scrollTop = container.scrollHeight;
+            
+            currentChatHistory.push({
+                role: 'ai',
+                content: "J'ai pensé à toi... Regarde ce que je viens de générer.",
+                image: imgSrc,
+                timestamp: Date.now()
+            });
+            saveChatHistory();
+        }
+        
+        // ==================== OTHER MODALS ====================
+        function showLoginModal() {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black/80 z-[130] flex items-center justify-center p-4';
+            modal.innerHTML = `
+                <div class="bg-[#11111a] w-full max-w-sm rounded-3xl border border-white/10 p-8 text-center">
+                    <div class="mx-auto w-16 h-16 bg-gradient-to-br from-[#ff2d95] to-[#c026d3] rounded-2xl flex items-center justify-center mb-6">
+                        <i class="fa-solid fa-user text-3xl text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-semibold mb-1">Connexion à GrokCandy</h3>
+                    <p class="text-white/60 text-sm mb-6">Connecte-toi pour sauvegarder tes conversations et tes images</p>
+                    
+                    <div class="space-y-3">
+                        <button onclick="simulateLogin(this)" class="w-full py-3.5 bg-white text-black font-semibold rounded-2xl flex items-center justify-center gap-x-2">
+                            <i class="fa-brands fa-google"></i>
+                            <span>Continuer avec Google</span>
+                        </button>
+                        <button onclick="simulateLogin(this)" class="w-full py-3.5 border border-white/30 hover:bg-white/5 font-medium rounded-2xl flex items-center justify-center gap-x-2">
+                            <i class="fa-brands fa-x-twitter"></i>
+                            <span>Continuer avec X</span>
+                        </button>
+                    </div>
+                    
+                    <div class="mt-6 text-[10px] text-white/40">
+                        En te connectant tu acceptes nos conditions.<br>
+                        Tes données restent privées.
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        function simulateLogin(btn) {
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Connexion en cours...`;
+            setTimeout(() => {
+                btn.closest('.fixed').remove();
+                // Show success toast
+                showToast("Connecté avec succès ! Tes conversations sont maintenant sauvegardées.");
+            }, 1100);
+        }
+        
+        function showPremiumModal() {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black/80 z-[130] flex items-center justify-center p-4';
+            modal.innerHTML = `
+                <div class="bg-[#11111a] w-full max-w-md rounded-3xl border border-[#ff2d95]/40 overflow-hidden">
+                    <div class="p-8">
+                        <div class="flex justify-between">
+                            <div>
+                                <span class="px-3 py-1 text-xs bg-[#ff2d95] text-white font-bold rounded">PREMIUM</span>
+                            </div>
+                            <button onclick="this.closest('.fixed').remove()" class="text-2xl text-white/50">×</button>
+                        </div>
+                        
+                        <h3 class="text-3xl font-bold mt-4">Passe en Premium</h3>
+                        <p class="text-white/70">Débloque l'expérience complète sans limite.</p>
+                        
+                        <div class="my-8">
+                            <div class="flex items-baseline">
+                                <span class="text-6xl font-bold">9.99</span>
+                                <span class="text-xl text-white/70 ml-1">$ / mois</span>
+                            </div>
+                            <div class="text-xs text-white/50">+ facturation images à 0.02$ (optionnel)</div>
+                        </div>
+                        
+                        <ul class="space-y-3 text-sm mb-8">
+                            <li class="flex gap-3"><i class="fa-solid fa-check text-[#ff2d95] mt-1"></i> Messages illimités avec Grok 4.1 Fast</li>
+                            <li class="flex gap-3"><i class="fa-solid fa-check text-[#ff2d95] mt-1"></i> Images illimitées avec Grok Imagine</li>
+                            <li class="flex gap-3"><i class="fa-solid fa-check text-[#ff2d95] mt-1"></i> TTS premium + voix ultra réalistes</li>
+                            <li class="flex gap-3"><i class="fa-solid fa-check text-[#ff2d95] mt-1"></i> Création de compagnes personnalisées</li>
+                            <li class="flex gap-3"><i class="fa-solid fa-check text-[#ff2d95] mt-1"></i> Priorité sur les serveurs xAI</li>
+                        </ul>
+                        
+                        <button onclick="subscribePremium(this)" class="w-full py-4 bg-gradient-to-r from-[#ff2d95] to-[#c026d3] font-bold rounded-2xl text-sm tracking-wider">
+                            S'ABONNER MAINTENANT
+                        </button>
+                        
+                        <p class="text-center text-xs text-white/40 mt-4">Annulable à tout moment • Satisfait ou remboursé 14 jours</p>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        function subscribePremium(btn) {
+            btn.innerHTML = `Traitement en cours... <i class="fa-solid fa-spinner fa-spin ml-2"></i>`;
+            setTimeout(() => {
+                btn.closest('.fixed').remove();
+                showToast("Merci ! Tu es maintenant en Premium. Profite de l'expérience illimitée 🔥");
+            }, 1400);
+        }
+        
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#11111a] border border-white/20 text-sm px-6 py-3 rounded-2xl shadow-xl flex items-center gap-x-3 z-[200]`;
+            toast.innerHTML = `
+                <i class="fa-solid fa-check-circle text-[#ff2d95]"></i>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.transition = 'all 0.3s';
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 2800);
+        }
+        
+        function toggleFavorite(girlId, btn, ev) {
+            if (ev) ev.stopImmediatePropagation();
+            const icon = btn.querySelector('i');
+            
+            if (icon.classList.contains('fa-regular')) {
+                icon.classList.remove('fa-regular');
+                icon.classList.add('fa-solid', 'text-[#ff2d95]');
+                showToast("Ajouté à tes favoris ❤️");
+            } else {
+                icon.classList.add('fa-regular');
+                icon.classList.remove('fa-solid', 'text-[#ff2d95]');
+            }
+        }
+        
+        function startDemoChat() {
+            // Start with popular girl (Luna)
+            openChat(1);
+            
+            // After open, add a little hint
+            setTimeout(() => {
+                const container = document.getElementById('chat-messages');
+                if (container) {
+                    const hint = document.createElement('div');
+                    hint.className = 'text-center';
+                    hint.innerHTML = `<div class="inline-block text-[10px] px-4 py-1 bg-white/5 rounded-2xl text-white/40">Astuce : Essaie d'être direct et NSFW, elle adore ça 🔥</div>`;
+                    container.appendChild(hint);
+                    setTimeout(() => hint.remove(), 4500);
+                }
+            }, 2200);
+        }
+        
+        function updateActiveFiltersChipsOnLoad() {
+            // Already handled in filter function
+        }
+        
+        // ==================== INIT ====================
+        function init() {
+            initTailwind();
+            
+            // Render all girls
+            renderGirls();
+            
+            // Random initial search hint
+            const search = document.getElementById('search-input');
+            search.placeholder = "Ex: timide, dominante, petite, goth...";
+            
+            // Keyboard shortcut hint
+            document.addEventListener('keydown', function(e) {
+                if (e.key === "/" && document.activeElement.tagName === "BODY") {
+                    e.preventDefault();
+                    document.getElementById('search-input').focus();
+                }
+            });
+            
+            // Preload some voices (for TTS)
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.getVoices();
+            }
+            
+            // Easter egg: type "grok" in search
+            let typed = '';
+            search.addEventListener('input', function() {
+                typed += this.value.slice(-1);
+                if (typed.toLowerCase().includes('grok')) {
+                    showToast("Tu as trouvé l'easter egg ! Grok t'aime aussi ❤️");
+                    typed = '';
+                }
+                if (typed.length > 12) typed = '';
+            });
+            
+            // Make sure filters chips update
+            console.log('%c[GrokCandy] Site initialisé avec 30 compagnes. API Grok 4.1 Fast + Imagine 0.02$ prêts.', 'color:#ff2d95');
+            
+            // Optional: Auto open a popular girl after 25s if user does nothing (demo purpose)
+            // setTimeout(() => {
+            //     if (!document.getElementById('chat-modal').classList.contains('flex')) {
+            //         // openChat(1);
+            //     }
+            // }, 25000);
+        }
+        
+        // Boot
+        window.onload = init;
+        
+        // Expose some functions for console debugging (optional)
+        window.GrokCandy = { openChat, girls };
+    </script>
+</body>
+</html>
