@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📦 Suivi Stock Pro • Rentrée 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Poppins:wght@500;600&amp;display=swap');
+        
+        body {
+            font-family: 'Inter', system_ui, sans-serif;
+        }
+        
+        .title-font {
+            font-family: 'Poppins', system_ui, sans-serif;
+        }
+
+        .stock-table th {
+            background-color: #f1e7ff;
+            font-weight: 600;
+            color: #581c87;
+        }
+
+        .marge-positive { color: #16a34a; font-weight: 600; }
+        .marge-negative { color: #dc2626; font-weight: 600; }
+
+        .summary-card {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .summary-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05);
+        }
+
+        .pro-header {
+            background: linear-gradient(to right, #581c87, #7e22ce);
+        }
+
+        .metric-value {
+            font-variant-numeric: tabular-nums;
+        }
+    </style>
+</head>
+<body class="bg-slate-100">
+    <div class="max-w-7xl mx-auto p-6">
+        <!-- Header Pro -->
+        <div class="pro-header rounded-3xl p-8 mb-8 text-white shadow-xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="flex items-center gap-x-4">
+                        <div class="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
+                            <i class="fa-solid fa-boxes-stacked text-4xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-4xl font-semibold tracking-tight title-font">Suivi Stock Pro</h1>
+                            <p class="text-purple-200 text-lg">Préparation Rentrée 2026 • Micro-entrepreneur</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-x-3">
+                    <button onclick="exportToCSV()" 
+                            class="px-5 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl flex items-center gap-x-2 text-sm font-medium transition-all active:scale-[0.985]">
+                        <i class="fa-solid fa-file-export"></i>
+                        <span>Exporter CSV</span>
+                    </button>
+                    <button onclick="clearAllData()" 
+                            class="px-5 py-3 bg-white/10 hover:bg-red-500/80 hover:text-white rounded-2xl flex items-center gap-x-2 text-sm font-medium transition-all active:scale-[0.985]">
+                        <i class="fa-solid fa-trash-can"></i>
+                        <span>Tout effacer</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paramètres URSSAF -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-8 flex items-center justify-between">
+            <div class="flex items-center gap-x-4">
+                <div class="w-11 h-11 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid fa-percent text-xl"></i>
+                </div>
+                <div>
+                    <div class="font-semibold text-slate-800">Frais URSSAF</div>
+                    <div class="text-sm text-slate-500">Taux appliqué sur le prix de revente</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-x-3">
+                <div class="flex items-center bg-slate-100 rounded-2xl px-1 py-1">
+                    <input type="number" id="urssafRate" value="12.3" step="0.1" 
+                           class="w-20 text-center font-semibold bg-transparent focus:outline-none text-lg">
+                    <span class="px-3 text-slate-500 font-medium">%</span>
+                </div>
+                <button onclick="updateUrssafRate()" 
+                        class="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl text-sm font-semibold flex items-center gap-x-2 transition-colors">
+                    <i class="fa-solid fa-sync-alt"></i>
+                    <span>Appliquer</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Formulaire d'ajout -->
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-7 mb-8">
+            <div class="flex items-center gap-x-3 mb-6">
+                <i class="fa-solid fa-plus-circle text-purple-600 text-2xl"></i>
+                <h2 class="font-semibold text-2xl text-slate-800">Ajouter un article au stock</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-6 gap-5">
+                <div class="md:col-span-1">
+                    <label class="block text-sm font-semibold text-slate-600 mb-2">Date d'achat</label>
+                    <input type="date" id="date" class="w-full border border-slate-300 focus:border-purple-500 rounded-2xl px-4 py-3 text-sm">
+                </div>
+                
+                <div class="md:col-span-3">
+                    <label class="block text-sm font-semibold text-slate-600 mb-2">Titre / Description</label>
+                    <input type="text" id="titre" placeholder="Ex: Sac Arthur & Aston rayé cuir & tissu" 
+                           class="w-full border border-slate-300 focus:border-purple-500 rounded-2xl px-4 py-3 text-sm">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-2">Prix d'achat (€)</label>
+                    <input type="number" id="prixAchat" step="0.5" placeholder="0.00" 
+                           class="w-full border border-slate-300 focus:border-purple-500 rounded-2xl px-4 py-3 text-sm font-medium">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-2">Prix revente estimé (€)</label>
+                    <input type="number" id="prixRevente" step="0.5" placeholder="0.00" 
+                           class="w-full border border-slate-300 focus:border-purple-500 rounded-2xl px-4 py-3 text-sm font-medium">
+                </div>
+            </div>
+            
+            <div class="mt-6 flex justify-end">
+                <button onclick="ajouterArticle()" 
+                        class="bg-purple-600 hover:bg-purple-700 active:bg-purple-800 transition-all text-white px-10 py-3.5 rounded-2xl font-semibold flex items-center gap-x-3 text-base shadow-lg shadow-purple-200">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Ajouter au stock</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Résumé Pro -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+            <div class="summary-card bg-white border border-slate-200 rounded-3xl p-5">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-xs uppercase tracking-widest text-slate-500 font-medium">Articles</div>
+                        <div id="totalArticles" class="text-4xl font-semibold text-slate-800 mt-2 metric-value">0</div>
+                    </div>
+                    <i class="fa-solid fa-boxes text-3xl text-purple-200"></i>
+                </div>
+            </div>
+            
+            <div class="summary-card bg-white border border-slate-200 rounded-3xl p-5">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-xs uppercase tracking-widest text-slate-500 font-medium">Total investi</div>
+                        <div id="totalAchat" class="text-4xl font-semibold text-slate-800 mt-2 metric-value">0,00 €</div>
+                    </div>
+                    <i class="fa-solid fa-wallet text-3xl text-orange-200"></i>
+                </div>
+            </div>
+            
+            <div class="summary-card bg-white border border-slate-200 rounded-3xl p-5">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-xs uppercase tracking-widest text-slate-500 font-medium">Revente brut</div>
+                        <div id="totalReventeBrut" class="text-4xl font-semibold text-emerald-600 mt-2 metric-value">0,00 €</div>
+                    </div>
+                    <i class="fa-solid fa-hand-holding-dollar text-3xl text-emerald-200"></i>
+                </div>
+            </div>
+            
+            <div class="summary-card bg-white border border-slate-200 rounded-3xl p-5">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-xs uppercase tracking-widest text-slate-500 font-medium">Frais URSSAF</div>
+                        <div id="totalFraisUrssaf" class="text-4xl font-semibold text-red-500 mt-2 metric-value">0,00 €</div>
+                    </div>
+                    <i class="fa-solid fa-receipt text-3xl text-red-200"></i>
+                </div>
+            </div>
+            
+            <div class="summary-card bg-gradient-to-br from-purple-600 to-violet-600 text-white rounded-3xl p-5 col-span-2 md:col-span-1">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-xs uppercase tracking-widest text-purple-200 font-medium">Marge nette</div>
+                        <div id="totalMargeNette" class="text-4xl font-semibold mt-2 metric-value">0,00 €</div>
+                    </div>
+                    <i class="fa-solid fa-chart-line text-3xl text-purple-300"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tableau -->
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="px-7 py-5 border-b flex items-center justify-between bg-slate-50">
+                <div>
+                    <h3 class="font-semibold text-xl text-slate-800">Stock actuel</h3>
+                </div>
+                <div class="text-sm px-4 py-1.5 bg-white border border-slate-200 rounded-2xl text-slate-500 font-medium" id="nbArticlesTable">
+                    0 article
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b text-sm">
+                            <th class="px-7 py-4 text-left font-semibold text-purple-700">Date</th>
+                            <th class="px-7 py-4 text-left font-semibold text-purple-700">Titre / Description</th>
+                            <th class="px-7 py-4 text-right font-semibold text-purple-700">Prix achat</th>
+                            <th class="px-7 py-4 text-right font-semibold text-purple-700">Prix revente</th>
+                            <th class="px-7 py-4 text-right font-semibold text-purple-700">Frais URSSAF</th>
+                            <th class="px-7 py-4 text-right font-semibold text-purple-700">Net estimé</th>
+                            <th class="px-7 py-4 text-center font-semibold text-purple-700 w-16">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y text-sm">
+                        <!-- Rempli par JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="emptyState" class="hidden px-7 py-12 text-center">
+                <i class="fa-solid fa-box-open text-5xl text-slate-200 mb-4"></i>
+                <p class="text-slate-400">Aucun article pour le moment.<br>Ajoute ton premier achat ci-dessus.</p>
+            </div>
+        </div>
+        
+        <div class="text-center mt-8 text-xs text-slate-400">
+            Outil créé pour toi • Les données restent sur ton ordinateur (localStorage) • Taux URSSAF par défaut : 12,3 %
+        </div>
+    </div>
+
+    <script>
+        let stock = [];
+        let urssafRate = 12.3;
+
+        function chargerStock() {
+            const saved = localStorage.getItem('stockRentree2026Pro');
+            if (saved) {
+                stock = JSON.parse(saved);
+            }
+            
+            // Charger le taux URSSAF
+            const savedRate = localStorage.getItem('urssafRate');
+            if (savedRate) {
+                urssafRate = parseFloat(savedRate);
+                document.getElementById('urssafRate').value = urssafRate;
+            }
+            
+            renderTable();
+            updateSummary();
+        }
+
+        function sauvegarderStock() {
+            localStorage.setItem('stockRentree2026Pro', JSON.stringify(stock));
+        }
+
+        function updateUrssafRate() {
+            const newRate = parseFloat(document.getElementById('urssafRate').value);
+            if (!isNaN(newRate) && newRate >= 0 && newRate <= 100) {
+                urssafRate = newRate;
+                localStorage.setItem('urssafRate', urssafRate);
+                renderTable();
+                updateSummary();
+                alert(`Taux URSSAF mis à jour à ${urssafRate}%`);
+            } else {
+                alert("Veuillez entrer un taux valide entre 0 et 100");
+            }
+        }
+
+        function ajouterArticle() {
+            const date = document.getElementById('date').value || new Date().toISOString().split('T')[0];
+            const titre = document.getElementById('titre').value.trim();
+            const prixAchat = parseFloat(document.getElementById('prixAchat').value) || 0;
+            const prixRevente = parseFloat(document.getElementById('prixRevente').value) || 0;
+
+            if (!titre) {
+                alert("Le titre est obligatoire !");
+                return;
+            }
+
+            stock.push({
+                id: Date.now(),
+                date: date,
+                titre: titre,
+                prixAchat: prixAchat,
+                prixRevente: prixRevente
+            });
+
+            sauvegarderStock();
+            renderTable();
+            updateSummary();
+
+            // Reset
+            document.getElementById('titre').value = '';
+            document.getElementById('prixAchat').value = '';
+            document.getElementById('prixRevente').value = '';
+        }
+
+        function supprimerArticle(id) {
+            if (confirm("Supprimer cet article ?")) {
+                stock = stock.filter(item => item.id !== id);
+                sauvegarderStock();
+                renderTable();
+                updateSummary();
+            }
+        }
+
+        function calculerFrais(prixRevente) {
+            return prixRevente * (urssafRate / 100);
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            const emptyState = document.getElementById('emptyState');
+            tbody.innerHTML = '';
+
+            if (stock.length === 0) {
+                emptyState.classList.remove('hidden');
+                document.getElementById('nbArticlesTable').textContent = '0 article';
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            document.getElementById('nbArticlesTable').textContent = `${stock.length} article(s)`;
+
+            stock.forEach(item => {
+                const frais = calculerFrais(item.prixRevente);
+                const net = item.prixRevente - frais;
+                const margeNette = net - item.prixAchat;
+
+                let margeClass = '';
+                if (item.prixRevente > 0) {
+                    margeClass = margeNette > 0 ? 'marge-positive' : 'marge-negative';
+                }
+
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-slate-50 transition-colors';
+                row.innerHTML = `
+                    <td class="px-7 py-4 text-slate-600 whitespace-nowrap">${new Date(item.date).toLocaleDateString('fr-FR')}</td>
+                    <td class="px-7 py-4 font-semibold text-slate-800">${item.titre}</td>
+                    <td class="px-7 py-4 text-right font-medium tabular-nums">${item.prixAchat.toFixed(2)} €</td>
+                    <td class="px-7 py-4 text-right font-medium tabular-nums">${item.prixRevente > 0 ? item.prixRevente.toFixed(2) + ' €' : '—'}</td>
+                    <td class="px-7 py-4 text-right text-red-500 tabular-nums">${item.prixRevente > 0 ? frais.toFixed(2) + ' €' : '—'}</td>
+                    <td class="px-7 py-4 text-right font-semibold tabular-nums ${margeClass}">
+                        ${item.prixRevente > 0 ? net.toFixed(2) + ' €' : '—'}
+                    </td>
+                    <td class="px-7 py-4 text-center">
+                        <button onclick="supprimerArticle(${item.id})" 
+                                class="text-red-400 hover:text-red-600 p-2 rounded-xl hover:bg-red-50 transition-colors">
+                            <i class="fa-solid fa-trash text-base"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateSummary() {
+            let totalAchat = 0;
+            let totalReventeBrut = 0;
+            let totalFrais = 0;
+
+            stock.forEach(item => {
+                totalAchat += item.prixAchat;
+                if (item.prixRevente > 0) {
+                    totalReventeBrut += item.prixRevente;
+                    totalFrais += calculerFrais(item.prixRevente);
+                }
+            });
+
+            const totalNet = totalReventeBrut - totalFrais;
+            const margeNette = totalNet - totalAchat;
+
+            document.getElementById('totalArticles').textContent = stock.length;
+            document.getElementById('totalAchat').textContent = totalAchat.toFixed(2) + ' €';
+            document.getElementById('totalReventeBrut').textContent = totalReventeBrut.toFixed(2) + ' €';
+            document.getElementById('totalFraisUrssaf').textContent = totalFrais.toFixed(2) + ' €';
+            document.getElementById('totalMargeNette').textContent = margeNette.toFixed(2) + ' €';
+
+            // Couleurs dynamiques
+            const margeEl = document.getElementById('totalMargeNette');
+            if (margeNette > 0) {
+                margeEl.style.color = '#16a34a';
+            } else if (margeNette < 0) {
+                margeEl.style.color = '#dc2626';
+            } else {
+                margeEl.style.color = '#581c87';
+            }
+        }
+
+        function exportToCSV() {
+            if (stock.length === 0) {
+                alert("Aucun article à exporter !");
+                return;
+            }
+
+            let csv = `Date,Titre,Prix achat (€),Prix revente brut (€),Frais URSSAF ${urssafRate}%,Net estimé (€)\n`;
+            
+            stock.forEach(item => {
+                const frais = calculerFrais(item.prixRevente);
+                const net = item.prixRevente - frais;
+                csv += `"${item.date}","${item.titre}",${item.prixAchat},${item.prixRevente},${frais.toFixed(2)},${net.toFixed(2)}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `stock_rentree_pro_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function clearAllData() {
+            if (confirm("⚠️ Effacer TOUT le stock ? Cette action est définitive.")) {
+                stock = [];
+                localStorage.removeItem('stockRentree2026Pro');
+                renderTable();
+                updateSummary();
+            }
+        }
+
+        function init() {
+            const dateInput = document.getElementById('date');
+            dateInput.value = new Date().toISOString().split('T')[0];
+
+            // Charger données
+            chargerStock();
+
+            // Ajout avec Entrée
+            const inputs = ['titre', 'prixAchat', 'prixRevente'];
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                el.addEventListener('keypress', e => {
+                    if (e.key === 'Enter') ajouterArticle();
+                });
+            });
+
+            // Raccourci clavier
+            document.addEventListener('keydown', function(e) {
+                if (e.key === '/' && document.activeElement.tagName === 'BODY') {
+                    e.preventDefault();
+                    document.getElementById('titre').focus();
+                }
+            });
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
