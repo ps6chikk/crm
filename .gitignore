@@ -1,0 +1,32 @@
+# Secrets — ne jamais committer de clés API
+.env
+.env.*
+*.key
+*.pem
+secrets*
+*secret*.json
+*apikey*
+*api-key*
+
+# Exports locaux de l'app (peuvent contenir des données perso)
+ai-hub-conversations-*.json
+ai-hub-stock-*.json
+ai-hub-stock-*.csv
+vinted-crm-*.json
+*.backup.json
+
+# Dépendances / outils locaux
+node_modules/
+package-lock.json
+.playwright/
+test-results/
+playwright-report/
+
+# Système / éditeurs
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.log

@@ -1,0 +1,2705 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<!--
+  AI Hub — Chat multi-IA + outils Vinted. Fichier unique, sans build.
+  SÉCURITÉ : aucune clé n'est présente dans ce fichier. Les clés sont saisies dans
+  « Paramètres » et restent dans le localStorage de TON navigateur (aihub_key_<provider>).
+
+  CSP : le script principal (bloc inline en bas de page) est autorisé par son empreinte
+  SHA-256, sans 'unsafe-inline'. Si tu modifies ce script, recalcule l'empreinte et
+  remplace la valeur 'sha256-…' de la meta ci-dessous :
+    python3 -c "import re,hashlib,base64;s=open('ai-hub.html',encoding='utf-8').read();b=re.search(r'<script>(\n.use strict.;.*?)</script>',s,re.S).group(1);print('sha256-'+base64.b64encode(hashlib.sha256(b.encode()).digest()).decode())"
+-->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-9UezhmPUEQvqeWEYkJYzi2qA3x3GU3sCbr+czd8TbV0=' https://cdnjs.cloudflare.com; style-src 'unsafe-inline'; img-src data: blob: https://res.cloudinary.com; connect-src https://api.anthropic.com https://api.openai.com https://api.x.ai https://generativelanguage.googleapis.com https://api.deepseek.com https://cdnjs.cloudflare.com; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'; font-src 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0d0d0f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>AI Hub</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js" integrity="sha384-/TQbtLCAerC3jgaim+N78RZSDYV7ryeoBCVqTuzRrFec2akfBkHS7ACQ3PQhvMVi" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.4/purify.min.js" integrity="sha384-eEu5CTj3qGvu9PdJuS+YlkNi7d2XxQROAFYOr59zgObtlcux1ae1Il3u7jvdCSWu" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+<style>
+:root {
+  --bg: #0d0d0f; --surface: #141417; --surface2: #1c1c22; --surface3: #252530;
+  --border: #2a2a35; --accent: #00e5a0; --accent2: #7c3aed; --accent3: #f59e0b;
+  --text: #e8e8f0; --muted: #8a8aa0; --danger: #ff4d6d; --blue: #60a5fa;
+  --mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
+  --sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --sat: env(safe-area-inset-top, 0px); --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px); --sar: env(safe-area-inset-right, 0px);
+  --drawer-w: 300px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 15px; }
+body { overscroll-behavior: none; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+[hidden] { display: none !important; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.mono { font-family: var(--mono); }
+
+/* ── LAYOUT ── */
+.app { display: flex; height: 100vh; height: 100dvh; width: 100%; overflow: hidden; }
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; height: 100%; }
+
+/* ── DRAWER ── */
+.drawer {
+  position: fixed; top: 0; bottom: 0; left: 0; width: min(var(--drawer-w), 86vw); z-index: 50;
+  background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; transform: translateX(-105%); transition: transform .25s ease;
+  padding-top: var(--sat); padding-bottom: var(--sab); padding-left: var(--sal);
+}
+.drawer.open { transform: none; }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 40; opacity: 0; pointer-events: none; transition: opacity .25s; }
+.overlay.show { opacity: 1; pointer-events: auto; }
+.drawer-head { display: flex; align-items: center; gap: 10px; padding: 14px 14px 10px; }
+.logo { font-weight: 800; font-size: 18px; letter-spacing: -.3px; }
+.logo span { background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.nav { display: flex; flex-direction: column; gap: 4px; padding: 4px 10px 10px; border-bottom: 1px solid var(--border); }
+.nav-btn { display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 0 12px; border-radius: 12px; border: 1px solid transparent; background: none; text-align: left; font-weight: 600; }
+.nav-btn.active { background: var(--surface2); border-color: rgba(0,229,160,.3); color: var(--accent); }
+.nav-btn .ico { font-size: 18px; width: 24px; text-align: center; }
+.drawer-section { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 10px; gap: 8px; }
+.conv-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; -webkit-overflow-scrolling: touch; }
+.conv-item { display: flex; align-items: center; gap: 6px; border-radius: 10px; border: 1px solid transparent; background: none; padding: 4px 4px 4px 10px; min-height: 48px; }
+.conv-item.active { background: var(--surface2); border-color: var(--border); }
+.conv-main { flex: 1; min-width: 0; text-align: left; background: none; border: none; padding: 6px 0; }
+.conv-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.conv-sub { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.icon-btn { width: 40px; height: 40px; border-radius: 10px; background: var(--surface2); border: 1px solid var(--border); display: inline-flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.icon-btn.ghost { background: none; border-color: transparent; }
+.icon-btn:active { border-color: var(--accent); }
+.drawer-foot { padding: 10px 14px; border-top: 1px solid var(--border); font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
+
+/* ── TOPBAR ── */
+.topbar {
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0; position: relative; z-index: 5;
+  padding: 8px 12px; padding-top: calc(8px + var(--sat)); padding-left: calc(12px + var(--sal)); padding-right: calc(12px + var(--sar));
+  background: var(--surface); border-bottom: 1px solid var(--border);
+}
+.topbar::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, var(--accent), var(--accent2), transparent); }
+.hbg { flex-direction: column; gap: 4px; }
+.hbg span { display: block; width: 16px; height: 2px; background: var(--muted); border-radius: 2px; }
+.top-title { flex: 1; min-width: 0; font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: none; border: none; text-align: left; min-height: 40px; }
+.pill {
+  display: inline-flex; align-items: center; gap: 5px; max-width: 46vw; min-height: 34px;
+  font-family: var(--mono); font-size: 11px; color: var(--accent);
+  background: rgba(0,229,160,.08); border: 1px solid rgba(0,229,160,.28); padding: 4px 10px; border-radius: 20px;
+}
+.pill > span.t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pill.warn { color: var(--accent3); border-color: rgba(245,158,11,.35); background: rgba(245,158,11,.08); }
+.tok-total { font-family: var(--mono); font-size: 10px; color: var(--accent3); white-space: nowrap; }
+
+.banner { display: flex; align-items: center; gap: 10px; padding: 10px 14px; font-size: 13px; background: rgba(124,58,237,.14); border-bottom: 1px solid rgba(124,58,237,.35); flex-shrink: 0; }
+.banner.warn { background: rgba(245,158,11,.12); border-color: rgba(245,158,11,.35); }
+.banner .grow { flex: 1; }
+
+/* ── VIEWS ── */
+.view { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+.pad { padding: 14px 12px calc(24px + var(--sab)); padding-left: calc(12px + var(--sal)); padding-right: calc(12px + var(--sar)); }
+.container { width: 100%; max-width: 880px; margin: 0 auto; }
+
+/* ── BUTTONS / FORMS ── */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 46px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface2); font-weight: 700; font-size: 14px; text-align: center; }
+.btn:active { transform: scale(.98); }
+.btn:disabled { opacity: .5; cursor: default; }
+.btn.primary { background: var(--accent); color: #031; border-color: var(--accent); }
+.btn.violet { background: var(--accent2); border-color: var(--accent2); color: #fff; }
+.btn.danger { color: var(--danger); border-color: rgba(255,77,109,.4); background: rgba(255,77,109,.08); }
+.btn.sm { min-height: 36px; padding: 0 12px; font-size: 13px; border-radius: 10px; }
+.btn.block { width: 100%; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.row > .grow { flex: 1; min-width: 0; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+label.lbl { display: block; font-size: 12px; color: var(--muted); font-weight: 600; margin: 10px 0 5px; }
+.input, select.input, textarea.input {
+  width: 100%; min-height: 46px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border);
+  background: var(--surface2); font-size: 16px; outline: none;
+}
+textarea.input { resize: vertical; line-height: 1.5; min-height: 90px; }
+.input:focus { border-color: var(--accent); }
+.input-wrap { position: relative; display: flex; gap: 6px; }
+.input-wrap .input { flex: 1; min-width: 0; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+.card h2 { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+.card h3 { font-size: 14px; font-weight: 700; margin: 12px 0 4px; }
+.card p.help { font-size: 13px; color: var(--muted); line-height: 1.5; }
+.sep { height: 1px; background: var(--border); margin: 12px 0; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); display: inline-block; flex-shrink: 0; }
+.dot.ok { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+.dot.err { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
+.dot.wait { background: var(--accent3); }
+.badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; border: 1px solid var(--border); color: var(--muted); white-space: nowrap; }
+.badge.ok { color: var(--accent); border-color: rgba(0,229,160,.35); }
+.badge.warn { color: var(--accent3); border-color: rgba(245,158,11,.35); }
+.badge.bad { color: var(--danger); border-color: rgba(255,77,109,.35); }
+.badge.blue { color: var(--blue); border-color: rgba(96,165,250,.35); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { min-height: 38px; padding: 0 14px; border-radius: 20px; background: var(--surface2); border: 1px solid var(--border); font-size: 13px; font-weight: 600; white-space: nowrap; }
+.chip.active { color: var(--accent); border-color: rgba(0,229,160,.45); background: rgba(0,229,160,.08); }
+.check { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 14px; }
+.check input { width: 22px; height: 22px; accent-color: var(--accent); }
+
+/* ── CHAT ── */
+.chat-tools { display: flex; gap: 6px; padding: 8px 12px; overflow-x: auto; flex-shrink: 0; border-bottom: 1px solid var(--border); background: var(--bg); scrollbar-width: none; }
+.chat-tools::-webkit-scrollbar { display: none; }
+.compare-bar { display: flex; gap: 6px; padding: 8px 12px; flex-wrap: wrap; align-items: center; border-bottom: 1px solid var(--border); background: rgba(124,58,237,.07); flex-shrink: 0; }
+.chat-area { display: flex; flex-direction: column; gap: 14px; }
+.msg { display: flex; flex-direction: column; max-width: 100%; animation: fadeUp .2s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.msg.user { align-self: flex-end; align-items: flex-end; max-width: 88%; }
+.msg.assistant { align-self: stretch; }
+.bubble { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 10px 13px; line-height: 1.6; font-size: 15px; overflow-wrap: anywhere; min-width: 0; max-width: 100%; }
+.msg.user .bubble { background: var(--surface2); border-color: rgba(0,229,160,.25); white-space: pre-wrap; }
+.bubble.error { border-color: rgba(255,77,109,.45); background: rgba(255,77,109,.07); white-space: pre-wrap; }
+.msg-imgs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; justify-content: flex-end; }
+.msg-imgs img { width: 84px; height: 84px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border); background: var(--surface2); }
+.md p { margin-bottom: 8px; } .md p:last-child { margin-bottom: 0; }
+.md strong { color: var(--accent); }
+.md em { color: var(--accent3); }
+.md h1, .md h2, .md h3, .md h4 { font-weight: 800; margin: 12px 0 6px; line-height: 1.3; }
+.md h1 { font-size: 18px; } .md h2 { font-size: 16px; } .md h3 { font-size: 15px; color: var(--accent); }
+.md ul, .md ol { padding-left: 20px; margin-bottom: 8px; }
+.md li { margin-bottom: 3px; }
+.md li::marker { color: var(--accent); }
+.md blockquote { border-left: 3px solid var(--accent2); padding-left: 10px; margin: 6px 0; color: var(--muted); }
+.md code { background: #080809; border: 1px solid var(--border); padding: 1px 5px; border-radius: 5px; font-family: var(--mono); font-size: 12.5px; color: var(--accent); }
+.md pre { background: #080809; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin: 8px 0; overflow-x: auto; max-width: 100%; }
+.md pre code { background: none; border: none; padding: 0; color: var(--text); white-space: pre; }
+.md a { color: var(--accent); }
+.md hr { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
+.md table { border-collapse: collapse; margin: 8px 0; font-size: 13px; display: block; overflow-x: auto; max-width: 100%; }
+.md th, .md td { border: 1px solid var(--border); padding: 5px 9px; text-align: left; }
+.md th { background: var(--surface2); color: var(--accent); }
+.md img { max-width: 100%; border-radius: 8px; }
+.meta { display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.mtag { font-family: var(--mono); font-size: 10.5px; padding: 3px 8px; border-radius: 20px; border: 1px solid var(--border); color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mtag.model { color: var(--accent); border-color: rgba(0,229,160,.28); }
+.mtag.tok { color: var(--accent3); border-color: rgba(245,158,11,.28); }
+.mbtn { font-size: 12px; min-height: 32px; padding: 0 10px; border-radius: 20px; background: transparent; border: 1px solid var(--border); color: var(--muted); }
+.mbtn:active, .mbtn.done { color: var(--accent); border-color: var(--accent); }
+.cursor::after { content: '▍'; color: var(--accent); animation: blink .8s infinite; margin-left: 1px; }
+@keyframes blink { 50% { opacity: 0; } }
+.cmp-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.cmp-col { display: flex; flex-direction: column; min-width: 0; }
+.cmp-col.chosen .bubble { border-color: rgba(0,229,160,.55); }
+.cmp-head { font-family: var(--mono); font-size: 11px; color: var(--accent2); margin-bottom: 5px; display: flex; gap: 6px; align-items: center; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 40px 10px; }
+.empty .big { font-size: 42px; opacity: .35; }
+.empty .ttl { font-size: 19px; font-weight: 800; }
+.empty .sub { color: var(--muted); font-size: 14px; max-width: 320px; line-height: 1.5; }
+.input-bar { flex-shrink: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 8px 10px; padding-bottom: calc(8px + var(--sab)); padding-left: calc(10px + var(--sal)); padding-right: calc(10px + var(--sar)); }
+.input-row { display: flex; gap: 8px; align-items: flex-end; max-width: 880px; margin: 0 auto; }
+.input-row textarea { flex: 1; min-width: 0; min-height: 46px; max-height: 40vh; resize: none; padding: 11px 14px; border-radius: 22px; border: 1px solid var(--border); background: var(--surface2); font-size: 16px; line-height: 1.4; outline: none; }
+.input-row textarea:focus { border-color: var(--accent); }
+.send-btn { width: 46px; height: 46px; border-radius: 50%; border: none; background: var(--accent); color: #031; font-size: 18px; font-weight: 800; flex-shrink: 0; }
+.send-btn.stop { background: var(--danger); color: #fff; }
+.attach-btn { width: 46px; height: 46px; border-radius: 50%; }
+.pending-imgs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; max-width: 880px; margin: 0 auto; }
+.pending-imgs:empty { display: none; }
+
+/* ── PHOTO PICKER ── */
+.pp-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.pp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 6px; }
+.pp-item { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); background: var(--surface2); }
+.pp-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pp-del { position: absolute; top: 3px; right: 3px; width: 28px; height: 28px; border-radius: 50%; border: none; background: rgba(0,0,0,.72); color: #fff; font-size: 16px; line-height: 1; }
+.pp-add { aspect-ratio: 1; border-radius: 10px; border: 1.5px dashed var(--border); background: none; color: var(--muted); font-size: 12px; font-weight: 700; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 76px; }
+.pp-add .i { font-size: 22px; }
+.pp-add:active { border-color: var(--accent); color: var(--accent); }
+.thumb-sm { position: relative; flex-shrink: 0; width: 60px; height: 60px; }
+.thumb-sm img { width: 60px; height: 60px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border); }
+
+/* ── VINTED ── */
+.subtabs { display: flex; gap: 6px; padding: 8px 12px; overflow-x: auto; flex-shrink: 0; border-bottom: 1px solid var(--border); background: var(--bg); scrollbar-width: none; }
+.subtabs::-webkit-scrollbar { display: none; }
+.field-out { border: 1px solid var(--border); border-radius: 12px; padding: 8px 10px; margin-top: 8px; background: var(--surface2); }
+.field-out .fo-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.field-out .fo-lbl { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+.field-out .input { background: var(--bg); min-height: 40px; font-size: 15px; }
+.field-out textarea.input { min-height: 150px; }
+.count { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.count.over { color: var(--danger); font-weight: 700; }
+.kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.kpi { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 12px; min-width: 0; }
+.kpi .v { font-size: 20px; font-weight: 800; font-family: var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi .l { font-size: 11px; color: var(--muted); font-weight: 700; margin-top: 3px; }
+.kpi.g .v { color: var(--accent); } .kpi.y .v { color: var(--accent3); } .kpi.r .v { color: var(--danger); } .kpi.v2 .v { color: #a78bfa; }
+.price-opt { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 12px 6px; text-align: center; min-width: 0; }
+.price-opt .v { font-size: 20px; font-weight: 800; font-family: var(--mono); }
+.price-opt .l { font-size: 11px; color: var(--muted); font-weight: 700; }
+.price-opt.main { border-color: rgba(0,229,160,.5); background: rgba(0,229,160,.07); }
+.price-opt.main .v { color: var(--accent); }
+.verdict { border-radius: 16px; padding: 18px; text-align: center; font-size: 26px; font-weight: 900; letter-spacing: .5px; margin-bottom: 10px; }
+.verdict.cop { background: rgba(0,229,160,.14); border: 1px solid rgba(0,229,160,.5); color: var(--accent); }
+.verdict.neg { background: rgba(245,158,11,.12); border: 1px solid rgba(245,158,11,.5); color: var(--accent3); }
+.verdict.pas { background: rgba(255,77,109,.12); border: 1px solid rgba(255,77,109,.5); color: var(--danger); }
+.verdict .sub { font-size: 14px; font-weight: 600; color: var(--text); margin-top: 6px; letter-spacing: 0; }
+.progress { height: 10px; background: var(--surface3); border-radius: 10px; overflow: hidden; margin-top: 8px; }
+.progress > div { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 10px; transition: width .5s; }
+.stock-item { display: flex; gap: 10px; align-items: center; padding: 10px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); margin-bottom: 8px; width: 100%; text-align: left; }
+.stock-item .thumb { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; flex-shrink: 0; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 22px; overflow: hidden; }
+.stock-item .thumb img { width: 100%; height: 100%; object-fit: cover; }
+.stock-item .info { flex: 1; min-width: 0; }
+.stock-item.stale { flex-wrap: wrap; cursor: default; }
+.stock-item.stale .info { flex-basis: calc(100% - 70px); }
+.stock-item.stale .btn { width: 100%; }
+.stock-item .t { font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stock-item .s { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.stock-item .p { text-align: right; flex-shrink: 0; font-family: var(--mono); font-size: 13px; }
+.stock-item .p .net.pos { color: var(--accent); } .stock-item .p .net.neg { color: var(--danger); }
+.st-online { color: var(--accent); border-color: rgba(0,229,160,.35); }
+.st-reserved { color: var(--accent3); border-color: rgba(245,158,11,.35); }
+.st-sold { color: var(--blue); border-color: rgba(96,165,250,.35); }
+.st-archived { color: var(--muted); }
+.list-line { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--border); font-size: 14px; }
+.list-line:last-child { border-bottom: none; }
+.list-line .v { font-family: var(--mono); font-weight: 700; text-align: right; }
+.raw { white-space: pre-wrap; font-family: var(--mono); font-size: 12px; background: #080809; border: 1px solid var(--border); border-radius: 10px; padding: 10px; max-height: 300px; overflow: auto; overflow-wrap: anywhere; }
+.lot-art { border: 1px solid var(--border); border-radius: 14px; padding: 10px; margin-bottom: 10px; background: var(--surface2); }
+.lot-art .lot-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-weight: 800; }
+.status-line { font-size: 13px; color: var(--muted); margin-top: 8px; min-height: 18px; }
+
+/* ── SHEETS ── */
+.sheet-overlay { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.6); display: flex; align-items: flex-end; justify-content: center; }
+.sheet { width: 100%; max-width: 560px; max-height: 92dvh; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-bottom: none; border-radius: 20px 20px 0 0; padding: 10px 16px calc(16px + var(--sab)); animation: up .22s ease; overscroll-behavior: contain; }
+@keyframes up { from { transform: translateY(40px); opacity: .5; } to { transform: none; opacity: 1; } }
+.sheet .handle { width: 40px; height: 4px; border-radius: 4px; background: var(--border); margin: 0 auto 10px; }
+.sheet h2 { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
+.sheet .actions { display: flex; gap: 8px; margin-top: 16px; }
+.sheet .actions .btn { flex: 1; }
+.prov-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px; }
+.prov-btn { min-height: 56px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-weight: 700; font-size: 13px; }
+.prov-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,229,160,.07); }
+.prov-btn .dot { width: 7px; height: 7px; }
+
+.toast { position: fixed; left: 50%; bottom: calc(90px + var(--sab)); transform: translateX(-50%); z-index: 90; background: var(--surface3); border: 1px solid var(--border); color: var(--text); padding: 10px 16px; border-radius: 14px; font-size: 14px; max-width: calc(100vw - 32px); box-shadow: 0 8px 30px rgba(0,0,0,.5); opacity: 0; pointer-events: none; transition: opacity .2s; text-align: center; overflow-wrap: anywhere; }
+.toast.show { opacity: 1; }
+
+/* ── DESKTOP ── */
+@media (min-width: 760px) {
+  .cmp-grid.n2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cmp-grid.n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .kpis { grid-template-columns: repeat(3, 1fr); }
+  .sheet-overlay { align-items: center; }
+  .sheet { border-radius: 20px; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
+}
+@media (min-width: 1000px) {
+  .drawer { position: static; transform: none; width: var(--drawer-w); flex-shrink: 0; }
+  .overlay, .hbg { display: none !important; }
+  .msg.user { max-width: 75%; }
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <!-- ═════ TIROIR ═════ -->
+  <aside class="drawer" id="drawer" aria-label="Navigation">
+    <div class="drawer-head">
+      <div class="logo">🤖 AI <span>Hub</span></div>
+    </div>
+    <nav class="nav">
+      <button class="nav-btn" data-act="nav" data-view="chat"><span class="ico">💬</span>Chat libre</button>
+      <button class="nav-btn" data-act="nav" data-view="vinted"><span class="ico">🏷️</span>Vinted</button>
+      <button class="nav-btn" data-act="nav" data-view="settings"><span class="ico">⚙️</span>Paramètres</button>
+    </nav>
+    <div class="drawer-section" id="drawerChat">
+      <button class="btn primary block" data-act="new-conv">＋ Nouvelle conversation</button>
+      <input class="input" id="convSearch" type="search" placeholder="🔍 Rechercher…" autocomplete="off">
+      <div class="conv-list" id="convList"></div>
+    </div>
+    <div class="drawer-section" id="drawerVinted" hidden>
+      <div class="chips" id="drawerVintedTabs"></div>
+    </div>
+    <div class="drawer-foot"><span id="keyStatus">—</span><span>v1.0</span></div>
+  </aside>
+  <div class="overlay" id="overlay" data-act="close-drawer"></div>
+
+  <!-- ═════ PRINCIPAL ═════ -->
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn hbg" data-act="open-drawer" aria-label="Menu"><span></span><span></span><span></span></button>
+      <button class="top-title" id="topTitle" data-act="rename-conv">AI Hub</button>
+      <span class="tok-total" id="tokTotal"></span>
+      <button class="pill" id="modelPill" data-act="pick-chat-model"><span class="t">—</span></button>
+    </header>
+    <div class="banner" id="libBanner" hidden><span class="grow">⚠️ marked.js / DOMPurify n'ont pas pu être chargés : les réponses s'affichent en texte brut (sécurité conservée).</span></div>
+    <div class="banner" id="lockBanner" hidden><span class="grow">🔒 Tes clés sont chiffrées. Déverrouille-les pour utiliser les IA.</span><button class="btn sm violet" data-act="unlock">Déverrouiller</button></div>
+    <div class="banner warn" id="noKeyBanner" hidden><span class="grow">🔑 Aucune clé API configurée.</span><button class="btn sm" data-act="nav" data-view="settings">Paramètres</button></div>
+
+    <!-- ── VUE CHAT ── -->
+    <section class="view" id="view-chat" hidden>
+      <div class="chat-tools">
+        <button class="chip" data-act="sys-prompt" id="sysChip">🧠 Prompt système</button>
+        <button class="chip" data-act="toggle-compare" id="compareChip">⚖️ Comparer</button>
+        <button class="chip" data-act="export-convs">⬇️ Export</button>
+        <button class="chip" data-act="import-convs">⬆️ Import</button>
+      </div>
+      <div class="compare-bar" id="compareBar" hidden></div>
+      <div class="scroll" id="chatScroll"><div class="pad container"><div class="chat-area" id="chatArea"></div></div></div>
+      <div class="input-bar">
+        <div class="pending-imgs" id="pendingImgs"></div>
+        <div class="input-row">
+          <button class="icon-btn attach-btn" data-act="attach" aria-label="Ajouter une photo">📷</button>
+          <textarea id="chatInput" rows="1" placeholder="Écris ton message…" enterkeyhint="send"></textarea>
+          <button class="send-btn" id="sendBtn" data-act="send" aria-label="Envoyer">➤</button>
+        </div>
+        <input type="file" id="chatFile" accept="image/*" multiple hidden>
+      </div>
+    </section>
+
+    <!-- ── VUE VINTED ── -->
+    <section class="view" id="view-vinted" hidden>
+      <div class="subtabs" id="vTabs">
+        <button class="chip" data-act="vtab" data-tab="annonce">📝 Annonce</button>
+        <button class="chip" data-act="vtab" data-tab="prix">💶 Prix</button>
+        <button class="chip" data-act="vtab" data-tab="cop">🔍 Cop ou pas ?</button>
+        <button class="chip" data-act="vtab" data-tab="lot">📦 Mode lot</button>
+        <button class="chip" data-act="vtab" data-tab="stock">🗂️ Stock</button>
+        <button class="chip" data-act="vtab" data-tab="stats">📊 Stats</button>
+      </div>
+      <div class="scroll" id="vScroll"><div class="pad container">
+
+        <!-- Annonce -->
+        <div class="vpanel" id="vp-annonce">
+          <div class="card">
+            <h2>📝 Générer une annonce</h2>
+            <p class="help">1 à 10 photos : vue d'ensemble, étiquette (marque, taille, composition), détails et défauts.</p>
+            <div class="sep"></div>
+            <div id="anPicker"></div>
+            <div class="grid2">
+              <div><label class="lbl" for="anBrand">Marque (facultatif)</label><input class="input" id="anBrand" autocomplete="off"></div>
+              <div><label class="lbl" for="anSize">Taille (facultatif)</label><input class="input" id="anSize" autocomplete="off"></div>
+            </div>
+            <div class="grid2">
+              <div><label class="lbl" for="anBuy">Prix d'achat € (facultatif)</label><input class="input" id="anBuy" type="number" inputmode="decimal" min="0" step="0.01"></div>
+              <div><label class="lbl" for="anNotes">Infos en plus</label><input class="input" id="anNotes" placeholder="défaut, matière…" autocomplete="off"></div>
+            </div>
+            <div class="row" style="margin-top:12px">
+              <button class="btn primary grow" id="anGo" data-act="an-generate">✨ Générer l'annonce</button>
+              <button class="btn" data-act="an-clear">Effacer</button>
+            </div>
+            <div class="status-line" id="anStatus"></div>
+          </div>
+          <div id="anResult"></div>
+        </div>
+
+        <!-- Prix -->
+        <div class="vpanel" id="vp-prix" hidden>
+          <div class="card">
+            <h2>💡 Prix conseillé par l'IA</h2>
+            <p class="help">Photos et/ou description de l'article. Le port est payé par l'acheteur, il n'est jamais compté.</p>
+            <div class="sep"></div>
+            <div id="prPicker"></div>
+            <button class="btn sm" style="margin-top:8px" data-act="pr-reuse">↪ Reprendre les photos de l'Annonce</button>
+            <label class="lbl" for="prDesc">Description (marque, type, taille, état…)</label>
+            <textarea class="input" id="prDesc" rows="3" placeholder="Ex : Pull Ralph Lauren en laine, taille M, très bon état"></textarea>
+            <button class="btn primary block" style="margin-top:12px" id="prGo" data-act="pr-generate">💡 Estimer le prix</button>
+            <div class="status-line" id="prStatus"></div>
+          </div>
+          <div id="prResult"></div>
+          <div class="card">
+            <h2>🧮 Calculateur</h2>
+            <p class="help" id="calcRateInfo"></p>
+            <div class="grid2">
+              <div><label class="lbl" for="calcSell">Prix de vente €</label><input class="input" id="calcSell" type="number" inputmode="decimal" min="0" step="0.01"></div>
+              <div><label class="lbl" for="calcBuy">Prix d'achat €</label><input class="input" id="calcBuy" type="number" inputmode="decimal" min="0" step="0.01"></div>
+            </div>
+            <div class="kpis" style="margin-top:10px">
+              <div class="kpi y"><div class="v" id="calcUrssaf">0,00 €</div><div class="l">URSSAF</div></div>
+              <div class="kpi g"><div class="v" id="calcNet">0,00 €</div><div class="l">Bénéfice net</div></div>
+              <div class="kpi v2"><div class="v" id="calcMargin">—</div><div class="l">Marge (sur prix de vente)</div></div>
+              <div class="kpi"><div class="v" id="calcRoi">—</div><div class="l">Rentabilité (sur achat)</div></div>
+            </div>
+            <div class="sep"></div>
+            <h3>🎯 Calcul inverse</h3>
+            <div class="grid2">
+              <div><label class="lbl" for="invNet">Je veux gagner (net) €</label><input class="input" id="invNet" type="number" inputmode="decimal" min="0" step="0.01"></div>
+              <div><label class="lbl" for="invBuy">Prix d'achat €</label><input class="input" id="invBuy" type="number" inputmode="decimal" min="0" step="0.01"></div>
+            </div>
+            <div class="kpis" style="margin-top:10px">
+              <div class="kpi g"><div class="v" id="invSell">—</div><div class="l">Prix de vente à afficher</div></div>
+              <div class="kpi y"><div class="v" id="invUrssaf">—</div><div class="l">dont URSSAF</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cop ou pas -->
+        <div class="vpanel" id="vp-cop" hidden>
+          <div class="card">
+            <h2>🔍 Cop ou pas ?</h2>
+            <p class="help">En boutique, friperie, Emmaüs ou vide-grenier : prends une photo, indique le prix demandé.</p>
+            <div class="sep"></div>
+            <div id="copPicker"></div>
+            <div class="grid2">
+              <div><label class="lbl" for="copPrice">Prix demandé € *</label><input class="input" id="copPrice" type="number" inputmode="decimal" min="0" step="0.01"></div>
+              <div><label class="lbl" for="copWhere">Lieu</label>
+                <select class="input" id="copWhere"><option>Friperie</option><option>Emmaüs</option><option>Vide-grenier</option><option>Boutique</option><option>Autre</option></select></div>
+            </div>
+            <label class="lbl" for="copNotes">Infos (marque, taille, état…)</label>
+            <input class="input" id="copNotes" autocomplete="off">
+            <button class="btn primary block" style="margin-top:12px" id="copGo" data-act="cop-generate">🔍 Verdict</button>
+            <div class="status-line" id="copStatus"></div>
+          </div>
+          <div id="copResult"></div>
+        </div>
+
+        <!-- Lot -->
+        <div class="vpanel" id="vp-lot" hidden>
+          <div class="card">
+            <h2>📦 Mode lot</h2>
+            <p class="help">Ajoute plusieurs articles (photos par article) : une annonce par article, et en option une annonce de lot.</p>
+            <div class="sep"></div>
+            <div id="lotArticles"></div>
+            <button class="btn block" data-act="lot-add">＋ Ajouter un article</button>
+            <label class="check"><input type="checkbox" id="lotBundle"> Générer aussi une annonce de lot</label>
+            <div id="lotBundleOpts" hidden>
+              <label class="lbl" for="lotPrice">Prix de lot souhaité € (vide = l'IA propose)</label>
+              <input class="input" id="lotPrice" type="number" inputmode="decimal" min="0" step="0.01">
+            </div>
+            <button class="btn primary block" style="margin-top:12px" id="lotGo" data-act="lot-generate">✨ Générer les annonces</button>
+            <div class="status-line" id="lotStatus"></div>
+          </div>
+          <div id="lotResult"></div>
+        </div>
+
+        <!-- Stock -->
+        <div class="vpanel" id="vp-stock" hidden>
+          <div class="card">
+            <div class="row">
+              <input class="input grow" id="stSearch" type="search" placeholder="🔍 Titre, marque, taille…" autocomplete="off">
+              <button class="btn primary" data-act="st-new">＋</button>
+            </div>
+            <div class="chips" style="margin-top:8px" id="stFilters">
+              <button class="chip active" data-act="st-filter" data-f="all">Tous</button>
+              <button class="chip" data-act="st-filter" data-f="online">En ligne</button>
+              <button class="chip" data-act="st-filter" data-f="reserved">Réservé</button>
+              <button class="chip" data-act="st-filter" data-f="sold">Vendu</button>
+              <button class="chip" data-act="st-filter" data-f="archived">Archivé</button>
+            </div>
+            <div class="row" style="margin-top:8px">
+              <select class="input grow" id="stSort" aria-label="Tri">
+                <option value="date_desc">Plus récents</option>
+                <option value="date_asc">Plus anciens</option>
+                <option value="sell_desc">Prix de vente ↓</option>
+                <option value="sell_asc">Prix de vente ↑</option>
+                <option value="net_desc">Bénéfice net ↓</option>
+                <option value="title">Titre A→Z</option>
+              </select>
+            </div>
+            <div class="small muted" style="margin-top:8px" id="stCount"></div>
+          </div>
+          <div id="stList"></div>
+          <div class="card">
+            <h3>Import / export du stock</h3>
+            <div class="row">
+              <button class="btn sm" data-act="st-import-vcrm">📥 Importer depuis index.html</button>
+              <button class="btn sm" data-act="st-export-json">⬇️ JSON</button>
+              <button class="btn sm" data-act="st-export-csv">⬇️ CSV</button>
+              <button class="btn sm" data-act="st-import-file">⬆️ Importer JSON/CSV</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="vpanel" id="vp-stats" hidden>
+          <div class="card">
+            <div class="row">
+              <button class="icon-btn" data-act="stats-prev" aria-label="Mois précédent">‹</button>
+              <div class="grow" style="text-align:center;font-weight:800" id="statsMonth"></div>
+              <button class="icon-btn" data-act="stats-next" aria-label="Mois suivant">›</button>
+            </div>
+          </div>
+          <div class="kpis" id="statsKpis"></div>
+          <div class="card" style="margin-top:12px">
+            <div class="row"><h2 class="grow">🎯 Objectif mensuel (bénéfice net)</h2></div>
+            <div class="row"><input class="input grow" id="goalInput" type="number" inputmode="decimal" min="0" step="1" placeholder="Objectif en €"></div>
+            <div class="progress"><div id="goalBar" style="width:0%"></div></div>
+            <div class="small muted" style="margin-top:6px" id="goalText"></div>
+          </div>
+          <div class="card">
+            <h2 id="staleTitle">⏰ En ligne depuis plus de 30 jours</h2>
+            <p class="help">Suggestion : −10 % après 30 j, −15 % après 45 j, −20 % après 60 j, jamais sous ton seuil de rentabilité.</p>
+            <div id="staleList"></div>
+          </div>
+        </div>
+      </div></div>
+    </section>
+
+    <!-- ── VUE PARAMÈTRES ── -->
+    <section class="view" id="view-settings" hidden>
+      <div class="scroll"><div class="pad container">
+        <div class="card">
+          <h2>🔑 Clés API</h2>
+          <p class="help">Tes clés restent <b>uniquement dans ce navigateur</b> (localStorage). Elles ne sont jamais écrites dans le code, les exports ni les URLs, et ne partent que vers l'API du fournisseur concerné.</p>
+        </div>
+        <div id="keyCards"></div>
+        <div class="card">
+          <h2>🔐 Chiffrement des clés (recommandé)</h2>
+          <p class="help" id="vaultHelp">Chiffre tes clés avec un code (AES-GCM). Il faudra le saisir à chaque ouverture de l'app. Utile car toutes les pages du même domaine (ex. tes autres pages GitHub Pages) partagent ce localStorage.</p>
+          <div class="row" style="margin-top:10px" id="vaultActions"></div>
+          <div class="sep"></div>
+          <button class="btn danger block" data-act="clear-keys">🗑️ Effacer toutes mes clés</button>
+        </div>
+        <div class="card">
+          <h2>💬 Chat</h2>
+          <label class="lbl" for="setMaxTokens">Longueur max. des réponses Claude (max_tokens)</label>
+          <input class="input" id="setMaxTokens" type="number" inputmode="numeric" min="256" step="256">
+          <label class="check"><input type="checkbox" id="setEnterSend"> Entrée = envoyer (sinon Ctrl/⌘ + Entrée)</label>
+        </div>
+        <div class="card">
+          <h2>🏷️ Vinted</h2>
+          <div class="grid2">
+            <div><label class="lbl" for="setUrssaf">Taux URSSAF (%)</label><input class="input" id="setUrssaf" type="number" inputmode="decimal" min="0" max="100" step="0.1"></div>
+            <div><label class="lbl" for="setStale">Alerte « en ligne depuis » (jours)</label><input class="input" id="setStale" type="number" inputmode="numeric" min="1" step="1"></div>
+          </div>
+          <label class="lbl" for="setGoal">Objectif mensuel de bénéfice net (€)</label>
+          <input class="input" id="setGoal" type="number" inputmode="decimal" min="0" step="1">
+          <p class="help" style="margin-top:8px">Bénéfice net = prix de vente − URSSAF − prix d'achat. Le port est payé par l'acheteur et n'est jamais compté.</p>
+          <label class="lbl">Fournisseur / modèle pour Vinted</label>
+          <div class="row"><button class="pill" id="vintedPillSettings" data-act="pick-vinted-model"><span class="t">—</span></button>
+            <button class="btn sm" data-act="vinted-model-auto">Auto</button></div>
+          <p class="help small" style="margin-top:6px">Auto = premier fournisseur configuré qui accepte les images.</p>
+        </div>
+        <div class="card">
+          <h2>✍️ Prompts Vinted</h2>
+          <p class="help">Modifiables. Ils doivent demander une réponse en JSON avec les mêmes champs.</p>
+          <div id="vPromptEditors"></div>
+        </div>
+        <div class="card">
+          <h2>💾 Données</h2>
+          <div class="row">
+            <button class="btn sm" data-act="export-convs">⬇️ Exporter conversations</button>
+            <button class="btn sm" data-act="import-convs">⬆️ Importer conversations</button>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button class="btn sm" data-act="st-export-json">⬇️ Stock JSON</button>
+            <button class="btn sm" data-act="st-export-csv">⬇️ Stock CSV</button>
+            <button class="btn sm" data-act="st-import-file">⬆️ Importer stock</button>
+            <button class="btn sm" data-act="st-import-vcrm">📥 Depuis index.html</button>
+          </div>
+          <p class="help small" style="margin-top:8px" id="storageInfo"></p>
+          <div class="sep"></div>
+          <button class="btn danger block" data-act="clear-convs">🗑️ Supprimer toutes les conversations</button>
+        </div>
+      </div></div>
+    </section>
+  </div>
+</div>
+
+<input type="file" id="importFile" accept=".json,.csv,application/json,text/csv" hidden>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div id="sheetRoot"></div>
+
+<script>
+'use strict';
+/* ══════════════════════════════════════════════════════════════════════
+   CONFIG
+   ══════════════════════════════════════════════════════════════════════ */
+// Aucune clé ici : uniquement des métadonnées publiques des API.
+const PROVIDERS = {
+  claude:   { name: 'Claude',   vendor: 'Anthropic', icon: '✴️', suggested: 'claude-sonnet-5-5', keyHint: 'sk-ant-…' },
+  openai:   { name: 'GPT',      vendor: 'OpenAI',    icon: '🟢', suggested: 'gpt-4o',           keyHint: 'sk-…' },
+  grok:     { name: 'Grok',     vendor: 'xAI',       icon: '✖️', suggested: 'grok-4',           keyHint: 'xai-…' },
+  gemini:   { name: 'Gemini',   vendor: 'Google',    icon: '🔷', suggested: 'gemini-2.5-flash', keyHint: 'AIza…' },
+  deepseek: { name: 'DeepSeek', vendor: 'DeepSeek',  icon: '🐋', suggested: 'deepseek-chat',    keyHint: 'sk-…' },
+};
+const PROVIDER_IDS = Object.keys(PROVIDERS);
+
+const API = {
+  claude: 'https://api.anthropic.com/v1',
+  openai: 'https://api.openai.com/v1',
+  grok: 'https://api.x.ai/v1',
+  gemini: 'https://generativelanguage.googleapis.com/v1beta',
+  deepseek: 'https://api.deepseek.com',
+};
+
+const LS_KEYS = {
+  keyPrefix: 'aihub_key_',          // aihub_key_<provider>
+  vaultSalt: 'aihub_vault_salt',
+  vaultCheck: 'aihub_vault_check',
+  convs: 'aihub_convs',
+  currentConv: 'aihub_current_conv',
+  sysPrompts: 'aihub_sysprompts',
+  modelsPrefix: 'aihub_models_',
+  settings: 'aihub_settings',
+  vsettings: 'aihub_vinted_settings',
+  vpromptPrefix: 'aihub_vprompt_',
+  stock: 'aihub_stock',
+  compare: 'aihub_compare',
+  lastPM: 'aihub_last_pm',
+  view: 'aihub_view',
+  vtab: 'aihub_vtab',
+};
+
+const VINTED_ETATS = ['Neuf avec étiquette', 'Neuf sans étiquette', 'Très bon état', 'Bon état', 'Satisfaisant'];
+const STATUS = { online: 'En ligne', reserved: 'Réservé', sold: 'Vendu', archived: 'Archivé' };
+
+const DEFAULT_SETTINGS = { maxTokens: 8192, enterSend: null };
+const DEFAULT_VSETTINGS = { urssafRate: 12.3, goal: 0, staleDays: 30, provider: '', model: '' };
+
+const JSON_RULE = 'Réponds UNIQUEMENT avec un objet JSON valide (guillemets doubles, pas de virgule finale), sans aucun texte avant ou après et sans balises markdown.';
+
+const DEFAULT_VPROMPTS = {
+  annonce: `Tu es un expert de la revente de vêtements et accessoires sur Vinted (France). À partir des photos et des infos fournies, rédige une annonce qui vend, naturelle et honnête.
+
+Règles :
+- "titre" : accrocheur, 60 caractères MAXIMUM, avec marque + type d'article + détail clé (coupe, motif, matière) + taille si connue. Pas de majuscules partout, pas d'emojis.
+- "description" : ton naturel à la 1re personne, 4 à 8 lignes courtes, 2 à 4 emojis sobres maximum. Mentionne l'état, la matière (seulement si lisible sur l'étiquette, sinon ne l'invente pas), la taille et la coupe, les défauts visibles honnêtement. Ne parle jamais des frais de port.
+- "categorie" : chemin de catégorie Vinted, ex. "Femmes > Vêtements > Pulls & sweats > Pulls".
+- "etat" : exactement une valeur parmi "Neuf avec étiquette", "Neuf sans étiquette", "Très bon état", "Bon état", "Satisfaisant".
+- "couleur" : couleur(s) principale(s) selon les couleurs Vinted.
+- "mots_cles" : 5 à 10 mots-clés pertinents pour la recherche Vinted (style, époque, matière, usage), sans le caractère #.
+- "prix_suggere" : prix de vente conseillé en euros (nombre), selon le marché Vinted France.
+- Si une information est inconnue, mets "" : n'invente jamais.
+
+${JSON_RULE}
+Format :
+{"titre":"","description":"","categorie":"","etat":"","couleur":"","marque":"","taille":"","matiere":"","defauts":[],"mots_cles":[],"prix_suggere":0}`,
+
+  prix: `Tu es un expert des prix de revente sur Vinted France. Estime le prix de vente d'un article d'occasion à partir des photos et/ou de la description : marque, type, matière, état, saisonnalité et prix habituellement pratiqués sur Vinted. Le port est toujours payé par l'acheteur : ne l'intègre jamais au prix.
+
+Donne :
+- "vente_rapide" : prix pour vendre en quelques jours,
+- "prix_normal" : prix réaliste sous 2 à 4 semaines,
+- "prix_max" : prix haut possible si on est patient,
+- "prix_conseille" : ton prix d'affichage recommandé,
+- "justification" : 2 à 4 phrases,
+- "facteurs" : 2 à 5 éléments qui font monter ou baisser le prix,
+- "confiance" : "faible", "moyenne" ou "élevée".
+Tous les prix sont des nombres en euros.
+
+${JSON_RULE}
+Format :
+{"article":"","vente_rapide":0,"prix_normal":0,"prix_max":0,"prix_conseille":0,"justification":"","facteurs":[],"confiance":""}`,
+
+  cop: `Tu es un revendeur Vinted expérimenté (micro-entreprise, France) qui chine en friperie, Emmaüs et vide-grenier. On te montre un article avec son prix demandé. Dis s'il faut l'acheter pour le revendre sur Vinted.
+
+Rappels métier :
+- URSSAF = taux indiqué × prix de vente. Bénéfice net = prix de revente − URSSAF − prix d'achat.
+- Le port est payé par l'acheteur : ne le compte jamais.
+- "COP" si le bénéfice net est intéressant (en gros au moins 8 € et au moins le prix d'achat) et que l'article se vend en moins d'un mois ; "NEGOCIER" si c'est rentable seulement avec une baisse du prix ; "PASSE" sinon ou si le risque (contrefaçon, défaut, faible demande) est trop élevé.
+
+Donne :
+- "verdict" : "COP", "NEGOCIER" ou "PASSE",
+- "article" : ce que tu identifies (marque, type, époque),
+- "prix_revente_estime" : prix de revente réaliste sur Vinted (nombre),
+- "fourchette_revente" : [min, max],
+- "vitesse_vente" : "rapide (moins d'une semaine)", "moyenne (1 à 4 semaines)" ou "lente (plus d'un mois)",
+- "prix_max_a_payer" : prix d'achat maximum pour que ça reste rentable (nombre),
+- "points_a_verifier" : liste concrète (taches, trous, bouloches, fermeture, étiquette de composition, signes de contrefaçon…),
+- "risque_contrefacon" : "faible", "moyen", "élevé" ou "non applicable",
+- "resume" : 1 à 3 phrases directes.
+
+${JSON_RULE}
+Format :
+{"verdict":"","article":"","prix_revente_estime":0,"fourchette_revente":[0,0],"vitesse_vente":"","prix_max_a_payer":0,"points_a_verifier":[],"risque_contrefacon":"","resume":""}`,
+
+  lot: `Tu es un expert Vinted (France). On te donne la liste d'articles vendus ensemble en un lot. Rédige une annonce de lot attractive et honnête.
+
+- "titre" : 60 caractères maximum, commence par "Lot" et résume le contenu (ex. "Lot 3 pulls laine vintage taille M").
+- "description" : naturelle, liste chaque article (type, marque, taille, état) sur une ligne avec un tiret, puis 1 phrase d'accroche. 2 à 4 emojis sobres maximum. Ne parle pas des frais de port.
+- "prix_lot" : prix du lot en euros (nombre), en général 15 à 25 % de moins que la somme des prix séparés. Si un prix de lot souhaité est fourni, garde-le.
+- "justification" : 1 à 2 phrases.
+- "mots_cles" : 5 à 10 mots-clés, sans #.
+
+${JSON_RULE}
+Format :
+{"titre":"","description":"","prix_lot":0,"justification":"","mots_cles":[]}`,
+};
+const VPROMPT_LABELS = { annonce: '📝 Annonce', prix: '💶 Prix', cop: '🔍 Cop ou pas ?', lot: '📦 Annonce de lot' };
+
+/* ══════════════════════════════════════════════════════════════════════
+   UTILS
+   ══════════════════════════════════════════════════════════════════════ */
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
+const round2 = n => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+const todayISO = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
+const daysBetween = (a, b) => Math.floor((new Date(b) - new Date(a)) / 86400000);
+const eur = n => (Number.isFinite(Number(n)) ? Number(n) : 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+const pct = n => Number.isFinite(n) ? n.toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' %' : '—';
+const fmtInt = n => Number(n || 0).toLocaleString('fr-FR');
+function toNum(v) {
+  if (typeof v === 'number') return Number.isFinite(v) ? v : NaN;
+  if (v == null) return NaN;
+  const m = String(v).replace(/\s/g, '').replace(',', '.').match(/-?\d+(\.\d+)?/);
+  return m ? parseFloat(m[0]) : NaN;
+}
+const numOr = (v, d = 0) => { const n = toNum(v); return Number.isFinite(n) ? n : d; };
+
+// Crée un élément DOM sans jamais passer par innerHTML.
+function h(tag, props, ...kids) {
+  const el = document.createElement(tag);
+  if (props) for (const [k, v] of Object.entries(props)) {
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k === 'text') el.textContent = v;
+    else if (k === 'style' && typeof v === 'object') Object.assign(el.style, v);
+    else if (k === 'dataset') Object.assign(el.dataset, v);
+    else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2).toLowerCase(), v);
+    else if (['value', 'checked', 'disabled', 'hidden', 'selected', 'multiple'].includes(k)) el[k] = v;
+    else el.setAttribute(k, v === true ? '' : String(v));
+  }
+  for (const c of kids.flat(Infinity)) {
+    if (c == null || c === false) continue;
+    el.append(c instanceof Node ? c : document.createTextNode(String(c)));
+  }
+  return el;
+}
+
+let toastTimer;
+function toast(msg, ms = 2600) {
+  const t = $('#toast');
+  t.textContent = redact(msg);
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), ms);
+}
+
+async function copyText(text, btn) {
+  try { await navigator.clipboard.writeText(text); }
+  catch {
+    const ta = h('textarea', { style: { position: 'fixed', opacity: '0' } });
+    ta.value = text; document.body.append(ta); ta.select();
+    try { document.execCommand('copy'); } catch { /* ignore */ }
+    ta.remove();
+  }
+  if (btn) { const old = btn.textContent; btn.textContent = '✓ Copié'; btn.classList.add('done'); setTimeout(() => { btn.textContent = old; btn.classList.remove('done'); }, 1400); }
+  else toast('📋 Copié');
+}
+
+function download(filename, content, mime) {
+  const blob = content instanceof Blob ? content : new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = h('a', { href: url, download: filename });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+function pickFile(accept) {
+  return new Promise(resolve => {
+    const inp = $('#importFile');
+    inp.accept = accept; inp.value = '';
+    inp.onchange = () => resolve(inp.files[0] || null);
+    inp.click();
+  });
+}
+
+const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+
+/* ══════════════════════════════════════════════════════════════════════
+   SÉCURITÉ — masquage, coffre à clés (localStorage + chiffrement optionnel)
+   ══════════════════════════════════════════════════════════════════════ */
+function maskKey(k) {
+  if (!k) return '';
+  const pre = k.startsWith('sk-ant-') ? 'sk-ant-' : k.startsWith('sk-') ? 'sk-' : k.startsWith('xai-') ? 'xai-' : k.startsWith('AIza') ? 'AIza' : '';
+  return pre + '…' + k.slice(-4);
+}
+// Retire toute clé connue ou ressemblant à une clé d'une chaîne avant affichage/log.
+function redact(s) {
+  s = String(s ?? '');
+  for (const k of Object.values(KeyVault.mem)) if (k && k.length >= 8) s = s.split(k).join(maskKey(k));
+  return s.replace(/\b(sk-ant-[A-Za-z0-9_-]{8,}|sk-[A-Za-z0-9_-]{12,}|xai-[A-Za-z0-9_-]{12,}|AIza[0-9A-Za-z_-]{20,})/g, m => maskKey(m));
+}
+const safeLog = (...a) => console.warn('[AI Hub]', ...a.map(x => redact(x instanceof Error ? x.name + ': ' + x.message : typeof x === 'string' ? x : JSON.stringify(x))));
+
+const b64 = { enc: buf => btoa(String.fromCharCode(...new Uint8Array(buf))), dec: s => Uint8Array.from(atob(s), c => c.charCodeAt(0)) };
+
+const KeyVault = {
+  mem: {},            // clés déchiffrées, en mémoire uniquement
+  cryptoKey: null,
+  get encrypted() { return !!localStorage.getItem(LS_KEYS.vaultCheck); },
+  get locked() { return this.encrypted && !this.cryptoKey; },
+  init() {
+    this.mem = {};
+    if (this.encrypted) return;
+    for (const p of PROVIDER_IDS) {
+      const v = localStorage.getItem(LS_KEYS.keyPrefix + p);
+      if (v && !v.startsWith('enc1:')) this.mem[p] = v;
+    }
+  },
+  get(p) { return this.mem[p] || ''; },
+  has(p) { return !!this.mem[p]; },
+  stored(p) { return !!localStorage.getItem(LS_KEYS.keyPrefix + p); },
+  configured() { return PROVIDER_IDS.filter(p => this.has(p)); },
+  async derive(pass, salt) {
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 310000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+  },
+  async encrypt(text) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, this.cryptoKey, new TextEncoder().encode(text));
+    return 'enc1:' + b64.enc(iv) + ':' + b64.enc(ct);
+  },
+  async decrypt(s) {
+    const [, iv, ct] = s.split(':');
+    const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64.dec(iv) }, this.cryptoKey, b64.dec(ct));
+    return new TextDecoder().decode(pt);
+  },
+  async set(p, value) {
+    const v = (value || '').trim();
+    if (!v) { localStorage.removeItem(LS_KEYS.keyPrefix + p); delete this.mem[p]; return; }
+    if (this.locked) throw new Error('Déverrouille d\'abord tes clés.');
+    localStorage.setItem(LS_KEYS.keyPrefix + p, this.encrypted ? await this.encrypt(v) : v);
+    this.mem[p] = v;
+  },
+  async unlock(pass) {
+    const salt = b64.dec(localStorage.getItem(LS_KEYS.vaultSalt) || '');
+    this.cryptoKey = await this.derive(pass, salt);
+    try { await this.decrypt(localStorage.getItem(LS_KEYS.vaultCheck)); }
+    catch { this.cryptoKey = null; throw new Error('Code incorrect.'); }
+    this.mem = {};
+    for (const p of PROVIDER_IDS) {
+      const v = localStorage.getItem(LS_KEYS.keyPrefix + p);
+      if (!v) continue;
+      try { this.mem[p] = v.startsWith('enc1:') ? await this.decrypt(v) : v; } catch { /* clé illisible : ignorée */ }
+    }
+  },
+  async enable(pass) {
+    if (this.locked) throw new Error('Déverrouille d\'abord tes clés.');
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    this.cryptoKey = await this.derive(pass, salt);
+    localStorage.setItem(LS_KEYS.vaultSalt, b64.enc(salt));
+    localStorage.setItem(LS_KEYS.vaultCheck, await this.encrypt('aihub-ok'));
+    for (const p of PROVIDER_IDS) if (this.mem[p]) localStorage.setItem(LS_KEYS.keyPrefix + p, await this.encrypt(this.mem[p]));
+  },
+  disable() {
+    if (this.locked) throw new Error('Déverrouille d\'abord tes clés.');
+    for (const p of PROVIDER_IDS) if (this.mem[p]) localStorage.setItem(LS_KEYS.keyPrefix + p, this.mem[p]);
+    localStorage.removeItem(LS_KEYS.vaultCheck); localStorage.removeItem(LS_KEYS.vaultSalt);
+    this.cryptoKey = null;
+  },
+  lock() { if (this.encrypted) { this.mem = {}; this.cryptoKey = null; } },
+  clearAll() {
+    for (const p of PROVIDER_IDS) localStorage.removeItem(LS_KEYS.keyPrefix + p);
+    localStorage.removeItem(LS_KEYS.vaultCheck); localStorage.removeItem(LS_KEYS.vaultSalt);
+    this.mem = {}; this.cryptoKey = null;
+  },
+};
+
+// Rendu markdown : TOUJOURS assaini par DOMPurify ; sans les librairies, texte brut.
+const PURIFY_CFG = { FORBID_TAGS: ['style', 'form', 'input', 'button', 'textarea', 'select', 'iframe', 'object', 'embed', 'svg', 'math'], FORBID_ATTR: ['style', 'srcset'] };
+let purifyReady = false;
+function libsReady() {
+  if (purifyReady) return true;
+  if (window.DOMPurify && window.marked && DOMPurify.isSupported) {
+    DOMPurify.addHook('afterSanitizeAttributes', node => {
+      if (node.tagName === 'A') { node.setAttribute('target', '_blank'); node.setAttribute('rel', 'noopener noreferrer'); }
+      // Images distantes interdites (pistage / exfiltration) : seules les data:image passent.
+      if (node.tagName === 'IMG' && !/^data:image\//i.test(node.getAttribute('src') || '')) { node.removeAttribute('src'); node.setAttribute('hidden', ''); }
+    });
+    marked.setOptions({ gfm: true, breaks: true });
+    purifyReady = true;
+  }
+  return purifyReady;
+}
+function renderMarkdown(el, text) {
+  if (libsReady()) {
+    const clean = DOMPurify.sanitize(marked.parse(String(text || '')), PURIFY_CFG);
+    el.innerHTML = clean; // contenu assaini par DOMPurify — seul usage d'innerHTML de l'app
+  } else {
+    el.textContent = text || '';
+    el.style.whiteSpace = 'pre-wrap';
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   STORAGE — localStorage (JSON) + IndexedDB (photos)
+   ══════════════════════════════════════════════════════════════════════ */
+const Store = {
+  get(key, def) {
+    try { const v = localStorage.getItem(key); return v == null ? def : JSON.parse(v); } catch { return def; }
+  },
+  set(key, val, replacer) {
+    try { localStorage.setItem(key, JSON.stringify(val, replacer)); return true; }
+    catch (e) {
+      safeLog('localStorage plein', e);
+      toast('⚠️ Stockage du navigateur plein : exporte puis supprime d\'anciennes conversations.', 5000);
+      return false;
+    }
+  },
+  del(key) { localStorage.removeItem(key); },
+};
+
+const IDB = {
+  db: null, mem: { photos: new Map(), chatimg: new Map() },
+  open() {
+    if (this.db) return Promise.resolve(this.db);
+    return new Promise(resolve => {
+      let req;
+      try { req = indexedDB.open('aihub', 1); } catch { resolve(null); return; }
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains('photos')) db.createObjectStore('photos');
+        if (!db.objectStoreNames.contains('chatimg')) db.createObjectStore('chatimg');
+      };
+      req.onsuccess = () => { this.db = req.result; resolve(this.db); };
+      req.onerror = () => { safeLog('IndexedDB indisponible, photos gardées en mémoire'); resolve(null); };
+    });
+  },
+  async tx(store, mode, fn) {
+    const db = await this.open();
+    if (!db) return fn(null);
+    return new Promise((resolve, reject) => {
+      const t = db.transaction(store, mode);
+      const r = fn(t.objectStore(store));
+      t.oncomplete = () => resolve(r && 'result' in r ? r.result : undefined);
+      t.onerror = () => reject(t.error);
+    });
+  },
+  async get(store, key) {
+    const db = await this.open();
+    if (!db) return this.mem[store].get(key);
+    return this.tx(store, 'readonly', s => s.get(key));
+  },
+  async put(store, key, val) {
+    const db = await this.open();
+    if (!db) { this.mem[store].set(key, val); return; }
+    return this.tx(store, 'readwrite', s => s.put(val, key));
+  },
+  async del(store, key) {
+    const db = await this.open();
+    if (!db) { this.mem[store].delete(key); return; }
+    return this.tx(store, 'readwrite', s => s.delete(key));
+  },
+  async clear(store) {
+    const db = await this.open();
+    if (!db) { this.mem[store].clear(); return; }
+    return this.tx(store, 'readwrite', s => s.clear());
+  },
+};
+
+const Settings = {
+  get() { return { ...DEFAULT_SETTINGS, ...Store.get(LS_KEYS.settings, {}) }; },
+  set(patch) { Store.set(LS_KEYS.settings, { ...this.get(), ...patch }); },
+};
+const VSettings = {
+  get() { return { ...DEFAULT_VSETTINGS, ...Store.get(LS_KEYS.vsettings, {}) }; },
+  set(patch) { Store.set(LS_KEYS.vsettings, { ...this.get(), ...patch }); },
+};
+const VPrompts = {
+  get(name) { return localStorage.getItem(LS_KEYS.vpromptPrefix + name) || DEFAULT_VPROMPTS[name]; },
+  set(name, v) { if (!v.trim() || v === DEFAULT_VPROMPTS[name]) localStorage.removeItem(LS_KEYS.vpromptPrefix + name); else localStorage.setItem(LS_KEYS.vpromptPrefix + name, v); },
+  reset(name) { localStorage.removeItem(LS_KEYS.vpromptPrefix + name); },
+};
+
+/* ══════════════════════════════════════════════════════════════════════
+   IMAGES — compression côté client
+   ══════════════════════════════════════════════════════════════════════ */
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('Image illisible'));
+    img.src = src;
+  });
+}
+async function drawResized(src, max, q) {
+  const img = await loadImage(src);
+  const w = img.naturalWidth, hh = img.naturalHeight;
+  const s = Math.min(1, max / Math.max(w, hh));
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(w * s)); c.height = Math.max(1, Math.round(hh * s));
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+  ctx.drawImage(img, 0, 0, c.width, c.height);
+  return c.toDataURL('image/jpeg', q);
+}
+async function compressImage(file, max = 1280, q = 0.8) {
+  const url = URL.createObjectURL(file);
+  try { return await drawResized(url, max, q); } finally { URL.revokeObjectURL(url); }
+}
+const makeThumb = dataUrl => drawResized(dataUrl, 360, 0.72);
+const splitDataUrl = u => { const m = /^data:([^;]+);base64,(.*)$/.exec(u || ''); return m ? { mime: m[1], data: m[2] } : null; };
+
+// Sélecteur de photos réutilisable (Annonce, Prix, Cop, Lot).
+function PhotoPicker(root, max = 10) {
+  let imgs = [];
+  const counter = h('span', { class: 'count' });
+  const grid = h('div', { class: 'pp-grid' });
+  const input = h('input', { type: 'file', accept: 'image/*', multiple: true, hidden: true });
+  input.addEventListener('change', async () => {
+    const files = [...input.files];
+    const room = max - imgs.length;
+    if (files.length > room) toast(`Maximum ${max} photos — ${files.length - room} ignorée(s)`);
+    for (const f of files.slice(0, room)) {
+      try { imgs.push(await compressImage(f)); } catch { toast('⚠️ Une photo n\'a pas pu être lue'); }
+      render();
+    }
+    input.value = '';
+  });
+  function render() {
+    grid.replaceChildren(
+      ...imgs.map((src, i) => h('div', { class: 'pp-item' },
+        h('img', { src, alt: 'Photo ' + (i + 1) }),
+        h('button', { class: 'pp-del', type: 'button', 'aria-label': 'Retirer la photo', onclick: () => { imgs.splice(i, 1); render(); } }, '×'))),
+      imgs.length < max ? h('button', { class: 'pp-add', type: 'button', onclick: () => input.click() }, h('span', { class: 'i' }, '📷'), 'Ajouter') : null,
+    );
+    counter.textContent = `${imgs.length} / ${max} photo${max > 1 ? 's' : ''}`;
+  }
+  root.replaceChildren(h('div', { class: 'pp-head' }, h('span', { class: 'lbl small muted' }, 'Photos'), counter), grid, input);
+  render();
+  return {
+    get images() { return imgs.slice(); },
+    set(list) { imgs = (list || []).slice(0, max); render(); },
+    clear() { imgs = []; render(); },
+  };
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   PROVIDERS — adaptateurs + interface commune sendMessage()
+   ══════════════════════════════════════════════════════════════════════ */
+class ApiError extends Error {
+  constructor(provider, status, kind, detail) {
+    super(redact(detail || kind));
+    this.name = 'ApiError'; this.provider = provider; this.status = status; this.kind = kind;
+  }
+}
+
+// Message clair en français, sans jamais afficher de clé.
+function friendlyError(e, model) {
+  if (!e) return 'Erreur inconnue.';
+  if (e.name === 'AbortError') return '⏹️ Génération arrêtée.';
+  if (!(e instanceof ApiError)) return '⚠️ ' + redact(e.message || String(e));
+  const n = PROVIDERS[e.provider]?.name || e.provider;
+  const d = e.message && e.message !== e.kind ? `\nDétail : ${e.message}` : '';
+  switch (e.kind) {
+    case 'nokey': return `🔑 Aucune clé ${n} configurée. Ajoute-la dans Paramètres.`;
+    case 'locked': return '🔒 Tes clés sont verrouillées. Déverrouille-les d\'abord.';
+    case 'auth': return `🔑 ${n} : clé API refusée (erreur ${e.status || 'auth'}). Vérifie ta clé dans Paramètres (ou ses droits / ton crédit).${d}`;
+    case 'quota': return `⏳ ${n} : quota atteint ou trop de requêtes (429). Patiente un peu ou vérifie ton crédit / ta facturation.${d}`;
+    case 'offline': return '📴 Pas de connexion internet. Réessaie quand tu es de nouveau en ligne.';
+    case 'network': return `🌐 ${n} : impossible de joindre l'API. Soit le réseau a coupé, soit ${n} bloque les appels directs depuis un navigateur (CORS). Les autres fournisseurs restent utilisables.`;
+    case 'model': return `❓ ${n} : modèle « ${model || '?'} » introuvable ou non autorisé pour ta clé (404). Rafraîchis la liste des modèles.${d}`;
+    case 'server': return `🛠️ ${n} est surchargé ou en panne (${e.status || 'serveur'}). Réessaie dans un moment.${d}`;
+    case 'blocked': return `🚫 ${n} a bloqué la réponse (filtre de sécurité).${d}`;
+    case 'empty': return `🤷 ${n} a renvoyé une réponse vide.${d}`;
+    default: return `⚠️ ${n} (erreur ${e.status || '?'}).${d}`;
+  }
+}
+
+function errorKind(provider, status, msg) {
+  if (status === 401 || status === 403) return 'auth';
+  if (status === 429) return 'quota';
+  if (status === 404) return 'model';
+  if (status === 529 || status >= 500) return 'server';
+  if (status === 400 && /api[ _-]?key|API_KEY_INVALID|authentication|unauthori[sz]ed|incorrect api key/i.test(msg)) return 'auth';
+  if (status === 400 && /not found|does not exist|unknown model|invalid model|model_not_found/i.test(msg)) return 'model';
+  if (status === 402 || /insufficient|quota|credit|balance/i.test(msg)) return 'quota';
+  return 'http';
+}
+
+async function apiFetch(provider, url, opts) {
+  let resp;
+  try { resp = await fetch(url, { ...opts, credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store' }); }
+  catch (e) {
+    if (e.name === 'AbortError') throw e;
+    throw new ApiError(provider, 0, navigator.onLine === false ? 'offline' : 'network');
+  }
+  if (!resp.ok) {
+    let body = '';
+    try { body = await resp.text(); } catch { /* ignore */ }
+    let msg = body;
+    try {
+      let j = JSON.parse(body);
+      if (Array.isArray(j)) j = j[0];
+      msg = j?.error?.message || j?.message || (typeof j?.error === 'string' ? j.error : '') || body;
+    } catch { /* texte brut */ }
+    msg = String(msg || resp.statusText).slice(0, 400);
+    throw new ApiError(provider, resp.status, errorKind(provider, resp.status, msg), msg);
+  }
+  return resp;
+}
+
+// Lecture SSE générique : renvoie le contenu de chaque bloc "data:".
+async function* sseEvents(resp) {
+  const reader = resp.body.getReader();
+  const dec = new TextDecoder();
+  let buf = '';
+  const flush = raw => raw.split(/\r?\n/).filter(l => l.startsWith('data:')).map(l => l.slice(5).replace(/^ /, '')).join('\n');
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let m;
+    while ((m = /\r?\n\r?\n/.exec(buf))) {
+      const data = flush(buf.slice(0, m.index));
+      buf = buf.slice(m.index + m[0].length);
+      if (data) yield data;
+    }
+  }
+  buf += dec.decode();
+  const data = flush(buf);
+  if (data) yield data;
+}
+
+// Quels modèles lisent les images ? true / false / null (inconnu)
+function supportsImages(provider, model) {
+  const m = (model || '').toLowerCase();
+  switch (provider) {
+    case 'claude': return /claude-(instant|2)/.test(m) ? false : true;
+    case 'gemini': return /embed|aqa|tts/.test(m) ? false : true;
+    case 'deepseek': return /vl/.test(m) ? true : false;
+    case 'openai':
+      if (/gpt-3\.5|o1-mini|o3-mini|davinci|babbage|codex/.test(m)) return false;
+      if (/gpt-4o|gpt-4\.1|gpt-4\.5|gpt-4-turbo|gpt-4-vision|gpt-5|chatgpt|^o1|^o3|^o4|omni/.test(m)) return true;
+      return null;
+    case 'grok':
+      if (/vision|grok-4|grok-5/.test(m)) return true;
+      if (/grok-(2|3)|grok-beta|code/.test(m)) return false;
+      return null;
+  }
+  return null;
+}
+const visionLabel = v => v === true ? '📷 lit les images' : v === false ? '📝 texte seul' : '❓ images : inconnu';
+
+// Prépare l'historique : fusionne les rôles consécutifs, commence par "user", retire les images si non supportées.
+function normalizeMessages(messages, images, provider, model) {
+  const out = [];
+  for (const m of messages || []) {
+    const role = m.role === 'assistant' ? 'assistant' : 'user';
+    const content = String(m.content || '');
+    const imgs = (m.images || []).filter(Boolean);
+    if (!content.trim() && !imgs.length) continue;
+    const last = out[out.length - 1];
+    if (last && last.role === role) { last.content += (last.content ? '\n\n' : '') + content; last.images.push(...imgs); }
+    else out.push({ role, content, images: imgs.slice() });
+  }
+  while (out.length && out[0].role !== 'user') out.shift();
+  if (images?.length) {
+    const last = out[out.length - 1];
+    if (last && last.role === 'user') last.images.push(...images);
+    else out.push({ role: 'user', content: '', images: images.slice() });
+  }
+  if (supportsImages(provider, model) === false) for (const m of out) m.images = [];
+  return out;
+}
+
+function oaiCompat(url) {
+  return {
+    request({ key, model, system, messages }) {
+      const msgs = [];
+      if (system) msgs.push({ role: 'system', content: system });
+      for (const m of messages) {
+        if (m.images.length) {
+          msgs.push({ role: m.role, content: [
+            ...(m.content ? [{ type: 'text', text: m.content }] : []),
+            ...m.images.map(u => ({ type: 'image_url', image_url: { url: u } })),
+          ] });
+        } else msgs.push({ role: m.role, content: m.content });
+      }
+      return {
+        url,
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + key },
+        body: { model, messages: msgs, stream: true, stream_options: { include_usage: true } },
+      };
+    },
+    parse(obj, acc, provider) {
+      if (obj.error) throw new ApiError(provider, 0, 'http', obj.error.message || JSON.stringify(obj.error));
+      if (obj.usage) { acc.usage.input = obj.usage.prompt_tokens || 0; acc.usage.output = obj.usage.completion_tokens || 0; }
+      return obj.choices?.[0]?.delta?.content || '';
+    },
+  };
+}
+
+const ADAPTERS = {
+  claude: {
+    request({ key, model, system, messages }) {
+      const msgs = messages.map(m => {
+        if (!m.images.length) return { role: m.role, content: m.content };
+        const blocks = m.images.map(u => { const d = splitDataUrl(u); return { type: 'image', source: { type: 'base64', media_type: d.mime, data: d.data } }; });
+        if (m.content) blocks.push({ type: 'text', text: m.content });
+        return { role: m.role, content: blocks };
+      });
+      const body = { model, max_tokens: clamp(Math.round(numOr(Settings.get().maxTokens, 8192)), 256, 128000), messages: msgs, stream: true };
+      if (system) body.system = system;
+      return {
+        url: API.claude + '/messages',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+        body,
+      };
+    },
+    parse(obj, acc, provider) {
+      switch (obj.type) {
+        case 'message_start': {
+          const u = obj.message?.usage || {};
+          acc.usage.input = (u.input_tokens || 0) + (u.cache_read_input_tokens || 0) + (u.cache_creation_input_tokens || 0);
+          acc.usage.output = u.output_tokens || 0;
+          return '';
+        }
+        case 'content_block_delta': return obj.delta?.type === 'text_delta' ? obj.delta.text : '';
+        case 'message_delta': if (obj.usage?.output_tokens != null) acc.usage.output = obj.usage.output_tokens; return '';
+        case 'error': {
+          const t = obj.error?.type || '';
+          throw new ApiError(provider, 0, t === 'overloaded_error' ? 'server' : t === 'rate_limit_error' ? 'quota' : 'http', obj.error?.message || t);
+        }
+      }
+      return '';
+    },
+  },
+  openai: oaiCompat(API.openai + '/chat/completions'),
+  grok: oaiCompat(API.grok + '/chat/completions'),
+  deepseek: oaiCompat(API.deepseek + '/chat/completions'),
+  gemini: {
+    request({ key, model, system, messages }) {
+      const contents = messages.map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [
+          ...m.images.map(u => { const d = splitDataUrl(u); return { inline_data: { mime_type: d.mime, data: d.data } }; }),
+          ...(m.content ? [{ text: m.content }] : []),
+        ],
+      }));
+      const body = { contents };
+      if (system) body.systemInstruction = { parts: [{ text: system }] };
+      return {
+        // La clé passe dans le header x-goog-api-key, jamais dans l'URL.
+        url: `${API.gemini}/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse`,
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+        body,
+      };
+    },
+    parse(obj, acc, provider) {
+      if (obj.error) throw new ApiError(provider, obj.error.code || 0, errorKind(provider, obj.error.code, obj.error.message || ''), obj.error.message);
+      if (obj.promptFeedback?.blockReason) throw new ApiError(provider, 0, 'blocked', obj.promptFeedback.blockReason);
+      const u = obj.usageMetadata;
+      if (u) { acc.usage.input = u.promptTokenCount || 0; acc.usage.output = (u.candidatesTokenCount || 0) + (u.thoughtsTokenCount || 0); }
+      const parts = obj.candidates?.[0]?.content?.parts || [];
+      return parts.filter(p => !p.thought).map(p => p.text || '').join('');
+    },
+  },
+};
+
+/**
+ * Interface commune à tous les fournisseurs.
+ * @param {{provider:string, model:string, system?:string, messages:{role:string,content:string,images?:string[]}[], images?:string[], onToken?:(delta:string, full:string)=>void, signal?:AbortSignal}} o
+ * @returns {Promise<{text:string, usage:{input:number, output:number}}>}
+ */
+async function sendMessage({ provider, model, system = '', messages, images = [], onToken = () => {}, signal }) {
+  if (!ADAPTERS[provider]) throw new Error('Fournisseur inconnu : ' + provider);
+  if (KeyVault.locked) throw new ApiError(provider, 0, 'locked');
+  const key = KeyVault.get(provider);
+  if (!key) throw new ApiError(provider, 0, 'nokey');
+  if (!model) throw new Error('Aucun modèle choisi pour ' + PROVIDERS[provider].name);
+  const ad = ADAPTERS[provider];
+  const req = ad.request({ key, model, system, messages: normalizeMessages(messages, images, provider, model) });
+  const resp = await apiFetch(provider, req.url, { method: 'POST', headers: req.headers, body: JSON.stringify(req.body), signal });
+  const acc = { text: '', usage: { input: 0, output: 0 } };
+  try {
+    for await (const data of sseEvents(resp)) {
+      if (data === '[DONE]') break;
+      let obj;
+      try { obj = JSON.parse(data); } catch { continue; }
+      const delta = ad.parse(obj, acc, provider);
+      if (delta) { acc.text += delta; onToken(delta, acc.text); }
+    }
+  } catch (e) {
+    if (e.name === 'AbortError' || e instanceof ApiError) throw e;
+    throw new ApiError(provider, 0, 'network', 'flux interrompu');
+  }
+  if (!acc.text) throw new ApiError(provider, 0, 'empty');
+  return acc;
+}
+
+// Liste des modèles via l'endpoint /models du fournisseur (mise en cache locale).
+async function listModels(provider) {
+  if (KeyVault.locked) throw new ApiError(provider, 0, 'locked');
+  const key = KeyVault.get(provider);
+  if (!key) throw new ApiError(provider, 0, 'nokey');
+  let url, headers, pick;
+  const oai = j => (j.data || []).map(m => m.id);
+  switch (provider) {
+    case 'claude':
+      url = API.claude + '/models?limit=1000';
+      headers = { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' };
+      pick = oai; break;
+    case 'openai':
+      url = API.openai + '/models'; headers = { Authorization: 'Bearer ' + key };
+      pick = j => oai(j).filter(id => !/embed|whisper|tts|dall-e|moderation|davinci|babbage|audio|realtime|transcribe|image|sora|search/i.test(id)); break;
+    case 'grok':
+      url = API.grok + '/models'; headers = { Authorization: 'Bearer ' + key };
+      pick = j => oai(j).filter(id => !/imagine|-image|video/i.test(id)); break;
+    case 'deepseek':
+      url = API.deepseek + '/models'; headers = { Authorization: 'Bearer ' + key }; pick = oai; break;
+    case 'gemini':
+      url = API.gemini + '/models?pageSize=1000'; headers = { 'x-goog-api-key': key };
+      pick = j => (j.models || [])
+        .filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
+        .map(m => String(m.name || '').replace(/^models\//, ''))
+        .filter(id => id && !/embed|aqa|imagen|veo|tts/i.test(id)); break;
+  }
+  const resp = await apiFetch(provider, url, { method: 'GET', headers });
+  let j;
+  try { j = await resp.json(); } catch { throw new ApiError(provider, resp.status, 'http', 'Réponse /models illisible'); }
+  const ids = [...new Set(pick(j))].sort((a, b) => b.localeCompare(a));
+  Store.set(LS_KEYS.modelsPrefix + provider, { ts: Date.now(), ids });
+  return ids;
+}
+const cachedModels = p => Store.get(LS_KEYS.modelsPrefix + p, { ids: [] }).ids || [];
+const defaultModel = p => {
+  const ids = cachedModels(p);
+  return ids.includes(PROVIDERS[p].suggested) || !ids.length ? PROVIDERS[p].suggested : ids[0];
+};
+
+// Extraction robuste d'un objet JSON dans une réponse d'IA.
+function extractJSON(text) {
+  let t = String(text || '').trim();
+  const fence = t.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fence) t = fence[1].trim();
+  const s = t.indexOf('{'), e = t.lastIndexOf('}');
+  if (s === -1 || e <= s) throw new Error('Pas de JSON');
+  const body = t.slice(s, e + 1);
+  try { return JSON.parse(body); }
+  catch { return JSON.parse(body.replace(/,\s*([}\]])/g, '$1').replace(/[“”]/g, '"')); }
+}
+
+// Appel « JSON strict » : 1 nouvelle tentative si le JSON est invalide, sinon erreur avec le texte brut.
+async function askJSON({ provider, model, system, text, images, signal, onProgress }) {
+  const first = await sendMessage({ provider, model, system, messages: [{ role: 'user', content: text }], images, signal, onToken: (_, full) => onProgress?.(full.length, 1) });
+  try { return { data: extractJSON(first.text), usage: first.usage }; } catch { /* retry */ }
+  const second = await sendMessage({
+    provider, model, system, signal,
+    messages: [
+      { role: 'user', content: text, images },
+      { role: 'assistant', content: first.text },
+      { role: 'user', content: 'Ta réponse précédente n\'était pas un JSON valide. Renvoie UNIQUEMENT l\'objet JSON demandé, sans texte ni balises markdown.' },
+    ],
+    onToken: (_, full) => onProgress?.(full.length, 2),
+  });
+  try { return { data: extractJSON(second.text), usage: second.usage }; }
+  catch { const err = new Error('JSON invalide'); err.raw = second.text || first.text; throw err; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   UI — feuilles (sheets), sélecteur de modèle, navigation
+   ══════════════════════════════════════════════════════════════════════ */
+function openSheet(title, body, actions = [], { onClose } = {}) {
+  const overlay = h('div', { class: 'sheet-overlay', role: 'dialog', 'aria-modal': 'true', 'aria-label': title });
+  const close = () => { overlay.remove(); onClose?.(); };
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+  overlay.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+  const acts = actions.map(a => h('button', { class: 'btn ' + (a.cls || ''), type: 'button', onclick: async () => { if ((await a.onClick?.()) !== false) close(); } }, a.label));
+  overlay.append(h('div', { class: 'sheet' }, h('div', { class: 'handle' }), h('h2', { text: title }), body, acts.length ? h('div', { class: 'actions' }, acts) : null));
+  $('#sheetRoot').append(overlay);
+  return { close, overlay };
+}
+
+function openModelPicker({ title, provider, model }, onPick) {
+  let prov = provider && PROVIDERS[provider] ? provider : (KeyVault.configured()[0] || 'claude');
+  let mdl = model || defaultModel(prov);
+  const provGrid = h('div', { class: 'prov-grid' });
+  const sel = h('select', { class: 'input', 'aria-label': 'Modèles disponibles' });
+  const free = h('input', { class: 'input', placeholder: 'ou tape un ID de modèle', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false' });
+  const vis = h('span', { class: 'badge' });
+  const info = h('div', { class: 'small muted', style: { marginTop: '6px' } });
+  const refreshBtn = h('button', { class: 'btn sm', type: 'button' }, '🔄 Rafraîchir');
+
+  function renderProv() {
+    provGrid.replaceChildren(...PROVIDER_IDS.map(p => h('button', {
+      class: 'prov-btn' + (p === prov ? ' active' : ''), type: 'button',
+      onclick: () => { prov = p; mdl = defaultModel(p); renderProv(); renderModels(); },
+    }, h('span', null, PROVIDERS[p].icon + ' ' + PROVIDERS[p].name), h('span', { class: 'dot' + (KeyVault.has(p) ? ' ok' : '') }))));
+  }
+  function renderModels() {
+    const ids = cachedModels(prov);
+    const list = ids.includes(mdl) || !mdl ? ids : [mdl, ...ids];
+    sel.replaceChildren(...(list.length ? list : [mdl]).map(id => h('option', { value: id, selected: id === mdl }, id + (supportsImages(prov, id) ? ' 📷' : ''))));
+    free.value = mdl;
+    const v = supportsImages(prov, mdl);
+    vis.className = 'badge ' + (v === true ? 'ok' : v === false ? 'warn' : '');
+    vis.textContent = visionLabel(v);
+    info.textContent = !KeyVault.has(prov) ? '⚠️ Pas de clé pour ce fournisseur (Paramètres).'
+      : ids.length ? `${ids.length} modèles en cache. « Rafraîchir » pour mettre à jour.` : 'Liste vide : clique « Rafraîchir » ou tape un ID.';
+  }
+  sel.addEventListener('change', () => { mdl = sel.value; renderModels(); });
+  free.addEventListener('input', () => { mdl = free.value.trim(); const v = supportsImages(prov, mdl); vis.textContent = visionLabel(v); vis.className = 'badge ' + (v === true ? 'ok' : v === false ? 'warn' : ''); });
+  refreshBtn.addEventListener('click', async () => {
+    refreshBtn.disabled = true; refreshBtn.textContent = '⏳…';
+    try { const ids = await listModels(prov); if (!ids.includes(mdl) && ids.length) mdl = ids.includes(PROVIDERS[prov].suggested) ? PROVIDERS[prov].suggested : ids[0]; renderModels(); toast(`✅ ${ids.length} modèles`); }
+    catch (e) { toast(friendlyError(e), 5000); }
+    finally { refreshBtn.disabled = false; refreshBtn.textContent = '🔄 Rafraîchir'; }
+  });
+  renderProv(); renderModels();
+  openSheet(title || 'Choisir l\'IA', h('div', null,
+    h('label', { class: 'lbl' }, 'Fournisseur'), provGrid,
+    h('label', { class: 'lbl' }, 'Modèle'), h('div', { class: 'row' }, h('div', { class: 'grow' }, sel), refreshBtn),
+    h('div', { style: { marginTop: '8px' } }, free),
+    h('div', { class: 'row', style: { marginTop: '8px' } }, vis), info,
+  ), [
+    { label: 'Annuler' },
+    { label: 'Valider', cls: 'primary', onClick: () => { const m = free.value.trim() || mdl; if (!m) { toast('Choisis un modèle'); return false; } onPick(prov, m); } },
+  ]);
+}
+
+function pmLabel(p, m) { return p && PROVIDERS[p] ? `${PROVIDERS[p].icon} ${m || '?'}` : '—'; }
+
+const UI = {
+  view: 'chat',
+  setView(v) {
+    if (!['chat', 'vinted', 'settings'].includes(v)) v = 'chat';
+    if (this.view === 'settings' && v !== 'settings') SettingsUI.clearKeyInputs();
+    this.view = v;
+    Store.set(LS_KEYS.view, v);
+    for (const s of ['chat', 'vinted', 'settings']) $('#view-' + s).hidden = s !== v;
+    $$('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+    $('#drawerChat').hidden = v !== 'chat';
+    $('#drawerVinted').hidden = v !== 'vinted';
+    if (v === 'chat') Chat.render();
+    if (v === 'vinted') Vinted.showTab(Vinted.tab);
+    if (v === 'settings') SettingsUI.render();
+    this.refreshTop();
+    this.closeDrawer();
+  },
+  refreshTop() {
+    const pill = $('#modelPill'), title = $('#topTitle'), tok = $('#tokTotal');
+    pill.hidden = false; tok.textContent = '';
+    if (this.view === 'chat') {
+      const c = Chat.current();
+      title.textContent = c ? c.title : 'Chat libre';
+      pill.dataset.act = 'pick-chat-model';
+      pill.firstElementChild.textContent = c ? pmLabel(c.provider, c.model) : '—';
+      pill.classList.toggle('warn', !!c && !KeyVault.has(c.provider));
+      if (c) { const t = Chat.totals(c); if (t.input || t.output) tok.textContent = `Σ ${fmtInt(t.input + t.output)} tok`; }
+    } else if (this.view === 'vinted') {
+      title.textContent = 'Vinted';
+      const { provider, model } = Vinted.pm();
+      pill.dataset.act = 'pick-vinted-model';
+      pill.firstElementChild.textContent = provider ? pmLabel(provider, model) : 'Aucune IA';
+      pill.classList.toggle('warn', !provider);
+    } else {
+      title.textContent = 'Paramètres';
+      pill.hidden = true;
+    }
+    const n = KeyVault.configured().length;
+    $('#keyStatus').textContent = KeyVault.locked ? '🔒 Clés verrouillées' : `🔑 ${n} clé${n > 1 ? 's' : ''} configurée${n > 1 ? 's' : ''}`;
+    $('#lockBanner').hidden = !KeyVault.locked;
+    $('#noKeyBanner').hidden = KeyVault.locked || n > 0 || this.view === 'settings';
+  },
+  openDrawer() { $('#drawer').classList.add('open'); $('#overlay').classList.add('show'); },
+  closeDrawer() { $('#drawer').classList.remove('open'); $('#overlay').classList.remove('show'); },
+};
+
+function openUnlockSheet() {
+  const inp = h('input', { class: 'input', type: 'password', autocomplete: 'current-password', placeholder: 'Ton code' });
+  const err = h('div', { class: 'small', style: { color: 'var(--danger)', marginTop: '6px' } });
+  const doUnlock = async () => {
+    try { await KeyVault.unlock(inp.value); toast('🔓 Clés déverrouillées'); UI.refreshTop(); if (UI.view === 'settings') SettingsUI.render(); }
+    catch (e) { err.textContent = e.message; inp.select(); return false; }
+  };
+  inp.addEventListener('keydown', async e => { if (e.key === 'Enter') { if ((await doUnlock()) !== false) sh.close(); } });
+  const sh = openSheet('🔒 Déverrouiller mes clés', h('div', null, h('p', { class: 'help muted small' }, 'Le code n\'est jamais stocké ; il sert à déchiffrer tes clés pour cette session.'), inp, err), [
+    { label: 'Annuler' }, { label: 'Déverrouiller', cls: 'violet', onClick: doUnlock },
+  ]);
+  setTimeout(() => inp.focus(), 50);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   CHAT
+   ══════════════════════════════════════════════════════════════════════ */
+const Chat = {
+  convs: [], currentId: null, pending: [], streaming: null, compareOn: false,
+  load() {
+    this.convs = Store.get(LS_KEYS.convs, []);
+    if (!Array.isArray(this.convs)) this.convs = [];
+    this.currentId = Store.get(LS_KEYS.currentConv, null);
+    if (!this.current()) this.currentId = this.convs[0]?.id || null;
+    const cmp = Store.get(LS_KEYS.compare, null);
+    this.compareTargets = Array.isArray(cmp) && cmp.length >= 2 ? cmp.slice(0, 3) : null;
+  },
+  save: debounce(function () { Chat.saveNow(); }, 400),
+  saveNow() { Store.set(LS_KEYS.convs, this.convs, (k, v) => (k === '_el' || k === 'streaming' ? undefined : v)); Store.set(LS_KEYS.currentConv, this.currentId); },
+  current() { return this.convs.find(c => c.id === this.currentId) || null; },
+  defaultPM() {
+    const last = Store.get(LS_KEYS.lastPM, null);
+    if (last && PROVIDERS[last.provider] && KeyVault.has(last.provider)) return last;
+    const p = KeyVault.configured()[0] || last?.provider || 'claude';
+    return { provider: p, model: last?.provider === p ? last.model : defaultModel(p) };
+  },
+  create() {
+    const { provider, model } = this.defaultPM();
+    const prev = this.current();
+    const c = { id: uid(), title: 'Nouvelle conversation', provider, model, system: prev?.system || '', messages: [], createdAt: Date.now(), updatedAt: Date.now() };
+    this.convs.unshift(c); this.currentId = c.id; this.saveNow();
+    return c;
+  },
+  ensure() { return this.current() || this.create(); },
+  select(id) { this.currentId = id; this.saveNow(); this.render(); UI.refreshTop(); UI.closeDrawer(); },
+  rename(id) {
+    const c = this.convs.find(x => x.id === id); if (!c) return;
+    const t = prompt('Nouveau nom :', c.title);
+    if (t && t.trim()) { c.title = t.trim().slice(0, 80); this.saveNow(); this.renderList(); UI.refreshTop(); }
+  },
+  async remove(id) {
+    const c = this.convs.find(x => x.id === id); if (!c) return;
+    if (!confirm(`Supprimer « ${c.title} » ?`)) return;
+    for (const m of c.messages) for (const iid of m.imageIds || []) IDB.del('chatimg', iid).catch(() => {});
+    this.convs = this.convs.filter(x => x.id !== id);
+    if (this.currentId === id) this.currentId = this.convs[0]?.id || null;
+    this.saveNow(); this.render(); UI.refreshTop();
+  },
+  totals(c) {
+    const t = { input: 0, output: 0 };
+    for (const m of c.messages) {
+      const us = m.compare ? m.compare.map(x => x.usage) : [m.usage];
+      for (const u of us) if (u) { t.input += u.input || 0; t.output += u.output || 0; }
+    }
+    return t;
+  },
+
+  /* ── Rendu ── */
+  renderList() {
+    const q = ($('#convSearch').value || '').toLowerCase().trim();
+    const list = this.convs.filter(c => !q || c.title.toLowerCase().includes(q) || c.messages.some(m => (m.content || '').toLowerCase().includes(q) || (m.compare || []).some(x => (x.content || '').toLowerCase().includes(q))));
+    const box = $('#convList');
+    if (!list.length) { box.replaceChildren(h('div', { class: 'small muted', style: { textAlign: 'center', padding: '14px' } }, q ? 'Aucun résultat' : 'Aucune conversation')); return; }
+    box.replaceChildren(...list.map(c => h('div', { class: 'conv-item' + (c.id === this.currentId ? ' active' : '') },
+      h('button', { class: 'conv-main', type: 'button', onclick: () => { this.select(c.id); if (UI.view !== 'chat') UI.setView('chat'); } },
+        h('div', { class: 'conv-name' }, c.title),
+        h('div', { class: 'conv-sub' }, `${PROVIDERS[c.provider]?.icon || ''} ${c.model} · ${c.messages.length} msg · ${new Date(c.updatedAt).toLocaleDateString('fr-FR')}`)),
+      h('button', { class: 'icon-btn ghost', type: 'button', 'aria-label': 'Renommer', onclick: () => this.rename(c.id) }, '✏️'),
+      h('button', { class: 'icon-btn ghost', type: 'button', 'aria-label': 'Supprimer', onclick: () => this.remove(c.id) }, '🗑️'),
+    )));
+  },
+  render() {
+    this.renderList();
+    this.renderCompareBar();
+    $('#sysChip').classList.toggle('active', !!this.current()?.system);
+    const area = $('#chatArea');
+    const c = this.current();
+    if (!c || !c.messages.length) {
+      const sugg = ['Explique-moi simplement…', 'Rédige un e-mail pour…', 'Résume ce texte :', 'Idées de noms pour…'];
+      area.replaceChildren(h('div', { class: 'empty' },
+        h('div', { class: 'big' }, '💬'), h('div', { class: 'ttl' }, 'Chat libre'),
+        h('div', { class: 'sub' }, KeyVault.configured().length
+          ? 'Choisis l\'IA en haut à droite, joins des photos avec 📷, ou active ⚖️ Comparer pour interroger 2 ou 3 IA en même temps.'
+          : 'Commence par ajouter au moins une clé API dans ⚙️ Paramètres.'),
+        h('div', { class: 'chips', style: { justifyContent: 'center' } }, sugg.map(s => h('button', { class: 'chip', type: 'button', onclick: () => { const i = $('#chatInput'); i.value = s; i.focus(); autoGrow(i); } }, s))),
+      ));
+      return;
+    }
+    area.replaceChildren(...c.messages.map((m, i) => this.renderMsg(c, m, i === c.messages.length - 1)));
+    this.scrollBottom(true);
+  },
+  scrollBottom(force) {
+    const s = $('#chatScroll');
+    if (force || s.scrollHeight - s.scrollTop - s.clientHeight < 160) s.scrollTop = s.scrollHeight;
+  },
+  renderMsg(c, m, isLast) {
+    if (m.role === 'user') {
+      const imgs = h('div', { class: 'msg-imgs' });
+      for (const iid of m.imageIds || []) {
+        const img = h('img', { alt: 'Photo envoyée' });
+        imgs.append(img);
+        IDB.get('chatimg', iid).then(src => { if (src) img.src = src; }).catch(() => {});
+      }
+      return h('div', { class: 'msg user', dataset: { id: m.id } },
+        (m.imageIds || []).length ? imgs : null,
+        m.content ? h('div', { class: 'bubble', text: m.content }) : null,
+        h('div', { class: 'meta' },
+          h('button', { class: 'mbtn', type: 'button', onclick: e => copyText(m.content, e.currentTarget) }, '📋'),
+          h('button', { class: 'mbtn', type: 'button', onclick: () => { const i = $('#chatInput'); i.value = m.content; autoGrow(i); i.focus(); } }, '✏️ Reprendre')));
+    }
+    if (m.compare) {
+      const grid = h('div', { class: 'cmp-grid n' + m.compare.length });
+      m.compare.forEach((r, idx) => grid.append(this.renderAnswer(r, { compareMsg: m, idx })));
+      return h('div', { class: 'msg assistant', dataset: { id: m.id } }, grid,
+        isLast && !this.streaming ? h('div', { class: 'meta' }, h('button', { class: 'mbtn', type: 'button', onclick: () => this.regenerate() }, '↻ Régénérer')) : null);
+    }
+    return h('div', { class: 'msg assistant', dataset: { id: m.id } }, this.renderAnswer(m, { isLast }));
+  },
+  renderAnswer(r, { compareMsg, idx, isLast } = {}) {
+    const bubble = h('div', { class: 'bubble' + (r.error ? ' error' : ' md') });
+    if (r.error) bubble.textContent = r.content; else renderMarkdown(bubble, r.content);
+    if (r.streaming) bubble.classList.add('cursor');
+    const meta = h('div', { class: 'meta' },
+      h('span', { class: 'mtag model', title: r.model }, `${PROVIDERS[r.provider]?.icon || ''} ${r.model}`),
+      r.usage && (r.usage.input || r.usage.output) ? h('span', { class: 'mtag tok' }, `↑${fmtInt(r.usage.input)} ↓${fmtInt(r.usage.output)} tok`) : null,
+      r.stopped ? h('span', { class: 'mtag' }, 'interrompu') : null,
+      !r.streaming && r.content && !r.error ? h('button', { class: 'mbtn', type: 'button', onclick: e => copyText(r.content, e.currentTarget) }, '📋 Copier') : null,
+      !r.streaming && !compareMsg && isLast && !this.streaming ? h('button', { class: 'mbtn', type: 'button', onclick: () => this.regenerate() }, r.error ? '↻ Réessayer' : '↻ Régénérer') : null,
+      compareMsg && !r.streaming && !r.error ? h('button', { class: 'mbtn' + ((compareMsg.chosen || 0) === idx ? ' done' : ''), type: 'button', title: 'Utiliser cette réponse pour la suite', onclick: () => { compareMsg.chosen = idx; this.save(); this.render(); } }, (compareMsg.chosen || 0) === idx ? '✔ Retenue' : 'Garder celle-ci') : null,
+    );
+    const wrap = compareMsg
+      ? h('div', { class: 'cmp-col' + ((compareMsg.chosen || 0) === idx ? ' chosen' : '') }, h('div', { class: 'cmp-head' }, `${PROVIDERS[r.provider]?.icon || ''} ${PROVIDERS[r.provider]?.name || ''}`), bubble, meta)
+      : h('div', null, bubble, meta);
+    r._el = { bubble, wrap };
+    return wrap;
+  },
+
+  /* ── Pièces jointes ── */
+  async addFiles(files) {
+    for (const f of files) {
+      if (this.pending.length >= 10) { toast('Maximum 10 photos par message'); break; }
+      try { this.pending.push(await compressImage(f)); } catch { toast('⚠️ Photo illisible'); }
+    }
+    this.renderPending();
+  },
+  renderPending() {
+    $('#pendingImgs').replaceChildren(...this.pending.map((src, i) => h('div', { class: 'thumb-sm' },
+      h('img', { src, alt: 'Photo à envoyer' }),
+      h('button', { class: 'pp-del', type: 'button', 'aria-label': 'Retirer', onclick: () => { this.pending.splice(i, 1); this.renderPending(); } }, '×'))));
+  },
+
+  /* ── Comparer ── */
+  renderCompareBar() {
+    const bar = $('#compareBar');
+    bar.hidden = !this.compareOn;
+    $('#compareChip').classList.toggle('active', this.compareOn);
+    if (!this.compareOn) return;
+    if (!this.compareTargets) {
+      const conf = KeyVault.configured();
+      const ps = (conf.length >= 2 ? conf : PROVIDER_IDS).slice(0, 2);
+      this.compareTargets = ps.map(p => ({ provider: p, model: defaultModel(p) }));
+    }
+    const t = this.compareTargets;
+    bar.replaceChildren(
+      h('span', { class: 'small muted' }, '⚖️'),
+      ...t.map((x, i) => h('button', { class: 'pill' + (KeyVault.has(x.provider) ? '' : ' warn'), type: 'button', onclick: () => openModelPicker({ title: `IA n°${i + 1}`, provider: x.provider, model: x.model }, (p, m) => { t[i] = { provider: p, model: m }; Store.set(LS_KEYS.compare, t); this.renderCompareBar(); }) }, h('span', { class: 't' }, pmLabel(x.provider, x.model)))),
+      t.length < 3 ? h('button', { class: 'mbtn', type: 'button', onclick: () => { const used = t.map(x => x.provider); const p = KeyVault.configured().find(q => !used.includes(q)) || PROVIDER_IDS.find(q => !used.includes(q)); t.push({ provider: p, model: defaultModel(p) }); Store.set(LS_KEYS.compare, t); this.renderCompareBar(); } }, '＋ 3e IA') : h('button', { class: 'mbtn', type: 'button', onclick: () => { t.pop(); Store.set(LS_KEYS.compare, t); this.renderCompareBar(); } }, '− 3e IA'),
+    );
+  },
+
+  /* ── Envoi ── */
+  async buildHistory(c, uptoIndex) {
+    const out = [];
+    for (const m of c.messages.slice(0, uptoIndex)) {
+      if (m.error) continue;
+      if (m.role === 'user') {
+        const images = [];
+        for (const iid of m.imageIds || []) { const src = await IDB.get('chatimg', iid).catch(() => null); if (src) images.push(src); }
+        out.push({ role: 'user', content: m.content || '', images });
+      } else if (m.compare) {
+        const r = m.compare[m.chosen || 0];
+        const pick = r && !r.error ? r : m.compare.find(x => !x.error);
+        if (pick) out.push({ role: 'assistant', content: pick.content });
+      } else out.push({ role: 'assistant', content: m.content });
+    }
+    return out;
+  },
+  checkTargets(targets, hasImages) {
+    if (KeyVault.locked) { openUnlockSheet(); return false; }
+    const missing = targets.filter(t => !KeyVault.has(t.provider));
+    if (missing.length) { toast(`🔑 Clé manquante : ${missing.map(t => PROVIDERS[t.provider].name).join(', ')}`, 4000); return false; }
+    if (hasImages) {
+      const no = targets.filter(t => supportsImages(t.provider, t.model) === false);
+      if (no.length && !confirm(`⚠️ ${no.map(t => t.model).join(', ')} ne lit pas les images : les photos seront ignorées par ce modèle.\n\nEnvoyer quand même ?`)) return false;
+      const unk = targets.filter(t => supportsImages(t.provider, t.model) === null);
+      if (unk.length) toast(`❓ Pas sûr que ${unk.map(t => t.model).join(', ')} lise les images.`, 3500);
+    }
+    return true;
+  },
+  async send() {
+    if (this.streaming) { this.stop(); return; }
+    const input = $('#chatInput');
+    const text = input.value.trim();
+    if (!text && !this.pending.length) return;
+    const c = this.ensure();
+    const targets = this.compareOn ? this.compareTargets : [{ provider: c.provider, model: c.model }];
+    if (!this.checkTargets(targets, this.pending.length > 0)) return;
+
+    const imageIds = [];
+    for (const src of this.pending) { const iid = uid(); await IDB.put('chatimg', iid, src).catch(e => safeLog(e)); imageIds.push(iid); }
+    c.messages.push({ id: uid(), role: 'user', content: text, imageIds, ts: Date.now() });
+    if (c.title === 'Nouvelle conversation') c.title = (text || '📷 Photo').replace(/\s+/g, ' ').slice(0, 48);
+    input.value = ''; autoGrow(input);
+    this.pending = []; this.renderPending();
+    await this.runAssistant(c, targets);
+  },
+  async runAssistant(c, targets) {
+    const history = await this.buildHistory(c, c.messages.length);
+    const ctrl = new AbortController();
+    let msg;
+    if (targets.length > 1) {
+      msg = { id: uid(), role: 'assistant', ts: Date.now(), chosen: 0, compare: targets.map(t => ({ provider: t.provider, model: t.model, content: '', streaming: true })) };
+    } else {
+      msg = { id: uid(), role: 'assistant', ts: Date.now(), provider: targets[0].provider, model: targets[0].model, content: '', streaming: true };
+      Store.set(LS_KEYS.lastPM, targets[0]);
+    }
+    c.messages.push(msg); c.updatedAt = Date.now();
+    this.streaming = ctrl; this.setSendState();
+    this.render(); UI.refreshTop();
+
+    const runs = (msg.compare || [msg]).map(r => this.streamInto(r, c, history, ctrl.signal));
+    await Promise.allSettled(runs);
+    this.streaming = null; this.setSendState();
+    for (const r of msg.compare || [msg]) { delete r.streaming; delete r._el; }
+    c.updatedAt = Date.now(); this.saveNow();
+    this.render(); UI.refreshTop();
+  },
+  async streamInto(r, c, history, signal) {
+    let pending = false;
+    const paint = () => {
+      pending = false;
+      if (r._el?.bubble) { renderMarkdown(r._el.bubble, r.content); this.scrollBottom(); }
+    };
+    try {
+      const res = await sendMessage({
+        provider: r.provider, model: r.model, system: c.system, messages: history, signal,
+        onToken: (_, full) => { r.content = full; if (!pending) { pending = true; setTimeout(paint, 60); } },
+      });
+      r.content = res.text; r.usage = res.usage;
+    } catch (e) {
+      if (e.name === 'AbortError') { r.stopped = true; if (!r.content) { r.error = true; r.content = friendlyError(e); } }
+      else { safeLog(e); r.error = true; r.content = friendlyError(e, r.model); }
+    }
+  },
+  stop() { this.streaming?.abort(); },
+  setSendState() {
+    const b = $('#sendBtn');
+    b.classList.toggle('stop', !!this.streaming);
+    b.textContent = this.streaming ? '■' : '➤';
+    b.setAttribute('aria-label', this.streaming ? 'Arrêter' : 'Envoyer');
+  },
+  async regenerate() {
+    const c = this.current(); if (!c || this.streaming) return;
+    const last = c.messages[c.messages.length - 1];
+    if (!last || last.role !== 'assistant') return;
+    const targets = last.compare ? last.compare.map(x => ({ provider: x.provider, model: x.model })) : [{ provider: c.provider, model: c.model }];
+    if (!this.checkTargets(targets, false)) return;
+    c.messages.pop();
+    await this.runAssistant(c, targets);
+  },
+  pickModel() {
+    const c = this.ensure();
+    openModelPicker({ title: 'IA de cette conversation', provider: c.provider, model: c.model }, (p, m) => {
+      c.provider = p; c.model = m; Store.set(LS_KEYS.lastPM, { provider: p, model: m });
+      this.saveNow(); UI.refreshTop(); this.renderList();
+    });
+  },
+
+  /* ── Prompts système ── */
+  openSystemPrompt() {
+    const c = this.ensure();
+    let saved = Store.get(LS_KEYS.sysPrompts, []);
+    const ta = h('textarea', { class: 'input', rows: 7, placeholder: 'Ex : Tu es un assistant concis qui répond en français.' });
+    ta.value = c.system || '';
+    const list = h('div');
+    const renderSaved = () => list.replaceChildren(...(saved.length ? saved.map(p => h('div', { class: 'row', style: { marginBottom: '6px' } },
+      h('button', { class: 'chip grow', type: 'button', style: { textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis' }, onclick: () => { ta.value = p.text; } }, '📌 ' + p.name),
+      h('button', { class: 'icon-btn ghost', type: 'button', 'aria-label': 'Supprimer ce prompt', onclick: () => { if (confirm(`Supprimer « ${p.name} » ?`)) { saved = saved.filter(x => x.id !== p.id); Store.set(LS_KEYS.sysPrompts, saved); renderSaved(); } } }, '🗑️'))) : [h('div', { class: 'small muted' }, 'Aucun prompt enregistré.')]));
+    renderSaved();
+    openSheet('🧠 Prompt système', h('div', null,
+      h('p', { class: 'help small muted' }, 'S\'applique à cette conversation, quel que soit le fournisseur.'), ta,
+      h('div', { class: 'row', style: { marginTop: '8px' } },
+        h('button', { class: 'btn sm', type: 'button', onclick: () => { const t = ta.value.trim(); if (!t) return toast('Prompt vide'); const name = prompt('Nom du prompt :', t.slice(0, 30)); if (!name) return; saved.push({ id: uid(), name: name.trim().slice(0, 60), text: t }); Store.set(LS_KEYS.sysPrompts, saved); renderSaved(); toast('💾 Prompt enregistré'); } }, '💾 Enregistrer comme…'),
+        h('button', { class: 'btn sm', type: 'button', onclick: () => { ta.value = ''; } }, 'Vider')),
+      h('label', { class: 'lbl' }, 'Mes prompts'), list,
+    ), [
+      { label: 'Annuler' },
+      { label: 'Appliquer', cls: 'primary', onClick: () => { c.system = ta.value.trim(); this.saveNow(); this.render(); toast(c.system ? '🧠 Prompt appliqué' : 'Prompt retiré'); } },
+    ]);
+  },
+
+  /* ── Export / import ── */
+  async exportJSON() {
+    const images = {};
+    for (const c of this.convs) for (const m of c.messages) for (const iid of m.imageIds || []) {
+      const src = await IDB.get('chatimg', iid).catch(() => null); if (src) images[iid] = src;
+    }
+    const clean = JSON.parse(JSON.stringify(this.convs, (k, v) => (k === '_el' || k === 'streaming' ? undefined : v)));
+    const data = { app: 'ai-hub', type: 'conversations', version: 1, exportedAt: new Date().toISOString(), conversations: clean, sysPrompts: Store.get(LS_KEYS.sysPrompts, []), images };
+    download(`ai-hub-conversations-${todayISO()}.json`, JSON.stringify(data, null, 1), 'application/json');
+    toast('⬇️ Export prêt (sans aucune clé API)');
+  },
+  async importJSON() {
+    const f = await pickFile('.json,application/json'); if (!f) return;
+    try {
+      const data = JSON.parse(await f.text());
+      if (data?.type !== 'conversations' || !Array.isArray(data.conversations)) throw new Error('Format inattendu');
+      let n = 0;
+      for (const raw of data.conversations) {
+        if (!raw || typeof raw !== 'object' || !Array.isArray(raw.messages)) continue;
+        const c = {
+          id: String(raw.id || uid()), title: String(raw.title || 'Conversation importée').slice(0, 80),
+          provider: PROVIDERS[raw.provider] ? raw.provider : 'claude', model: String(raw.model || ''),
+          system: String(raw.system || ''), createdAt: Number(raw.createdAt) || Date.now(), updatedAt: Number(raw.updatedAt) || Date.now(),
+          messages: raw.messages.filter(m => m && typeof m === 'object').map(m => {
+            const base = { id: String(m.id || uid()), role: m.role === 'user' ? 'user' : 'assistant', ts: Number(m.ts) || Date.now() };
+            if (Array.isArray(m.compare)) return { ...base, chosen: Number(m.chosen) || 0, compare: m.compare.map(x => ({ provider: PROVIDERS[x?.provider] ? x.provider : 'claude', model: String(x?.model || ''), content: String(x?.content || ''), usage: x?.usage && { input: Number(x.usage.input) || 0, output: Number(x.usage.output) || 0 }, error: !!x?.error })) };
+            return { ...base, content: String(m.content || ''), provider: PROVIDERS[m.provider] ? m.provider : undefined, model: m.model ? String(m.model) : undefined, usage: m.usage && { input: Number(m.usage.input) || 0, output: Number(m.usage.output) || 0 }, error: !!m.error, imageIds: Array.isArray(m.imageIds) ? m.imageIds.map(String) : [] };
+          }),
+        };
+        if (this.convs.some(x => x.id === c.id)) c.id = uid();
+        this.convs.push(c); n++;
+      }
+      for (const [iid, src] of Object.entries(data.images || {})) if (typeof src === 'string' && src.startsWith('data:image/')) await IDB.put('chatimg', String(iid), src).catch(() => {});
+      if (Array.isArray(data.sysPrompts)) {
+        const cur = Store.get(LS_KEYS.sysPrompts, []);
+        for (const p of data.sysPrompts) if (p?.text && !cur.some(x => x.text === p.text)) cur.push({ id: uid(), name: String(p.name || 'Importé').slice(0, 60), text: String(p.text) });
+        Store.set(LS_KEYS.sysPrompts, cur);
+      }
+      this.convs.sort((a, b) => b.updatedAt - a.updatedAt);
+      this.saveNow(); this.render(); UI.refreshTop();
+      toast(`✅ ${n} conversation(s) importée(s)`);
+    } catch (e) { toast('❌ Import impossible : ' + e.message, 4000); }
+  },
+};
+
+function autoGrow(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, window.innerHeight * 0.4) + 'px'; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   VINTED — calculs métier
+   ══════════════════════════════════════════════════════════════════════ */
+const Money = {
+  rate() { return clamp(numOr(VSettings.get().urssafRate, 12.3), 0, 100) / 100; },
+  // URSSAF = taux × prix de vente ; net = vente − URSSAF − achat. Le port n'est JAMAIS compté.
+  calc(sell, buy) {
+    sell = Math.max(0, numOr(sell)); buy = Math.max(0, numOr(buy));
+    const urssaf = round2(sell * this.rate());
+    const net = round2(sell - urssaf - buy);
+    return { sell, buy, urssaf, net, margin: sell > 0 ? net / sell * 100 : NaN, roi: buy > 0 ? net / buy * 100 : NaN };
+  },
+  // Prix de vente nécessaire pour gagner `net` € après URSSAF.
+  priceForNet(net, buy) {
+    const r = this.rate();
+    if (r >= 1) return NaN;
+    const raw = (Math.max(0, numOr(net)) + Math.max(0, numOr(buy))) / (1 - r);
+    return Math.ceil(round2(raw * 100) - 1e-9) / 100;
+  },
+  breakEven(buy) { return this.priceForNet(0, buy); },
+};
+
+/* ══════════════════════════════════════════════════════════════════════
+   VINTED — stock (localStorage) + photos (IndexedDB)
+   ══════════════════════════════════════════════════════════════════════ */
+const Stock = {
+  items: [], filter: 'all', thumbs: new Map(),
+  load() { const v = Store.get(LS_KEYS.stock, []); this.items = Array.isArray(v) ? v : []; },
+  save() { Store.set(LS_KEYS.stock, this.items); },
+  get(id) { return this.items.find(i => i.id === id); },
+  blank() {
+    return { id: uid(), title: '', brand: '', size: '', category: '', condition: '', color: '', description: '', keywords: [], buyPrice: 0, sellPrice: 0, status: 'online', buyDate: todayISO(), listedDate: todayISO(), soldDate: '', hasPhoto: false, photoUrl: '', createdAt: Date.now(), updatedAt: Date.now() };
+  },
+  async add(item, photoDataUrl) {
+    const it = { ...this.blank(), ...item };
+    if (photoDataUrl) { try { await IDB.put('photos', it.id, await makeThumb(photoDataUrl)); it.hasPhoto = true; } catch (e) { safeLog(e); } }
+    this.items.unshift(it); this.save();
+    return it;
+  },
+  async setPhoto(id, dataUrl) {
+    const it = this.get(id); if (!it) return;
+    await IDB.put('photos', id, await makeThumb(dataUrl));
+    it.hasPhoto = true; this.thumbs.delete(id); this.save();
+  },
+  async remove(id) {
+    this.items = this.items.filter(i => i.id !== id); this.save();
+    this.thumbs.delete(id); await IDB.del('photos', id).catch(() => {});
+  },
+  async thumb(it) {
+    if (this.thumbs.has(it.id)) return this.thumbs.get(it.id);
+    let src = null;
+    if (it.hasPhoto) src = await IDB.get('photos', it.id).catch(() => null);
+    if (!src && /^https:\/\/res\.cloudinary\.com\//.test(it.photoUrl || '')) src = it.photoUrl;
+    this.thumbs.set(it.id, src);
+    return src;
+  },
+};
+
+function statusBadge(s) { return h('span', { class: 'badge st-' + s }, STATUS[s] || s); }
+function thumbEl(it, cls = 'thumb') {
+  const box = h('div', { class: cls }, '👕');
+  Stock.thumb(it).then(src => { if (src) box.replaceChildren(h('img', { src, alt: '', loading: 'lazy' })); });
+  return box;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   VINTED — sous-onglets
+   ══════════════════════════════════════════════════════════════════════ */
+const Vinted = {
+  tab: 'annonce', busy: null, statsOffset: 0, lastAnnonce: null,
+  init() {
+    this.tab = Store.get(LS_KEYS.vtab, 'annonce');
+    this.an = PhotoPicker($('#anPicker'), 10);
+    this.pr = PhotoPicker($('#prPicker'), 10);
+    this.cop = PhotoPicker($('#copPicker'), 5);
+    this.lotArticles = [];
+    this.addLotArticle(); this.addLotArticle();
+    $('#drawerVintedTabs').replaceChildren(...$$('#vTabs .chip').map(b => h('button', { class: 'chip', type: 'button', dataset: { act: 'vtab', tab: b.dataset.tab } }, b.textContent)));
+    for (const id of ['calcSell', 'calcBuy']) $('#' + id).addEventListener('input', () => this.renderCalc());
+    for (const id of ['invNet', 'invBuy']) $('#' + id).addEventListener('input', () => this.renderInverse());
+    $('#lotBundle').addEventListener('change', e => { $('#lotBundleOpts').hidden = !e.target.checked; });
+    $('#stSearch').addEventListener('input', debounce(() => this.renderStock(), 150));
+    $('#stSort').addEventListener('change', () => this.renderStock());
+    $('#goalInput').addEventListener('change', e => { VSettings.set({ goal: Math.max(0, numOr(e.target.value)) }); this.renderStats(); });
+  },
+  pm() {
+    const s = VSettings.get();
+    if (s.provider && PROVIDERS[s.provider]) return { provider: s.provider, model: s.model || defaultModel(s.provider), auto: false };
+    for (const p of KeyVault.configured()) { const m = defaultModel(p); if (supportsImages(p, m) !== false) return { provider: p, model: m, auto: true }; }
+    return { provider: '', model: '', auto: true };
+  },
+  pickModel() {
+    const cur = this.pm();
+    openModelPicker({ title: 'IA pour Vinted', provider: cur.provider, model: cur.model }, (p, m) => {
+      VSettings.set({ provider: p, model: m });
+      if (supportsImages(p, m) === false) toast('⚠️ Ce modèle ne lit pas les images : Annonce et Cop ou pas ? en ont besoin.', 4500);
+      UI.refreshTop(); if (UI.view === 'settings') SettingsUI.renderVintedPill();
+    });
+  },
+  showTab(t) {
+    if (!['annonce', 'prix', 'cop', 'lot', 'stock', 'stats'].includes(t)) t = 'annonce';
+    this.tab = t; Store.set(LS_KEYS.vtab, t);
+    $$('.vpanel').forEach(p => { p.hidden = p.id !== 'vp-' + t; });
+    $$('[data-act="vtab"]').forEach(b => b.classList.toggle('active', b.dataset.tab === t));
+    $('#vScroll').scrollTop = 0;
+    if (t === 'prix') { this.renderCalc(); this.renderInverse(); }
+    if (t === 'stock') this.renderStock();
+    if (t === 'stats') this.renderStats();
+    UI.closeDrawer();
+  },
+  context() {
+    return `Contexte : je suis revendeur Vinted en micro-entreprise (France). URSSAF = ${String(VSettings.get().urssafRate).replace('.', ',')} % du prix de vente. Le port est toujours payé par l'acheteur : ne l'inclus jamais.`;
+  },
+
+  // Gère bouton (devient « Arrêter »), verrou, choix de l'IA et message d'état.
+  async withBusy(btn, statusEl, images, fn) {
+    if (this.busy) { this.busy.abort(); return null; }
+    if (KeyVault.locked) { openUnlockSheet(); return null; }
+    const pm = this.pm();
+    if (!pm.provider) { toast('🔑 Ajoute une clé API (Paramètres) ou choisis l\'IA Vinted.', 4000); return null; }
+    if (!KeyVault.has(pm.provider)) { toast(`🔑 Pas de clé ${PROVIDERS[pm.provider].name}.`, 4000); return null; }
+    if (images && images.length) {
+      const v = supportsImages(pm.provider, pm.model);
+      if (v === false && !confirm(`⚠️ ${pm.model} ne lit pas les images : il ne verra pas tes photos.\nChoisis un modèle avec 📷 (pastille en haut).\n\nContinuer quand même ?`)) return null;
+      if (v === null) toast(`❓ Pas sûr que ${pm.model} lise les images.`, 3000);
+    }
+    const ctrl = new AbortController();
+    this.busy = ctrl;
+    const old = btn.textContent;
+    btn.textContent = '■ Arrêter'; btn.classList.add('danger'); btn.classList.remove('primary');
+    statusEl.textContent = `⏳ ${PROVIDERS[pm.provider].icon} ${pm.model} réfléchit…`;
+    try {
+      return await fn(ctrl.signal, pm, (n, attempt) => { statusEl.textContent = `⏳ ${PROVIDERS[pm.provider].name} rédige… ${n} caractères${attempt > 1 ? ' (2e essai JSON)' : ''}`; });
+    } catch (e) {
+      if (e.raw != null) { statusEl.textContent = '⚠️ L\'IA n\'a pas renvoyé de JSON valide (2 essais). Réponse brute ci-dessous.'; return { __raw: e.raw }; }
+      safeLog(e);
+      statusEl.textContent = friendlyError(e, pm.model);
+      return null;
+    } finally {
+      this.busy = null;
+      btn.textContent = old; btn.classList.remove('danger'); btn.classList.add('primary');
+    }
+  },
+  ask(name, text, images, signal, pm, onProgress) {
+    return askJSON({ provider: pm.provider, model: pm.model, system: VPrompts.get(name), text, images, signal, onProgress });
+  },
+  doneStatus(el, pm, usage) {
+    el.textContent = `✅ ${PROVIDERS[pm.provider].icon} ${pm.model}` + (usage ? ` · ↑${fmtInt(usage.input)} ↓${fmtInt(usage.output)} tok` : '');
+  },
+  rawCard(raw) {
+    return h('div', { class: 'card' }, h('h3', null, 'Réponse brute de l\'IA'), h('div', { class: 'raw', text: raw }),
+      h('button', { class: 'btn sm', style: { marginTop: '8px' }, type: 'button', onclick: e => copyText(raw, e.currentTarget) }, '📋 Copier'));
+  },
+
+  /* ── 1. Annonce ── */
+  annoncePrompt({ brand, size, buy, notes }) {
+    return ['Génère l\'annonce Vinted de cet article à partir des photos.',
+      brand && `Marque indiquée : ${brand}`, size && `Taille indiquée : ${size}`,
+      buy > 0 && `Prix d'achat : ${buy} € (info privée, à ne pas écrire dans l'annonce ; sers-t'en pour que prix_suggere reste rentable).`,
+      notes && `Infos du vendeur : ${notes}`, this.context()].filter(Boolean).join('\n');
+  },
+  async generateAnnonce() {
+    const images = this.an.images;
+    if (!images.length && !this.busy) { toast('📷 Ajoute au moins une photo'); return; }
+    const input = { brand: $('#anBrand').value.trim(), size: $('#anSize').value.trim(), buy: numOr($('#anBuy').value), notes: $('#anNotes').value.trim() };
+    const st = $('#anStatus');
+    const res = await this.withBusy($('#anGo'), st, images, async (signal, pm, prog) => {
+      const r = await this.ask('annonce', this.annoncePrompt(input), images, signal, pm, prog);
+      this.doneStatus(st, pm, r.usage); return r.data;
+    });
+    if (!res) return;
+    const box = $('#anResult');
+    if (res.__raw != null) { box.replaceChildren(this.rawCard(res.__raw)); return; }
+    this.lastAnnonce = { data: res, images, buy: input.buy };
+    box.replaceChildren(this.listingCard(res, { images, buy: input.buy, brand: input.brand, size: input.size }));
+    box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  },
+  listingCard(d, { images = [], buy = 0, brand = '', size = '', heading = '✅ Annonce générée' } = {}) {
+    const fields = {};
+    const title = String(d.titre || '');
+    const kw = (Array.isArray(d.mots_cles) ? d.mots_cles : String(d.mots_cles || '').split(/[,;]/)).map(k => String(k).trim().replace(/^#/, '')).filter(Boolean);
+    const field = (key, label, value, { multiline, max, select } = {}) => {
+      let el;
+      if (select) {
+        const opts = select.includes(value) || !value ? select : [value, ...select];
+        el = h('select', { class: 'input' }, opts.map(o => h('option', { value: o, selected: o === value }, o)));
+      } else if (multiline) { el = h('textarea', { class: 'input', rows: 8 }); el.value = value; }
+      else { el = h('input', { class: 'input', autocomplete: 'off' }); el.value = value; }
+      fields[key] = el;
+      const cnt = max ? h('span', { class: 'count' }) : null;
+      const upd = () => { if (cnt) { const n = el.value.length; cnt.textContent = `${n}/${max}`; cnt.classList.toggle('over', n > max); } };
+      el.addEventListener('input', upd); upd();
+      return h('div', { class: 'field-out' },
+        h('div', { class: 'fo-head' }, h('span', { class: 'fo-lbl' }, label), h('div', { class: 'row' }, cnt,
+          h('button', { class: 'mbtn', type: 'button', onclick: e => copyText(el.value, e.currentTarget) }, '📋 Copier'))), el);
+    };
+    const defauts = Array.isArray(d.defauts) ? d.defauts.filter(Boolean) : [];
+    const sugg = numOr(d.prix_suggere, 0);
+    const card = h('div', { class: 'card' },
+      h('h2', null, heading),
+      field('titre', 'Titre', title, { max: 60 }),
+      field('description', 'Description', String(d.description || ''), { multiline: true }),
+      field('categorie', 'Catégorie', String(d.categorie || '')),
+      field('etat', 'État', String(d.etat || ''), { select: VINTED_ETATS }),
+      h('div', { class: 'grid2' }, field('couleur', 'Couleur', String(d.couleur || '')), field('matiere', 'Matière', String(d.matiere || ''))),
+      h('div', { class: 'grid2' }, field('marque', 'Marque', String(d.marque || brand || '')), field('taille', 'Taille', String(d.taille || size || ''))),
+      field('mots_cles', 'Mots-clés / hashtags', kw.map(k => '#' + k.replace(/\s+/g, '')).join(' ')),
+      defauts.length ? h('div', { class: 'small', style: { marginTop: '8px', color: 'var(--accent3)' } }, '⚠️ Défauts repérés : ' + defauts.join(', ')) : null,
+      sugg > 0 ? h('div', { class: 'list-line', style: { marginTop: '8px' } }, h('span', null, '💶 Prix suggéré'), h('span', { class: 'v' }, eur(sugg))) : null,
+      sugg > 0 && buy > 0 ? h('div', { class: 'list-line' }, h('span', null, 'Bénéfice net estimé'), h('span', { class: 'v' }, eur(Money.calc(sugg, buy).net))) : null,
+    );
+    const all = () => ['titre', 'description', 'categorie', 'etat', 'couleur', 'matiere', 'marque', 'taille', 'mots_cles'].map(k => `${k.replace('_', '-').toUpperCase()} : ${fields[k].value}`).join('\n\n');
+    const addBtn = h('button', { class: 'btn primary', type: 'button' }, '➕ Ajouter au stock');
+    addBtn.addEventListener('click', async () => {
+      addBtn.disabled = true;
+      await Stock.add({
+        title: fields.titre.value.trim(), description: fields.description.value.trim(), category: fields.categorie.value.trim(),
+        condition: fields.etat.value, color: fields.couleur.value.trim(), brand: fields.marque.value.trim(), size: fields.taille.value.trim(),
+        keywords: fields.mots_cles.value.split(/\s+/).map(k => k.replace(/^#/, '')).filter(Boolean), buyPrice: buy || 0, sellPrice: sugg || 0,
+      }, images[0]);
+      addBtn.textContent = '✓ Ajouté au stock';
+      toast('🗂️ Article ajouté au stock');
+    });
+    card.append(h('div', { class: 'row', style: { marginTop: '12px' } },
+      addBtn,
+      h('button', { class: 'btn', type: 'button', onclick: e => copyText(all(), e.currentTarget) }, '📋 Tout copier'),
+      h('button', { class: 'btn', type: 'button', onclick: () => { $('#calcSell').value = sugg || ''; $('#calcBuy').value = buy || ''; this.pr.set(images); $('#prDesc').value = [fields.titre.value, fields.etat.value].filter(Boolean).join(' — '); this.showTab('prix'); } }, '💶 Prix')));
+    return card;
+  },
+
+  /* ── 2. Prix ── */
+  async generatePrix() {
+    const images = this.pr.images, desc = $('#prDesc').value.trim();
+    if (!images.length && !desc && !this.busy) { toast('Ajoute des photos ou une description'); return; }
+    const st = $('#prStatus');
+    const text = ['Estime le prix de revente de cet article sur Vinted.', desc && `Description : ${desc}`, this.context()].filter(Boolean).join('\n');
+    const res = await this.withBusy($('#prGo'), st, images, async (signal, pm, prog) => {
+      const r = await this.ask('prix', text, images, signal, pm, prog);
+      this.doneStatus(st, pm, r.usage); return r.data;
+    });
+    if (!res) return;
+    const box = $('#prResult');
+    if (res.__raw != null) { box.replaceChildren(this.rawCard(res.__raw)); return; }
+    const opt = (label, v, main) => h('button', { class: 'price-opt' + (main ? ' main' : ''), type: 'button', onclick: () => { $('#calcSell').value = numOr(v) || ''; this.renderCalc(); $('#calcSell').scrollIntoView({ behavior: 'smooth', block: 'center' }); } },
+      h('div', { class: 'v' }, Number.isFinite(toNum(v)) ? eur(toNum(v)).replace(',00', '') : '—'), h('div', { class: 'l' }, label));
+    const facteurs = Array.isArray(res.facteurs) ? res.facteurs : [];
+    box.replaceChildren(h('div', { class: 'card' },
+      h('h2', null, '💡 ' + (res.article || 'Estimation')),
+      h('div', { class: 'grid3', style: { marginTop: '8px' } }, opt('Vente rapide', res.vente_rapide), opt('Prix normal', res.prix_normal), opt('Prix max', res.prix_max)),
+      h('div', { style: { marginTop: '8px' } }, opt('👉 Prix conseillé (toucher pour calculer)', res.prix_conseille, true)),
+      res.confiance ? h('div', { class: 'row', style: { marginTop: '8px' } }, h('span', { class: 'badge blue' }, 'Confiance : ' + res.confiance)) : null,
+      res.justification ? h('p', { class: 'help', style: { marginTop: '8px', color: 'var(--text)' } }, String(res.justification)) : null,
+      facteurs.length ? h('ul', { style: { margin: '8px 0 0 18px', fontSize: '13px', color: 'var(--muted)' } }, facteurs.map(f => h('li', null, String(f)))) : null,
+    ));
+    if (numOr(res.prix_conseille) > 0) { $('#calcSell').value = numOr(res.prix_conseille); this.renderCalc(); }
+  },
+  renderCalc() {
+    $('#calcRateInfo').textContent = `URSSAF ${pct(Money.rate() * 100)} du prix de vente (modifiable dans Paramètres). Le port est payé par l'acheteur : il n'entre pas dans le calcul.`;
+    const r = Money.calc($('#calcSell').value, $('#calcBuy').value);
+    $('#calcUrssaf').textContent = eur(r.urssaf);
+    const net = $('#calcNet'); net.textContent = eur(r.net); net.parentElement.className = 'kpi ' + (r.net < 0 ? 'r' : 'g');
+    $('#calcMargin').textContent = pct(r.margin);
+    $('#calcRoi').textContent = pct(r.roi);
+  },
+  renderInverse() {
+    const netV = $('#invNet').value;
+    if (netV === '') { $('#invSell').textContent = '—'; $('#invUrssaf').textContent = '—'; return; }
+    const sell = Money.priceForNet(netV, $('#invBuy').value);
+    $('#invSell').textContent = eur(sell);
+    $('#invUrssaf').textContent = eur(round2(sell * Money.rate()));
+  },
+
+  /* ── 3. Cop ou pas ? ── */
+  async generateCop() {
+    const images = this.cop.images, price = toNum($('#copPrice').value);
+    if (!this.busy) {
+      if (!images.length) { toast('📷 Prends au moins une photo'); return; }
+      if (!Number.isFinite(price) || price < 0) { toast('💶 Indique le prix demandé'); $('#copPrice').focus(); return; }
+    }
+    const st = $('#copStatus');
+    const text = [`Prix demandé : ${price} €.`, `Lieu : ${$('#copWhere').value}.`, $('#copNotes').value.trim() && `Infos : ${$('#copNotes').value.trim()}`, this.context(), 'Cop ou pas ?'].filter(Boolean).join('\n');
+    const res = await this.withBusy($('#copGo'), st, images, async (signal, pm, prog) => {
+      const r = await this.ask('cop', text, images, signal, pm, prog);
+      this.doneStatus(st, pm, r.usage); return r.data;
+    });
+    if (!res) return;
+    const box = $('#copResult');
+    if (res.__raw != null) { box.replaceChildren(this.rawCard(res.__raw)); return; }
+    const v = String(res.verdict || '').toUpperCase();
+    const kind = /PASS/.test(v) ? 'pas' : /N[EÉ]GO/.test(v) ? 'neg' : /COP/.test(v) ? 'cop' : 'neg';
+    const label = { cop: '✅ COP', neg: '⚠️ À NÉGOCIER', pas: '❌ PASSE' }[kind];
+    const resale = toNum(res.prix_revente_estime);
+    const m = Number.isFinite(resale) ? Money.calc(resale, price) : null;
+    const range = Array.isArray(res.fourchette_revente) && res.fourchette_revente.length === 2 ? `${eur(numOr(res.fourchette_revente[0]))} – ${eur(numOr(res.fourchette_revente[1]))}` : '';
+    const line = (k, val, color) => h('div', { class: 'list-line' }, h('span', null, k), h('span', { class: 'v', style: color ? { color } : null }, val));
+    const points = Array.isArray(res.points_a_verifier) ? res.points_a_verifier : [];
+    box.replaceChildren(h('div', { class: 'card' },
+      h('div', { class: 'verdict ' + kind }, label, res.article ? h('div', { class: 'sub' }, String(res.article)) : null),
+      line('Prix demandé', eur(price)),
+      line('Revente estimée', Number.isFinite(resale) ? eur(resale) : '—'),
+      range ? line('Fourchette', range) : null,
+      m ? line(`URSSAF (${pct(Money.rate() * 100)})`, '− ' + eur(m.urssaf)) : null,
+      m ? line('Bénéfice net estimé', eur(m.net), m.net >= 0 ? 'var(--accent)' : 'var(--danger)') : null,
+      m && price > 0 ? line('Multiplicateur', '×' + (resale / price).toLocaleString('fr-FR', { maximumFractionDigits: 1 })) : null,
+      line('Vitesse de vente', String(res.vitesse_vente || '—')),
+      line('Prix max à payer', Number.isFinite(toNum(res.prix_max_a_payer)) ? eur(toNum(res.prix_max_a_payer)) : '—', 'var(--accent3)'),
+      res.risque_contrefacon ? line('Risque contrefaçon', String(res.risque_contrefacon)) : null,
+      points.length ? h('div', null, h('h3', null, '🔎 Points à vérifier'), h('ul', { style: { marginLeft: '18px', fontSize: '14px', lineHeight: '1.6' } }, points.map(p => h('li', null, String(p))))) : null,
+      res.resume ? h('p', { class: 'help', style: { marginTop: '10px', color: 'var(--text)' } }, String(res.resume)) : null,
+    ));
+    box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  },
+
+  /* ── 4. Mode lot ── */
+  addLotArticle() {
+    const id = uid();
+    const pickerBox = h('div');
+    const hint = h('input', { class: 'input', placeholder: 'Marque, taille, prix d\'achat… (facultatif)', autocomplete: 'off', style: { marginTop: '8px' } });
+    const buy = h('input', { class: 'input', type: 'number', inputmode: 'decimal', min: '0', step: '0.01', placeholder: 'Prix d\'achat €', style: { marginTop: '8px' } });
+    const title = h('span');
+    const el = h('div', { class: 'lot-art' },
+      h('div', { class: 'lot-h' }, title, h('button', { class: 'icon-btn ghost', type: 'button', 'aria-label': 'Retirer l\'article', onclick: () => { this.lotArticles = this.lotArticles.filter(a => a.id !== id); el.remove(); this.renumberLot(); } }, '🗑️')),
+      pickerBox, hint, buy);
+    const art = { id, el, title, hint, buy, picker: null };
+    $('#lotArticles').append(el);
+    art.picker = PhotoPicker(pickerBox, 10);
+    this.lotArticles.push(art);
+    this.renumberLot();
+  },
+  renumberLot() { this.lotArticles.forEach((a, i) => { a.title.textContent = `Article ${i + 1}`; }); },
+  async generateLot() {
+    const arts = this.lotArticles.filter(a => a.picker.images.length);
+    if (!arts.length && !this.busy) { toast('📷 Ajoute des photos à au moins un article'); return; }
+    const bundle = $('#lotBundle').checked;
+    const wanted = toNum($('#lotPrice').value);
+    const st = $('#lotStatus'), box = $('#lotResult');
+    box.replaceChildren();
+    const allImages = arts.flatMap(a => a.picker.images);
+    const out = await this.withBusy($('#lotGo'), st, allImages, async (signal, pm) => {
+      const results = [];
+      for (const [i, a] of arts.entries()) {
+        st.textContent = `⏳ Article ${i + 1}/${arts.length}…`;
+        const images = a.picker.images, buy = numOr(a.buy.value);
+        try {
+          const r = await this.ask('annonce', this.annoncePrompt({ notes: a.hint.value.trim(), buy }), images, signal, pm,
+            n => { st.textContent = `⏳ Article ${i + 1}/${arts.length} — ${n} caractères`; });
+          results.push({ data: r.data, images, buy });
+          box.append(this.listingCard(r.data, { images, buy, heading: `✅ Article ${i + 1}` }));
+        } catch (e) {
+          if (e.name === 'AbortError') throw e;
+          box.append(e.raw != null ? this.rawCard(e.raw) : h('div', { class: 'card bubble error', text: `Article ${i + 1} : ${friendlyError(e, pm.model)}` }));
+        }
+      }
+      if (bundle && results.length) {
+        st.textContent = '⏳ Annonce de lot…';
+        const list = results.map((r, i) => `${i + 1}. ${r.data.titre || ''} — marque : ${r.data.marque || '?'}, taille : ${r.data.taille || '?'}, état : ${r.data.etat || '?'}, prix séparé : ${numOr(r.data.prix_suggere)} €`).join('\n');
+        const text = [`Articles du lot :\n${list}`, Number.isFinite(wanted) && wanted > 0 ? `Prix de lot souhaité : ${wanted} €` : 'Propose un prix de lot.', this.context()].join('\n\n');
+        try {
+          const r = await this.ask('lot', text, [], signal, pm, n => { st.textContent = `⏳ Annonce de lot — ${n} caractères`; });
+          box.prepend(this.lotCard(r.data, results, wanted));
+        } catch (e) {
+          if (e.name === 'AbortError') throw e;
+          box.prepend(e.raw != null ? this.rawCard(e.raw) : h('div', { class: 'card bubble error', text: 'Lot : ' + friendlyError(e, pm.model) }));
+        }
+      }
+      st.textContent = `✅ ${results.length}/${arts.length} annonce(s) générée(s) · ${PROVIDERS[pm.provider].icon} ${pm.model}`;
+      return true;
+    });
+    if (out) box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  },
+  lotCard(d, results, wanted) {
+    const sum = results.reduce((s, r) => s + numOr(r.data.prix_suggere), 0);
+    const buy = results.reduce((s, r) => s + (r.buy || 0), 0);
+    const price = Number.isFinite(wanted) && wanted > 0 ? wanted : numOr(d.prix_lot);
+    const kw = (Array.isArray(d.mots_cles) ? d.mots_cles : []).map(k => '#' + String(k).replace(/^#/, '').replace(/\s+/g, '')).join(' ');
+    const f = (label, val, multiline) => {
+      const el = multiline ? h('textarea', { class: 'input', rows: 8 }) : h('input', { class: 'input' });
+      el.value = val;
+      return [h('div', { class: 'field-out' }, h('div', { class: 'fo-head' }, h('span', { class: 'fo-lbl' }, label), h('button', { class: 'mbtn', type: 'button', onclick: e => copyText(el.value, e.currentTarget) }, '📋 Copier')), el), el];
+    };
+    const [tBox, tEl] = f('Titre du lot', String(d.titre || ''));
+    const [dBox, dEl] = f('Description du lot', String(d.description || ''), true);
+    const [kBox] = f('Mots-clés', kw);
+    const m = Money.calc(price, buy);
+    const add = h('button', { class: 'btn primary', type: 'button' }, '➕ Ajouter le lot au stock');
+    add.addEventListener('click', async () => {
+      add.disabled = true;
+      await Stock.add({ title: tEl.value.trim(), description: dEl.value.trim(), buyPrice: round2(buy), sellPrice: price, category: 'Lot' }, results[0]?.images[0]);
+      add.textContent = '✓ Ajouté'; toast('🗂️ Lot ajouté au stock');
+    });
+    return h('div', { class: 'card', style: { borderColor: 'rgba(124,58,237,.5)' } },
+      h('h2', null, '📦 Annonce de lot'), tBox, dBox, kBox,
+      h('div', { class: 'list-line', style: { marginTop: '8px' } }, h('span', null, 'Somme des prix séparés'), h('span', { class: 'v' }, eur(sum))),
+      h('div', { class: 'list-line' }, h('span', null, '💶 Prix du lot'), h('span', { class: 'v', style: { color: 'var(--accent)' } }, eur(price))),
+      buy > 0 ? h('div', { class: 'list-line' }, h('span', null, 'Bénéfice net du lot'), h('span', { class: 'v' }, eur(m.net))) : null,
+      d.justification ? h('p', { class: 'help', style: { marginTop: '8px' } }, String(d.justification)) : null,
+      h('div', { class: 'row', style: { marginTop: '10px' } }, add));
+  },
+
+  /* ── 5. Stock ── */
+  renderStock() {
+    const q = $('#stSearch').value.toLowerCase().trim();
+    const sort = $('#stSort').value;
+    $$('#stFilters .chip').forEach(c => c.classList.toggle('active', c.dataset.f === Stock.filter));
+    let list = Stock.items.filter(i => Stock.filter === 'all' || i.status === Stock.filter);
+    if (q) list = list.filter(i => [i.title, i.brand, i.size, i.category, i.color].some(x => String(x || '').toLowerCase().includes(q)));
+    const net = i => Money.calc(i.sellPrice, i.buyPrice).net;
+    const date = i => i.soldDate || i.listedDate || i.buyDate || '';
+    const sorters = {
+      date_desc: (a, b) => date(b).localeCompare(date(a)) || b.createdAt - a.createdAt,
+      date_asc: (a, b) => date(a).localeCompare(date(b)) || a.createdAt - b.createdAt,
+      sell_desc: (a, b) => b.sellPrice - a.sellPrice, sell_asc: (a, b) => a.sellPrice - b.sellPrice,
+      net_desc: (a, b) => net(b) - net(a), title: (a, b) => a.title.localeCompare(b.title, 'fr'),
+    };
+    list = list.slice().sort(sorters[sort] || sorters.date_desc);
+    $('#stCount').textContent = `${list.length} article(s) · stock en ligne : ${eur(Stock.items.filter(i => i.status === 'online').reduce((s, i) => s + i.sellPrice, 0))}`;
+    const box = $('#stList');
+    if (!list.length) { box.replaceChildren(h('div', { class: 'empty' }, h('div', { class: 'big' }, '🗂️'), h('div', { class: 'sub' }, Stock.items.length ? 'Aucun article ne correspond.' : 'Stock vide. Génère une annonce puis « Ajouter au stock », ou importe tes articles depuis index.html.'))); return; }
+    box.replaceChildren(...list.map(i => {
+      const n = net(i);
+      return h('button', { class: 'stock-item', type: 'button', onclick: () => this.editItem(i.id) },
+        thumbEl(i),
+        h('div', { class: 'info' },
+          h('div', { class: 't' }, i.title || '(sans titre)'),
+          h('div', { class: 's' }, [i.brand, i.size, i.status === 'sold' && i.soldDate ? 'vendu le ' + new Date(i.soldDate).toLocaleDateString('fr-FR') : i.buyDate ? 'acheté le ' + new Date(i.buyDate).toLocaleDateString('fr-FR') : ''].filter(Boolean).join(' · ')),
+          h('div', { style: { marginTop: '5px' } }, statusBadge(i.status))),
+        h('div', { class: 'p' },
+          h('div', null, i.sellPrice ? eur(i.sellPrice) : '—'),
+          h('div', { class: 'small muted' }, 'achat ' + eur(i.buyPrice)),
+          i.sellPrice ? h('div', { class: 'net ' + (n >= 0 ? 'pos' : 'neg') }, (n >= 0 ? '+' : '') + eur(n)) : null));
+    }));
+  },
+  editItem(id) {
+    const isNew = !id;
+    const it = isNew ? Stock.blank() : { ...Stock.get(id) };
+    if (!it) return;
+    let newPhoto = null;
+    const inp = (key, label, type = 'text', extra = {}) => {
+      const el = h('input', { class: 'input', type, autocomplete: 'off', ...extra });
+      el.value = it[key] ?? '';
+      return { key, el, box: h('div', null, h('label', { class: 'lbl' }, label), el) };
+    };
+    const f = {
+      title: inp('title', 'Titre'), brand: inp('brand', 'Marque'), size: inp('size', 'Taille'),
+      category: inp('category', 'Catégorie'), color: inp('color', 'Couleur'),
+      buyPrice: inp('buyPrice', 'Prix d\'achat €', 'number', { inputmode: 'decimal', min: '0', step: '0.01' }),
+      sellPrice: inp('sellPrice', 'Prix de vente €', 'number', { inputmode: 'decimal', min: '0', step: '0.01' }),
+      buyDate: inp('buyDate', 'Date d\'achat', 'date'), listedDate: inp('listedDate', 'Mise en ligne', 'date'), soldDate: inp('soldDate', 'Date de vente', 'date'),
+    };
+    const cond = h('select', { class: 'input' }, ['', ...VINTED_ETATS].map(o => h('option', { value: o, selected: o === it.condition }, o || '—')));
+    if (it.condition && !VINTED_ETATS.includes(it.condition)) cond.append(h('option', { value: it.condition, selected: true }, it.condition));
+    const status = h('select', { class: 'input' }, Object.entries(STATUS).map(([k, v]) => h('option', { value: k, selected: k === it.status }, v)));
+    status.addEventListener('change', () => { if (status.value === 'sold' && !f.soldDate.el.value) f.soldDate.el.value = todayISO(); });
+    const desc = h('textarea', { class: 'input', rows: 4 }); desc.value = it.description || '';
+    const calcLine = h('div', { class: 'small', style: { marginTop: '8px', fontFamily: 'var(--mono)' } });
+    const updCalc = () => { const m = Money.calc(f.sellPrice.el.value, f.buyPrice.el.value); calcLine.textContent = `URSSAF ${eur(m.urssaf)} · Net ${eur(m.net)} · Marge ${pct(m.margin)}`; calcLine.style.color = m.net < 0 ? 'var(--danger)' : 'var(--accent)'; };
+    f.sellPrice.el.addEventListener('input', updCalc); f.buyPrice.el.addEventListener('input', updCalc); updCalc();
+    const photoBox = h('div', { class: 'thumb', style: { width: '72px', height: '72px', borderRadius: '12px', overflow: 'hidden', background: 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px' } }, '👕');
+    if (!isNew) Stock.thumb(it).then(src => { if (src) photoBox.replaceChildren(h('img', { src, alt: '', style: { width: '100%', height: '100%', objectFit: 'cover' } })); });
+    const file = h('input', { type: 'file', accept: 'image/*', hidden: true });
+    file.addEventListener('change', async () => {
+      if (!file.files[0]) return;
+      try { newPhoto = await compressImage(file.files[0]); photoBox.replaceChildren(h('img', { src: newPhoto, alt: '', style: { width: '100%', height: '100%', objectFit: 'cover' } })); } catch { toast('Photo illisible'); }
+    });
+    const body = h('div', null,
+      h('div', { class: 'row' }, photoBox, h('button', { class: 'btn sm', type: 'button', onclick: () => file.click() }, '📷 Photo'), file),
+      f.title.box, h('div', { class: 'grid2' }, f.brand.box, f.size.box), h('div', { class: 'grid2' }, f.category.box, f.color.box),
+      h('div', { class: 'grid2' }, h('div', null, h('label', { class: 'lbl' }, 'État'), cond), h('div', null, h('label', { class: 'lbl' }, 'Statut'), status)),
+      h('div', { class: 'grid2' }, f.buyPrice.box, f.sellPrice.box), calcLine,
+      h('div', { class: 'grid3' }, f.buyDate.box, f.listedDate.box, f.soldDate.box),
+      h('label', { class: 'lbl' }, 'Description'), desc,
+      !isNew ? h('button', { class: 'btn danger block', style: { marginTop: '14px' }, type: 'button', onclick: async () => { if (!confirm('Supprimer cet article du stock ?')) return; await Stock.remove(it.id); sh.close(); this.renderStock(); toast('🗑️ Article supprimé'); } }, '🗑️ Supprimer') : null,
+    );
+    const sh = openSheet(isNew ? '➕ Nouvel article' : '✏️ Article', body, [
+      { label: 'Annuler' },
+      { label: 'Enregistrer', cls: 'primary', onClick: async () => {
+        const patch = {};
+        for (const x of Object.values(f)) patch[x.key] = x.el.value.trim();
+        patch.buyPrice = round2(Math.max(0, numOr(patch.buyPrice))); patch.sellPrice = round2(Math.max(0, numOr(patch.sellPrice)));
+        patch.condition = cond.value; patch.status = status.value; patch.description = desc.value.trim(); patch.updatedAt = Date.now();
+        if (!patch.title) { toast('Donne un titre à l\'article'); return false; }
+        if (patch.status === 'sold' && !patch.soldDate) patch.soldDate = todayISO();
+        if (isNew) await Stock.add({ ...it, ...patch }, newPhoto);
+        else { Object.assign(Stock.get(it.id), patch); Stock.save(); if (newPhoto) await Stock.setPhoto(it.id, newPhoto); }
+        this.renderStock(); toast('💾 Enregistré');
+      } },
+    ]);
+  },
+
+  /* Import / export du stock */
+  importFromVcrm() {
+    let arr;
+    try { arr = JSON.parse(localStorage.getItem('vcrm_articles') || '[]'); } catch { arr = null; }
+    if (!Array.isArray(arr) || !arr.length) { toast('Aucun article trouvé dans vcrm_articles (index.html, même navigateur et même site).', 4500); return; }
+    const d = v => { const t = v ? new Date(v) : null; return t && !isNaN(t) ? t.toISOString().slice(0, 10) : ''; };
+    let added = 0, skipped = 0;
+    (async () => {
+      for (const a of arr) {
+        if (!a || typeof a !== 'object') continue;
+        const id = 'vcrm_' + String(a.id || uid());
+        if (Stock.get(id)) { skipped++; continue; }
+        const it = {
+          ...Stock.blank(), id, title: String(a.name || '').slice(0, 200), brand: String(a.brand || ''), size: String(a.size || ''),
+          condition: String(a.condition || ''), description: String(a.description || a.notes || ''),
+          buyPrice: round2(Math.max(0, numOr(a.buyPrice))), sellPrice: round2(Math.max(0, numOr(a.sellPrice))),
+          status: STATUS[a.status] ? a.status : 'online',
+          buyDate: d(a.createdAt), listedDate: d(a.createdAt), soldDate: a.status === 'sold' ? d(a.soldAt || a.updatedAt) : '',
+          createdAt: Date.parse(a.createdAt) || Date.now(), updatedAt: Date.now(), source: 'index.html',
+        };
+        const photo = typeof a.photo === 'string' ? a.photo : '';
+        if (photo.startsWith('data:image/')) { try { await IDB.put('photos', id, await makeThumb(photo)); it.hasPhoto = true; } catch { /* photo ignorée */ } }
+        else if (/^https:\/\/res\.cloudinary\.com\//.test(photo)) it.photoUrl = photo;
+        Stock.items.push(it); added++;
+      }
+      Stock.save(); this.renderStock();
+      toast(`📥 ${added} article(s) importé(s)${skipped ? `, ${skipped} déjà présent(s)` : ''}`, 4000);
+    })();
+  },
+  async exportStockJSON() {
+    const photos = {};
+    for (const i of Stock.items) if (i.hasPhoto) { const p = await IDB.get('photos', i.id).catch(() => null); if (p) photos[i.id] = p; }
+    download(`ai-hub-stock-${todayISO()}.json`, JSON.stringify({ app: 'ai-hub', type: 'stock', version: 1, exportedAt: new Date().toISOString(), items: Stock.items, photos }, null, 1), 'application/json');
+    toast('⬇️ Stock exporté');
+  },
+  CSV_COLS: ['id', 'titre', 'marque', 'taille', 'categorie', 'etat', 'couleur', 'prix_achat', 'prix_vente', 'statut', 'date_achat', 'date_mise_en_ligne', 'date_vente', 'urssaf', 'benefice_net', 'description'],
+  exportStockCSV() {
+    const esc = v => {
+      let s = String(v ?? '');
+      if (/^[=+\-@\t\r]/.test(s) && !/^-?\d+([.,]\d+)?$/.test(s)) s = "'" + s; // anti-injection de formules
+      return /[";\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    const num = n => String(round2(n)).replace('.', ',');
+    const rows = [this.CSV_COLS.join(';')];
+    for (const i of Stock.items) {
+      const m = Money.calc(i.sellPrice, i.buyPrice);
+      rows.push([i.id, i.title, i.brand, i.size, i.category, i.condition, i.color, num(i.buyPrice), num(i.sellPrice), STATUS[i.status] || i.status, i.buyDate, i.listedDate, i.soldDate, num(m.urssaf), num(m.net), i.description].map(esc).join(';'));
+    }
+    download(`ai-hub-stock-${todayISO()}.csv`, '﻿' + rows.join('\r\n'), 'text/csv;charset=utf-8');
+    toast('⬇️ CSV exporté');
+  },
+  parseCSV(text) {
+    text = text.replace(/^﻿/, '');
+    const firstLine = text.split(/\r?\n/)[0] || '';
+    const sep = (firstLine.match(/;/g) || []).length >= (firstLine.match(/,/g) || []).length ? ';' : ',';
+    const rows = []; let row = [], cur = '', q = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (q) { if (ch === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += ch; }
+      else if (ch === '"') q = true;
+      else if (ch === sep) { row.push(cur); cur = ''; }
+      else if (ch === '\n' || ch === '\r') { if (ch === '\r' && text[i + 1] === '\n') i++; row.push(cur); rows.push(row); row = []; cur = ''; }
+      else cur += ch;
+    }
+    if (cur || row.length) { row.push(cur); rows.push(row); }
+    return rows.filter(r => r.some(c => c.trim()));
+  },
+  async importStockFile() {
+    const f = await pickFile('.json,.csv,application/json,text/csv'); if (!f) return;
+    const text = await f.text();
+    let added = 0, updated = 0;
+    const statusFrom = v => { const s = String(v || '').toLowerCase(); return STATUS[s] ? s : Object.keys(STATUS).find(k => STATUS[k].toLowerCase() === s) || 'online'; };
+    const upsert = async (raw, photo) => {
+      const it = { ...Stock.blank(), ...raw };
+      it.id = String(it.id || uid()); it.title = String(it.title || '').slice(0, 200);
+      for (const k of ['brand', 'size', 'category', 'condition', 'color', 'description', 'buyDate', 'listedDate', 'soldDate', 'photoUrl']) it[k] = String(it[k] || '');
+      if (!/^https:\/\/res\.cloudinary\.com\//.test(it.photoUrl)) it.photoUrl = '';
+      it.buyPrice = round2(Math.max(0, numOr(it.buyPrice))); it.sellPrice = round2(Math.max(0, numOr(it.sellPrice)));
+      it.status = statusFrom(it.status); it.keywords = Array.isArray(it.keywords) ? it.keywords.map(String) : [];
+      if (typeof photo === 'string' && photo.startsWith('data:image/')) { await IDB.put('photos', it.id, photo).catch(() => {}); it.hasPhoto = true; Stock.thumbs.delete(it.id); }
+      const idx = Stock.items.findIndex(x => x.id === it.id);
+      if (idx >= 0) { it.hasPhoto = it.hasPhoto || Stock.items[idx].hasPhoto; Stock.items[idx] = it; updated++; } else { Stock.items.push(it); added++; }
+    };
+    try {
+      if (/^\s*[{[]/.test(text)) {
+        const data = JSON.parse(text);
+        const items = Array.isArray(data) ? data : data.items;
+        if (!Array.isArray(items)) throw new Error('Format inattendu');
+        for (const r of items) if (r && typeof r === 'object') { const { hasPhoto, ...rest } = r; await upsert(rest, data.photos?.[r.id]); }
+      } else {
+        const rows = this.parseCSV(text);
+        const head = rows.shift().map(x => x.trim().toLowerCase());
+        const col = name => head.indexOf(name);
+        const map = { id: 'id', title: 'titre', brand: 'marque', size: 'taille', category: 'categorie', condition: 'etat', color: 'couleur', buyPrice: 'prix_achat', sellPrice: 'prix_vente', status: 'statut', buyDate: 'date_achat', listedDate: 'date_mise_en_ligne', soldDate: 'date_vente', description: 'description' };
+        if (col('titre') < 0) throw new Error('Colonne « titre » absente');
+        for (const r of rows) {
+          const o = {};
+          for (const [k, c] of Object.entries(map)) { const i = col(c); if (i >= 0) o[k] = (r[i] || '').replace(/^'(?=[=+\-@])/, ''); }
+          await upsert(o);
+        }
+      }
+      Stock.save(); this.renderStock();
+      toast(`✅ ${added} ajouté(s), ${updated} mis à jour`);
+    } catch (e) { toast('❌ Import impossible : ' + e.message, 4000); }
+  },
+
+  /* ── 6. Stats ── */
+  monthKey() { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + this.statsOffset); return { key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`, label: d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) }; },
+  renderStats() {
+    const { key, label } = this.monthKey();
+    $('#statsMonth').textContent = label.charAt(0).toUpperCase() + label.slice(1);
+    const sold = Stock.items.filter(i => i.status === 'sold' && (i.soldDate || '').startsWith(key));
+    const ca = round2(sold.reduce((s, i) => s + i.sellPrice, 0));
+    const urssaf = round2(sold.reduce((s, i) => s + Money.calc(i.sellPrice, i.buyPrice).urssaf, 0));
+    const net = round2(sold.reduce((s, i) => s + Money.calc(i.sellPrice, i.buyPrice).net, 0));
+    const delays = sold.filter(i => i.listedDate && i.soldDate).map(i => Math.max(0, daysBetween(i.listedDate, i.soldDate)));
+    const avgDelay = delays.length ? delays.reduce((a, b) => a + b, 0) / delays.length : NaN;
+    const kpi = (cls, v, l) => h('div', { class: 'kpi ' + cls }, h('div', { class: 'v' }, v), h('div', { class: 'l' }, l));
+    $('#statsKpis').replaceChildren(
+      kpi('', eur(ca), 'Chiffre d\'affaires'),
+      kpi('y', eur(urssaf), `URSSAF à déclarer (${pct(Money.rate() * 100)})`),
+      kpi(net < 0 ? 'r' : 'g', eur(net), 'Bénéfice net'),
+      kpi('v2', fmtInt(sold.length), 'Ventes'),
+      kpi('', sold.length ? eur(ca / sold.length) : '—', 'Panier moyen'),
+      kpi('', Number.isFinite(avgDelay) ? `${avgDelay.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} j` : '—', 'Délai moyen de vente'),
+    );
+    const goal = numOr(VSettings.get().goal);
+    const gi = $('#goalInput'); if (document.activeElement !== gi) gi.value = goal || '';
+    const p = goal > 0 ? clamp(net / goal * 100, 0, 100) : 0;
+    $('#goalBar').style.width = p + '%';
+    $('#goalText').textContent = goal > 0 ? `${eur(net)} / ${eur(goal)} — ${Math.round(net / goal * 100)} %${net >= goal ? ' 🎉 Objectif atteint !' : ` · reste ${eur(goal - net)}`}` : 'Définis un objectif pour suivre ta progression.';
+
+    const staleDays = Math.max(1, Math.round(numOr(VSettings.get().staleDays, 30)));
+    $('#staleTitle').textContent = `⏰ En ligne depuis plus de ${staleDays} jours`;
+    const today = todayISO();
+    const stale = Stock.items.filter(i => i.status === 'online' && daysBetween(i.listedDate || i.buyDate || today, today) > staleDays)
+      .map(i => ({ i, days: daysBetween(i.listedDate || i.buyDate || today, today) })).sort((a, b) => b.days - a.days);
+    const box = $('#staleList');
+    if (!stale.length) { box.replaceChildren(h('div', { class: 'small muted' }, '👌 Rien à signaler.')); return; }
+    box.replaceChildren(...stale.map(({ i, days }) => {
+      const cut = days > staleDays * 2 ? 0.20 : days > staleDays * 1.5 ? 0.15 : 0.10;
+      const floor = Money.breakEven(i.buyPrice);
+      const target = Math.max(Math.floor(i.sellPrice * (1 - cut)), Math.ceil(floor));
+      const canDrop = i.sellPrice > 0 && target < i.sellPrice;
+      const apply = h('button', { class: 'btn sm', type: 'button', disabled: !canDrop }, canDrop ? `Passer à ${eur(target)}` : 'Déjà au plancher');
+      apply.addEventListener('click', () => { const it = Stock.get(i.id); it.sellPrice = target; it.updatedAt = Date.now(); Stock.save(); this.renderStats(); toast(`💶 Nouveau prix : ${eur(target)} — pense à le modifier sur Vinted`); });
+      return h('div', { class: 'stock-item stale' }, thumbEl(i),
+        h('div', { class: 'info' }, h('div', { class: 't' }, i.title || '(sans titre)'),
+          h('div', { class: 's' }, `${days} j en ligne · ${eur(i.sellPrice)} · −${Math.round(cut * 100)} % conseillé`),
+          h('div', { class: 's' }, `Seuil de rentabilité : ${eur(floor)}`)),
+        apply);
+    }));
+  },
+};
+
+/* ══════════════════════════════════════════════════════════════════════
+   UI — Paramètres
+   ══════════════════════════════════════════════════════════════════════ */
+const SettingsUI = {
+  testState: {},
+  render() {
+    this.renderKeys(); this.renderVault(); this.renderVintedPill(); this.renderPrompts();
+    const s = Settings.get(), v = VSettings.get();
+    $('#setMaxTokens').value = s.maxTokens;
+    $('#setEnterSend').checked = enterSends();
+    $('#setUrssaf').value = v.urssafRate;
+    $('#setStale').value = v.staleDays;
+    $('#setGoal').value = v.goal || '';
+    this.renderStorage();
+  },
+  // Les champs de clé sont vidés dès qu'on quitte l'écran : la clé ne reste pas dans le DOM.
+  clearKeyInputs() { $$('#keyCards input').forEach(i => { i.value = ''; }); $('#keyCards').replaceChildren(); },
+  renderKeys() {
+    const locked = KeyVault.locked;
+    $('#keyCards').replaceChildren(...PROVIDER_IDS.map(p => {
+      const meta = PROVIDERS[p];
+      const st = this.testState[p];
+      const dot = h('span', { class: 'dot' + (st === 'ok' ? ' ok' : st === 'err' ? ' err' : st === 'wait' ? ' wait' : '') });
+      const msg = h('div', { class: 'small', style: { marginTop: '6px', whiteSpace: 'pre-wrap', color: st === 'err' ? 'var(--danger)' : 'var(--muted)' } });
+      const inp = h('input', { class: 'input mono', type: 'password', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', placeholder: locked ? '🔒 verrouillé' : meta.keyHint, disabled: locked, 'aria-label': 'Clé API ' + meta.name, name: 'aihub-key-' + p, 'data-lpignore': 'true' });
+      if (!locked) inp.value = KeyVault.get(p);
+      const eye = h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Afficher / masquer', disabled: locked }, '👁');
+      eye.addEventListener('click', () => { inp.type = inp.type === 'password' ? 'text' : 'password'; eye.textContent = inp.type === 'password' ? '👁' : '🙈'; });
+      inp.addEventListener('change', async () => {
+        try {
+          await KeyVault.set(p, inp.value);
+          this.testState[p] = undefined; dot.className = 'dot';
+          msg.textContent = inp.value.trim() ? '💾 Clé enregistrée dans ce navigateur.' : 'Clé supprimée.';
+          UI.refreshTop();
+        } catch (e) { msg.textContent = e.message; }
+      });
+      const test = h('button', { class: 'btn sm', type: 'button', disabled: locked }, '🧪 Tester la clé');
+      test.addEventListener('click', async () => {
+        if (inp.value.trim() !== KeyVault.get(p)) await KeyVault.set(p, inp.value);
+        if (!KeyVault.has(p)) { msg.textContent = 'Saisis d\'abord une clé.'; return; }
+        this.testState[p] = 'wait'; dot.className = 'dot wait'; msg.style.color = 'var(--muted)'; msg.textContent = '⏳ Test en cours…';
+        try {
+          const ids = await listModels(p);
+          this.testState[p] = 'ok'; dot.className = 'dot ok';
+          msg.textContent = `✅ Clé valide — ${ids.length} modèles disponibles.`;
+        } catch (e) {
+          this.testState[p] = 'err'; dot.className = 'dot err'; msg.style.color = 'var(--danger)';
+          msg.textContent = friendlyError(e);
+        }
+        UI.refreshTop();
+      });
+      const del = h('button', { class: 'btn sm', type: 'button', disabled: locked || !KeyVault.stored(p) }, '🗑️');
+      del.addEventListener('click', async () => { if (!confirm(`Supprimer la clé ${meta.name} ?`)) return; await KeyVault.set(p, ''); this.testState[p] = undefined; this.renderKeys(); UI.refreshTop(); });
+      return h('div', { class: 'card' },
+        h('div', { class: 'row' }, dot, h('b', { class: 'grow' }, `${meta.icon} ${meta.name}`), h('span', { class: 'small muted' }, meta.vendor),
+          KeyVault.stored(p) ? h('span', { class: 'badge ok' }, '✓ enregistrée') : h('span', { class: 'badge' }, 'aucune clé')),
+        h('div', { class: 'input-wrap', style: { marginTop: '10px' } }, inp, eye),
+        h('div', { class: 'row', style: { marginTop: '8px' } }, test, del),
+        msg);
+    }));
+  },
+  renderVault() {
+    const box = $('#vaultActions');
+    if (KeyVault.locked) { box.replaceChildren(h('button', { class: 'btn violet', type: 'button', onclick: openUnlockSheet }, '🔓 Déverrouiller')); return; }
+    if (KeyVault.encrypted) {
+      box.replaceChildren(
+        h('span', { class: 'badge ok' }, '🔐 Clés chiffrées'),
+        h('button', { class: 'btn sm', type: 'button', onclick: () => { KeyVault.lock(); this.render(); UI.refreshTop(); toast('🔒 Verrouillé'); } }, '🔒 Verrouiller maintenant'),
+        h('button', { class: 'btn sm', type: 'button', onclick: () => { if (!confirm('Désactiver le chiffrement ? Tes clés seront stockées en clair dans ce navigateur.')) return; KeyVault.disable(); this.render(); toast('Chiffrement désactivé'); } }, 'Désactiver'));
+      return;
+    }
+    const a = h('input', { class: 'input', type: 'password', autocomplete: 'new-password', placeholder: 'Code (8 caractères min.)' });
+    const b = h('input', { class: 'input', type: 'password', autocomplete: 'new-password', placeholder: 'Confirme le code' });
+    const go = h('button', { class: 'btn violet', type: 'button' }, '🔐 Chiffrer mes clés');
+    go.addEventListener('click', async () => {
+      if (a.value.length < 8) return toast('Code trop court (8 caractères minimum)');
+      if (a.value !== b.value) return toast('Les deux codes sont différents');
+      go.disabled = true;
+      try { await KeyVault.enable(a.value); toast('🔐 Clés chiffrées. Ne perds pas ton code !', 4000); this.render(); }
+      catch (e) { toast('❌ ' + e.message); go.disabled = false; }
+    });
+    box.replaceChildren(h('div', { style: { width: '100%' } }, a, h('div', { style: { height: '8px' } }), b, h('div', { style: { height: '8px' } }), go));
+  },
+  renderVintedPill() {
+    const pm = Vinted.pm();
+    const pill = $('#vintedPillSettings');
+    pill.firstElementChild.textContent = pm.provider ? `${pmLabel(pm.provider, pm.model)}${pm.auto ? ' (auto)' : ''}` : 'Aucune IA configurée';
+    pill.classList.toggle('warn', !pm.provider);
+  },
+  renderPrompts() {
+    $('#vPromptEditors').replaceChildren(...Object.keys(DEFAULT_VPROMPTS).map(name => {
+      const ta = h('textarea', { class: 'input mono', rows: 8, style: { fontSize: '12.5px' } });
+      ta.value = VPrompts.get(name);
+      const mark = h('span', { class: 'badge' });
+      const upd = () => { const custom = !!localStorage.getItem(LS_KEYS.vpromptPrefix + name); mark.textContent = custom ? 'personnalisé' : 'par défaut'; mark.className = 'badge ' + (custom ? 'warn' : ''); };
+      ta.addEventListener('input', debounce(() => { VPrompts.set(name, ta.value); upd(); }, 400));
+      const reset = h('button', { class: 'btn sm', type: 'button' }, '↺ Réinitialiser');
+      reset.addEventListener('click', () => { if (!confirm('Revenir au prompt par défaut ?')) return; VPrompts.reset(name); ta.value = VPrompts.get(name); upd(); toast('↺ Prompt réinitialisé'); });
+      upd();
+      return h('div', { style: { marginTop: '12px' } }, h('div', { class: 'row' }, h('b', { class: 'grow' }, VPROMPT_LABELS[name]), mark, reset), h('div', { style: { height: '6px' } }), ta);
+    }));
+  },
+  async renderStorage() {
+    let bytes = 0;
+    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith('aihub_')) bytes += (k.length + (localStorage.getItem(k) || '').length) * 2; }
+    let txt = `localStorage (AI Hub) : ${(bytes / 1024).toFixed(0)} Ko`;
+    try { const e = await navigator.storage?.estimate?.(); if (e) txt += ` · stockage total du site : ${(e.usage / 1048576).toFixed(1)} Mo`; } catch { /* ignore */ }
+    $('#storageInfo').textContent = txt + '. Photos du stock et du chat dans IndexedDB.';
+  },
+};
+
+function enterSends() {
+  const v = Settings.get().enterSend;
+  return v == null ? !matchMedia('(pointer: coarse)').matches : !!v;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   UI — événements & démarrage
+   ══════════════════════════════════════════════════════════════════════ */
+const ACTIONS = {
+  'nav': el => UI.setView(el.dataset.view),
+  'open-drawer': () => UI.openDrawer(),
+  'close-drawer': () => UI.closeDrawer(),
+  'new-conv': () => { Chat.create(); if (UI.view !== 'chat') UI.setView('chat'); else { Chat.render(); UI.refreshTop(); UI.closeDrawer(); } $('#chatInput').focus(); },
+  'rename-conv': () => { if (UI.view === 'chat' && Chat.current()) Chat.rename(Chat.currentId); },
+  'pick-chat-model': () => Chat.pickModel(),
+  'pick-vinted-model': () => Vinted.pickModel(),
+  'vinted-model-auto': () => { VSettings.set({ provider: '', model: '' }); SettingsUI.renderVintedPill(); toast('IA Vinted : automatique'); },
+  'unlock': () => openUnlockSheet(),
+  'sys-prompt': () => Chat.openSystemPrompt(),
+  'toggle-compare': () => { Chat.compareOn = !Chat.compareOn; Chat.renderCompareBar(); },
+  'export-convs': () => Chat.exportJSON(),
+  'import-convs': () => Chat.importJSON(),
+  'attach': () => $('#chatFile').click(),
+  'send': () => Chat.send(),
+  'vtab': el => { if (UI.view !== 'vinted') { Vinted.tab = el.dataset.tab; UI.setView('vinted'); } else Vinted.showTab(el.dataset.tab); },
+  'an-generate': () => Vinted.generateAnnonce(),
+  'an-clear': () => { Vinted.an.clear(); for (const id of ['anBrand', 'anSize', 'anBuy', 'anNotes']) $('#' + id).value = ''; $('#anResult').replaceChildren(); $('#anStatus').textContent = ''; },
+  'pr-reuse': () => { if (!Vinted.an.images.length) return toast('Aucune photo dans l\'onglet Annonce'); Vinted.pr.set(Vinted.an.images); toast('📷 Photos reprises'); },
+  'pr-generate': () => Vinted.generatePrix(),
+  'cop-generate': () => Vinted.generateCop(),
+  'lot-add': () => Vinted.addLotArticle(),
+  'lot-generate': () => Vinted.generateLot(),
+  'st-new': () => Vinted.editItem(null),
+  'st-filter': el => { Stock.filter = el.dataset.f; Vinted.renderStock(); },
+  'st-import-vcrm': () => Vinted.importFromVcrm(),
+  'st-export-json': () => Vinted.exportStockJSON(),
+  'st-export-csv': () => Vinted.exportStockCSV(),
+  'st-import-file': () => Vinted.importStockFile(),
+  'stats-prev': () => { Vinted.statsOffset--; Vinted.renderStats(); },
+  'stats-next': () => { Vinted.statsOffset++; Vinted.renderStats(); },
+  'clear-keys': () => {
+    if (!confirm('Effacer TOUTES tes clés API de ce navigateur ? (le chiffrement éventuel est aussi supprimé)')) return;
+    KeyVault.clearAll(); SettingsUI.testState = {}; SettingsUI.render(); UI.refreshTop(); toast('🗑️ Toutes les clés ont été effacées');
+  },
+  'clear-convs': async () => {
+    if (!confirm('Supprimer toutes les conversations ? Pense à exporter avant.')) return;
+    Chat.convs = []; Chat.currentId = null; Chat.saveNow(); await IDB.clear('chatimg').catch(() => {});
+    Chat.render(); UI.refreshTop(); toast('🗑️ Conversations supprimées');
+  },
+};
+
+function bindEvents() {
+  document.addEventListener('click', e => {
+    const el = e.target.closest('[data-act]');
+    if (!el || el.disabled) return;
+    const fn = ACTIONS[el.dataset.act];
+    if (fn) { e.preventDefault(); Promise.resolve(fn(el)).catch(err => { safeLog(err); toast(friendlyError(err), 4000); }); }
+  });
+  const input = $('#chatInput');
+  input.addEventListener('input', () => autoGrow(input));
+  input.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' || e.isComposing) return;
+    if ((enterSends() && !e.shiftKey) || e.ctrlKey || e.metaKey) { e.preventDefault(); Chat.send(); }
+  });
+  input.addEventListener('paste', e => {
+    const files = [...(e.clipboardData?.files || [])].filter(f => f.type.startsWith('image/'));
+    if (files.length) { e.preventDefault(); Chat.addFiles(files); }
+  });
+  $('#chatFile').addEventListener('change', e => { Chat.addFiles([...e.target.files]); e.target.value = ''; });
+  $('#convSearch').addEventListener('input', debounce(() => Chat.renderList(), 120));
+
+  $('#setMaxTokens').addEventListener('change', e => Settings.set({ maxTokens: clamp(Math.round(numOr(e.target.value, 8192)), 256, 128000) }));
+  $('#setEnterSend').addEventListener('change', e => Settings.set({ enterSend: e.target.checked }));
+  $('#setUrssaf').addEventListener('change', e => { const v = clamp(numOr(e.target.value, 12.3), 0, 99); e.target.value = v; VSettings.set({ urssafRate: v }); toast(`URSSAF : ${pct(v)}`); });
+  $('#setStale').addEventListener('change', e => VSettings.set({ staleDays: Math.max(1, Math.round(numOr(e.target.value, 30))) }));
+  $('#setGoal').addEventListener('change', e => VSettings.set({ goal: Math.max(0, numOr(e.target.value)) }));
+
+  // Synchronise si un autre onglet modifie les données.
+  window.addEventListener('storage', e => {
+    if (!e.key || !e.key.startsWith('aihub_')) return;
+    if (e.key.startsWith(LS_KEYS.keyPrefix) || e.key.startsWith('aihub_vault')) { KeyVault.init(); UI.refreshTop(); }
+    if (e.key === LS_KEYS.stock) { Stock.load(); if (UI.view === 'vinted') Vinted.showTab(Vinted.tab); }
+  });
+  window.addEventListener('unhandledrejection', e => { safeLog(e.reason); });
+}
+
+function init() {
+  KeyVault.init();
+  Chat.load();
+  Stock.load();
+  if (!libsReady()) $('#libBanner').hidden = false;
+  bindEvents();
+  Vinted.init();
+  IDB.open();
+  UI.setView(Store.get(LS_KEYS.view, KeyVault.stored('claude') || PROVIDER_IDS.some(p => KeyVault.stored(p)) ? 'chat' : 'settings'));
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+else init();
+</script>
+</body>
+</html>
