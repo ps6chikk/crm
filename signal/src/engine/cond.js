@@ -31,7 +31,8 @@ SIG.cond = (function () {
     return toks;
   }
 
-  const FUNCS = ['visits', 'has', 'count', 'seen', 'chance'];
+  // picked('scene', i) : le joueur a pris le choix i de cette scène (variantes locales sans flag).
+  const FUNCS = ['visits', 'has', 'count', 'seen', 'chance', 'picked'];
 
   // Grammaire : or := and ('||' and)* ; and := not ('&&' not)* ; not := '!' not | cmp ;
   // cmp := atom (op atom)? ; atom := num | str | id | id '(' args ')' | '(' or ')'

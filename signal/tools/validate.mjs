@@ -78,8 +78,9 @@ for (const id of ids) if (!seen.has(id)) err(`${id} : scène orpheline (inatteig
 
 // 5. Conditions, variables, flags écrits et lus.
 const reg = registry;
-const known = new Set([...Object.keys(reg.stats), 'temps', ...Object.keys(reg.rels), ...Object.keys(reg.skills), ...Object.keys(reg.ops), ...Object.keys(reg.flags)]);
-const numeric = new Set([...Object.keys(reg.stats), 'temps', ...Object.keys(reg.rels), ...Object.keys(reg.skills), ...Object.keys(reg.ops)]);
+const vars = Object.keys(reg.vars || {});
+const known = new Set([...Object.keys(reg.stats), 'temps', ...Object.keys(reg.rels), ...Object.keys(reg.skills), ...Object.keys(reg.ops), ...vars, ...Object.keys(reg.flags)]);
+const numeric = new Set([...Object.keys(reg.stats), 'temps', ...Object.keys(reg.rels), ...Object.keys(reg.skills), ...Object.keys(reg.ops), ...vars]);
 const read = new Set();
 const written = new Set();
 const lists = new Set(Object.keys(reg.lists));
@@ -94,7 +95,8 @@ function checkCond(src, where) {
     read.add(name);
   }
   for (const call of c.calls) {
-    if ((call.fn === 'visits' || call.fn === 'seen') && !scenes[call.args[0]]) err(`${where} : ${call.fn}() sur une scène inexistante « ${call.args[0]} »`);
+    if (['visits', 'seen', 'picked'].includes(call.fn) && !scenes[call.args[0]]) err(`${where} : ${call.fn}() sur une scène inexistante « ${call.args[0]} »`);
+    if (call.fn === 'picked' && scenes[call.args[0]] && !(scenes[call.args[0]].choices || [])[call.args[1]]) err(`${where} : picked() sur un choix inexistant ${call.args[0]}#${call.args[1]}`);
     if (call.fn === 'has' || call.fn === 'count') {
       if (!lists.has(call.args[0])) err(`${where} : liste inconnue « ${call.args[0]} »`);
       listRead.add(call.args[0]);
@@ -183,22 +185,30 @@ const prorata = complete.reduce((a, c) => {
   const b = BUDGET[c] || { min: 0, minWords: 0, avg: 0, avgWords: 0 };
   return { min: a.min + b.min, minWords: a.minWords + b.minWords, avg: a.avg + b.avg, avgWords: a.avgWords + b.avgWords };
 }, { min: 0, minWords: 0, avg: 0, avgWords: 0 });
-const total = Object.values(BUDGET).reduce((a, b) => a + b.min, 0);
-const scale = (v, glob) => (allComplete ? glob : Math.round(glob * (prorata.min / total)));
+const total = Object.values(BUDGET).reduce((a, b) => ({ min: a.min + b.min, minWords: a.minWords + b.minWords }), { min: 0, minWords: 0 });
+// Seuils globaux ramenés à la part des chapitres terminés (écrans au prorata des écrans, mots des mots).
+const scale = (kind, glob) => (allComplete ? glob : Math.round(glob * (kind === 'w' ? prorata.minWords / total.minWords : prorata.min / total.min)));
 let lengthLine;
 if (!complete.length) {
   lengthLine = 'PROTOTYPE : aucun chapitre marqué complet, seuils de longueur non appliqués.';
 } else {
-  const needS = scale(0, GLOBAL.minScreens);
-  const needW = scale(0, GLOBAL.minWords);
+  const needS = scale('s', GLOBAL.minScreens);
+  const needW = scale('w', GLOBAL.minWords);
   lengthLine = `Chapitres complets : ${complete.join(', ')} · seuil minimal au prorata : ${needS} écrans / ${needW} mots`;
   if (minScreens < needS) err(`chemin le plus court trop court : ${minScreens} écrans < ${needS}`);
   if (minWords < needW) err(`chemin le plus court trop court : ${minWords} mots < ${needW}`);
-  const failS = scale(0, GLOBAL.failAvgScreens);
-  const failW = scale(0, GLOBAL.failAvgWords);
+  const failS = scale('s', GLOBAL.failAvgScreens);
+  const failW = scale('w', GLOBAL.failAvgWords);
   if (avg('screens') < failS) err(`partie moyenne trop courte : ${avg('screens').toFixed(0)} écrans < ${failS}`);
   if (avg('words') < failW) err(`partie moyenne trop courte : ${avg('words').toFixed(0)} mots < ${failW}`);
-  if (avg('screens') < scale(0, GLOBAL.avgScreens)) warn(`partie moyenne sous la cible : ${avg('screens').toFixed(0)} écrans`);
+  for (const c of complete) {
+    const b = BUDGET[c];
+    if (b && complete.length === 1) {
+      if (minScreens < b.min) warn(`${c} : chemin le plus court ${minScreens} écrans, sous le budget du plan (${b.min})`);
+      if (avg('words') < b.avgWords) warn(`${c} : moyenne ${avg('words').toFixed(0)} mots, sous le budget du plan (${b.avgWords})`);
+    }
+  }
+  if (avg('screens') < scale('s', GLOBAL.avgScreens)) warn(`partie moyenne sous la cible : ${avg('screens').toFixed(0)} écrans`);
 }
 // Part des parties qui atteignent le dernier chapitre écrit (fins précoces exclues).
 const lastCh = Math.max(...chapters.map((c) => c.n));

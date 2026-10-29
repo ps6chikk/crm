@@ -100,7 +100,7 @@ SIG.Game = (function () {
     const ch = Story.chapter(st.ch);
     const sc = G.scene;
     document.getElementById('hud-ch').textContent = ch ? `${ch.n}·${ch.title}` : '';
-    document.getElementById('hud-clock').textContent = (sc && sc.time) || (ch && ch.date) || '';
+    document.getElementById('hud-clock').textContent = Story.clock(st, sc) || (ch && ch.date) || '';
     const box = document.getElementById('hud-gauges');
     const keys = (ch && ch.hud) || ['conscience', 'lien', 'risque', 'temps'];
     if (box.dataset.keys !== keys.join()) {

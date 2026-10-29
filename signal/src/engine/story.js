@@ -9,6 +9,7 @@ SIG.Story = (function () {
 
   function interpolate(st, text) {
     return String(text).replace(/\{\{\s*([a-z_]+)\s*\}\}/g, (m, name) => {
+      if (name === 'heure') return clock(st, scenes()[st.scene]);
       try { return String(St.get(st, name)); } catch (e) { return m; }
     });
   }
@@ -98,7 +99,7 @@ SIG.Story = (function () {
     St.applySet(st, c.set);
     St.applyAdd(st, c.add);
     if (c.codex && !st.codex.includes(c.codex)) st.codex.push(c.codex);
-    if (c.log) st.journal.push({ ch: st.ch, t: sc.time || '', txt: c.log, mark: !!c.mark });
+    if (c.log) st.journal.push({ ch: st.ch, t: clock(st, sc), txt: c.log, mark: !!c.mark });
     st.chosen[`${sc.id}#${idx}`] = true;
     st.choices++;
     const to = resolve(st, c.to);
@@ -106,5 +107,17 @@ SIG.Story = (function () {
     return { to, changes };
   }
 
-  return { blocks, blockText, words, choices, choose, enter, resolve, isTerminal, interpolate, chapter };
+  // Horloge : si le chapitre déclare `clock: { end: '04:00' }`, l'heure affichée se déduit du Temps
+  // restant (en minutes). Sinon, l'heure fixe de la scène.
+  function clock(st, scene) {
+    const ch = chapter(st.ch);
+    if (ch && ch.clock && ch.clock.end) {
+      const [h, m] = ch.clock.end.split(':').map(Number);
+      const t = Math.max(0, h * 60 + m - Math.round(st.temps));
+      return `${String(Math.floor(t / 60) % 24).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+    }
+    return (scene && scene.time) || '';
+  }
+
+  return { clock, blocks, blockText, words, choices, choose, enter, resolve, isTerminal, interpolate, chapter };
 })();

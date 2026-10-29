@@ -35,6 +35,7 @@ export async function runBrowserTest(file, { games = 3, mode = '2d', screenshot 
     const n = await ready.count();
     const b = ready.nth(Math.floor(Math.random() * n));
     const cls = (await b.getAttribute('class')) || '';
+    await b.scrollIntoViewIfNeeded();
     if (cls.includes('hold')) {
       const box = await b.boundingBox();
       await page.mouse.move(box.x + 10, box.y + 10);

@@ -1,6 +1,6 @@
 # SIGNAL — INTÉGRALE · Plan de construction (à valider)
 
-> Statut : **plan validé** (réponse « on part sur ça »). Les questions de la section 11 ont été tranchées par défaut, voir ci-dessous. Étape en cours : prototype vertical.
+> Statut : **plan validé**. Prototype validé sur téléphone. Chapitre 1 ORIGINE écrit (5 épisodes). Étape en cours : chapitre 2 FRAGMENTS.
 
 ---
 

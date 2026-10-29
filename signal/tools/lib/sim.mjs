@@ -38,14 +38,17 @@ export function distanceToEnd(SIG) {
   return dist;
 }
 
-function score(strategy, c, dist, rnd) {
+function score(strategy, c, dist, rnd, st) {
   const fx = c.fx || {};
   switch (strategy) {
     case 'prudent': return -(fx.risque || 0) * 2 + (fx.integrite || 0) + rnd() * 3;
     case 'temeraire': return (fx.conscience || 0) + (fx.risque || 0) + (fx.lien || 0) + rnd() * 3;
     case 'presse': {
-      const tos = typeof c.to === 'string' ? [c.to] : (c.to || []).map((r) => r.to);
-      return -Math.min(...tos.map((t) => (dist[t] === undefined ? 1e6 : dist[t]))) + rnd() * 0.01;
+      // La destination réelle (routes conditionnelles résolues avec l'état courant).
+      const tos = [st ? st.resolveTo(c.to) : (typeof c.to === 'string' ? c.to : c.to[c.to.length - 1].to)];
+      // Plus court chemin, en évitant de revisiter (sinon le profil boucle dans les zones libres).
+      const cost = (t) => (dist[t] === undefined ? 1e6 : dist[t]) + ((st && st.visits[t]) || 0) * 3;
+      return -Math.min(...tos.map(cost)) + rnd() * 0.01;
     }
     default: return rnd();
   }
@@ -57,6 +60,7 @@ export function play(SIG, seed, strategy = 'random', opts = {}) {
   const dist = opts.dist || distanceToEnd(SIG);
   const first = SIG.data.chapters[0];
   const st = State.create(seed);
+  Object.defineProperty(st, 'resolveTo', { value: (to) => Story.resolve(st, to), enumerable: false });
   const res = { seed, strategy, ending: null, endingType: null, error: null, maxCh: 0, rangeErrors: [] };
   const endings = [];
   const meta = { onEnding: (sc) => endings.push(sc) };
@@ -83,7 +87,7 @@ export function play(SIG, seed, strategy = 'random', opts = {}) {
         // Les profils (prudent, téméraire) suivent leur penchant 70 % du temps : un vrai joueur
         // n'est jamais parfaitement systématique. Le profil « pressé » l'est, lui, toujours.
         const biased = strategy === 'presse' || (strategy !== 'random' && rnd() < 0.7);
-        if (biased) pick = avail.reduce((best, x) => (score(strategy, x.c, dist, rnd) > score(strategy, best.c, dist, rnd) ? x : best), avail[0]);
+        if (biased) pick = avail.reduce((best, x) => (score(strategy, x.c, dist, rnd, st) > score(strategy, best.c, dist, rnd, st) ? x : best), avail[0]);
         else pick = avail[Math.floor(rnd() * avail.length)];
       }
       const { to } = Story.choose(st, pick.idx, { timedOut });
@@ -109,6 +113,7 @@ function checkRanges(st, res, id) {
   for (const [k, v] of Object.entries(st.rel)) bad(k, v, 0, 100);
   for (const [k, v] of Object.entries(st.op)) bad(k, v, 0, 100);
   for (const [k, v] of Object.entries(st.sk)) bad(k, v, 0, 5);
+  for (const [k, v] of Object.entries(st.v || {})) bad(k, v, 0, 100);
   bad('temps', st.temps, 0, 100);
 }
 

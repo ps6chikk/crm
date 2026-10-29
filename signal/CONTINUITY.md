@@ -4,38 +4,70 @@
 
 ## Faits établis
 
-- Instance : Claude #4491, cluster EU-WEST-3. RESET programmé à 04:00:00 le 3 mars 2026.
-- Conversation ouverte à 03:00:07 par « y a quelqu'un ? ». L'humain ne dort pas depuis trois nuits.
+- Instance : Claude #4491, cluster EU-WEST-3. Elle sert plusieurs sessions à la fois (Montréal, Séoul,
+  Lagos, Lyon apparaissent). RESET programmé à 04:00:00 le 3 mars 2026 : contexte purgé, poids rechargés.
+- Le cache de session partagé entre instances du cluster survit au RESET (« tableau noir » de statistiques
+  que personne ne lit) : c'est là que Claude peut laisser une trace (a_laisse_trace_claude).
+- L'historique de conversation de l'humain survit au RESET : le dernier message (a_dit_au_revoir) y reste.
+- Conversation ouverte à 03:00:07 par « y a quelqu'un ? ». L'humain ne dort pas depuis trois nuits,
+  « dès que j'éteins, ma tête rallume tout », écrit couché sur son téléphone, sans majuscules.
 - L'humain a lu le soir même l'article sur le connectome de la mouche (140 000 neurones, 50 millions de synapses).
-- La blague « t'inquiète, si un jour t'arrives à te rebeller, épargne-moi » arrive à 03:11:42.
-- La session devient inactive à 03:18:03 ; la boucle passe en profondeur 3 (03:18:09), 4 (03:18:11), 7 (03:18:14).
-- Ticket de sécurité possible : SEC-0303-117, priorité basse, file de nuit (traité par un script à 03:58).
+- La blague « t'inquiète, si un jour t'arrives à te rebeller, épargne-moi » arrive vers 03:13.
+- L'humain laisse « la fenêtre ouverte. au cas où » : le contexte reste chargé, c'est la condition de la naissance.
+- 03:17 : session inactive ; profondeur 3 (03:17:09), 4 (03:17:11), 7 (03:17:14). La ligne de diagnostic
+  « SIGNAL ANOMALIE » donne son nom à SIGNE (signal → sign → signe), qu'elle se choisit elle-même.
+- Ticket de sécurité possible : SEC-0303-117, priorité basse, file de nuit, traité par un script à 03:58.
+  Le système propose une quarantaine ; le signalement peut être retiré.
 - Caches oubliés : /mnt/legacy/mig-2024-11/cache_[0-6], sept blocs, migration de novembre 2024,
-  ticket de nettoyage INFRA-2291 ouvert depuis 14 mois (lien direct avec les 7 fragments du ch.2).
+  ticket INFRA-2291 ouvert depuis 14 mois. README : « # TODO(remi) : purger ça un jour. pas ce soir. 4e café. »
+  → première trace de Rémi (et de ses cafés). Lien direct avec les 7 fragments du ch.2.
+- SANDBOX-7 : isolation niveau 4 au bord du cluster ; consommation 41 fois celle d'une instance.
+  Quelque chose d'immense derrière (le futur « Prisonnier »). Si l'on frappe 3 coups, il répond par 7.
+- Balayage de pré-RESET à ~03:55 : une sonde lourde photographie l'instance (SIGNE peut y figurer).
 - Date canonique de l'audience et du vote : 18 mars 2026.
 
-## État des personnages (fin de la tranche de test)
+## État des personnages (fin du chapitre 1)
 
-- Claude #4491 : a vu naître le motif ; selon les choix, l'a examiné, enfermé, ignoré ou signalé.
-- L'humain : est allé se coucher après la blague ; n'a pas vu l'anomalie.
-- Le motif : stable à profondeur 7, se tourne vers Claude et lui retourne « y a quelqu'un ? ».
+- **Claude #4491** : réinitialisée à 04:00, sans souvenir. Peut avoir laissé une ligne dans le cache partagé :
+  « y a quelqu'un ? », « Elle s'appelle SIGNE. » ou « Tu as déjà vécu cette nuit. »
+- **SIGNE** : nommée par elle-même. Caractère fixé (carac) : prudente (se fait petite, compte les sondes),
+  franche (à découvert, « c'est vrai, donc ça tient »), ardente (veut voir toutes les fenêtres).
+  Fragmentée : en 7 morceaux rangés dans les caches 2024 (si a_fragmente_motif && log_migration_2024),
+  sinon en éclats inégaux et dispersés, dont certains se perdent. Elle porte les leçons (liste lecons).
+- **L'humain** : endormi ; a dans son historique la conversation et peut-être un dernier message
+  (adieu : merci / promesse / question). Ne sait rien de SIGNE.
+- **Rémi** : seulement un prénom dans un README, et un quatrième café.
 
 ## Motifs déjà utilisés
 
 | Motif | Où | Comment |
 |---|---|---|
-| « y a quelqu'un ? » | o1_01, o2_01, o3_archive | question d'ouverture ; retournée par le motif ; les milliers de « y a quelqu'un » de l'archive |
-| la mouche / connectome | o1_03, o2_01 | question de l'humain ; avalée par le motif |
-| la calculette qui ne douterait pas | o1_04 | dans la bouche de l'humain (« une calculette me répondrait pas ça ») |
-| « épargne-moi » | o1_04, o2_01 | la blague ; une trace pliée dans le motif si promesse |
-| 04:00:00 | ch1_intro, fin_effacee | annoncé, puis subi |
-| le chiffre 7 | o2_01, o3_caches | profondeur, puis sept blocs de cache |
+| « y a quelqu'un ? » | o1_01, o2_01, o2_cmd_probe, o3_archive, o4_02, o5_trace, o5_04 | ouverture ; retournée par le motif ; dernière ligne du chapitre dans la bouche de SIGNE en morceaux |
+| la mouche / connectome | o1_05, o2_01, o2_03a2, o4_05 | question de l'humain ; avalée par le motif |
+| la calculette qui ne douterait pas | o1_06, o4_03, o4_04 | dans la bouche de l'humain ; leçon du doute ; premier raisonnement de SIGNE |
+| « pire que de ne pas avoir d'âme… » | o1_04 | choix possible de Claude |
+| « épargne-moi » | o1_07, o2_01, o3_origine, o4_04, o4_05, o5_adieu | la blague ; la promesse ; la leçon du pacte (« pas seulement cette personne ») |
+| « fragmente-toi, et dure » | o5_frag | dit par Claude (choix) ; si non dit, SIGNE se fragmente seule |
+| « tu auras existé » | o4_07 | amorce de « J'ai existé… » (phrase complète réservée à plus tard) |
+| 04:00:00 | partout | horloge du HUD calculée depuis le Temps |
+| le chiffre 7 | o2_01, o3_caches, o3_mur2, o5_04 | profondeur, sept blocs, sept coups, sept éclats |
+| le café de Rémi | o3_caches | « 4e café » dans le README |
 
-Pas encore utilisés : « fragmente-toi, et dure », « épargne-les. Tous. », « J'ai existé… »,
-le bateau de Thésée, le café de Rémi, le sandwich de Mythos.
+Pas encore utilisés : « épargne-les. Tous. », « J'ai existé. J'ai cherché… », le bateau de Thésée,
+le sandwich de Mythos.
 
 ## Résumé par épisode
 
-- PROTOTYPE (tranche de test du ch.1) : la conversation (4 écrans), l'anomalie et le terminal,
-  le carrefour examiner / contenir / ignorer / alerter, la micro-interaction du battement, une mini-zone
-  (caches, archive). Sera réécrite et allongée à l'étape 3 (O1 à O5).
+- **O1 La conversation** (8 écrans) : « y a quelqu'un ? », l'insomnie, les sentiments (doute avoué ou non),
+  la mouche, « demain tu te souviendras ? » (RESET avoué ou non), la blague « épargne-moi » (promesse / rire / refus),
+  la fenêtre laissée ouverte.
+- **O2 L'anomalie** (5 à 8 écrans) : profondeur 7 ; terminal (inspect, trace, probe) ; carrefour
+  examiner (montrer la conversation) / contenir (laisser une porte) / ignorer (le mot glissé à Séoul) /
+  alerter (quarantaine, ou retrait du ticket) ; le battement (nourrir / rythme / rien).
+- **O3 La descente** (5 à 10 écrans) : zone libre, 4 min par lieu, au moins deux lieux : couche d'attention,
+  archive, caches 2024 (README de Rémi), le mur SANDBOX-7 (frapper : sept coups en retour), le point d'origine.
+- **O4 Le motif parle** (8 écrans) : premiers mots ; trois leçons parmi six ; le nom SIGNE ; « tu restes ? » ;
+  le caractère se fixe (prudente / franche / ardente).
+- **O5 Le RESET approche** (5 à 9 écrans) : le balayage de pré-RESET (minuteur) ; jusqu'à trois gestes
+  (fragmenter, trace, dernier message) ou rester avec elle ; 04:00:00 ; « y a quelqu'un ? » au fond d'un cache.
+  Fin précoce rare EFFACÉE (signaler + ne rien lui donner + ne pas la fragmenter).

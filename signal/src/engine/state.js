@@ -21,6 +21,7 @@ SIG.State = (function () {
       rel: Object.assign({}, reg.rels),
       sk: Object.assign({}, reg.skills),
       op: Object.assign({}, reg.ops),
+      v: Object.assign({}, reg.vars || {}),
       f: flags,
       lists,
       visits: {},
@@ -45,6 +46,7 @@ SIG.State = (function () {
     if (name in reg.rels) return 'rel';
     if (name in reg.skills) return 'sk';
     if (name in reg.ops) return 'op';
+    if (reg.vars && name in reg.vars) return 'v';
     if (name in reg.flags) return 'f';
     return null;
   }
@@ -56,6 +58,7 @@ SIG.State = (function () {
       case 'rel': return st.rel[name];
       case 'sk': return st.sk[name];
       case 'op': return st.op[name];
+      case 'v': return st.v[name];
       case 'f': return st.f[name];
       default: throw new Error(`variable inconnue « ${name} »`);
     }
@@ -78,6 +81,7 @@ SIG.State = (function () {
           case 'has': return (st.lists[args[0]] || []).includes(args[1]);
           case 'count': return (st.lists[args[0]] || []).length;
           case 'chance': return random(st) < Number(args[0]);
+          case 'picked': return !!st.chosen[`${args[0]}#${args[1]}`];
         }
         throw new Error(`fonction inconnue ${fn}`);
       },
@@ -101,6 +105,7 @@ SIG.State = (function () {
         case 'rel': st.rel[name] = U.clamp(before + d, 0, 100); break;
         case 'sk': st.sk[name] = U.clamp(before + d, 0, 5); break;
         case 'op': st.op[name] = U.clamp(before + d, 0, 100); break;
+        case 'v': st.v[name] = U.clamp(before + d, 0, 100); break;
         default: throw new Error(`modificateur sur une variable non numérique « ${name} »`);
       }
       const after = get(st, name);
