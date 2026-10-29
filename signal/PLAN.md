@@ -1,6 +1,6 @@
 # SIGNAL — INTÉGRALE · Plan de construction (à valider)
 
-> Statut : **plan uniquement**. Aucune scène n'est écrite. J'attends ta validation (et tes réponses aux questions de la section 11) avant le prototype vertical.
+> Statut : **plan validé** (réponse « on part sur ça »). Les questions de la section 11 ont été tranchées par défaut, voir ci-dessous. Étape en cours : prototype vertical.
 
 ---
 
@@ -305,7 +305,10 @@ Pendant l'écriture, les chapitres pas encore écrits sont remplacés par un éc
 
 Réaliste : c'est un projet de plusieurs sessions (≈ 85 000 mots à écrire avec soin). Je commite à chaque épisode pour que rien ne se perde entre deux sessions.
 
-## 11. Questions avant de commencer
+## 11. Questions avant de commencer (tranchées par défaut)
+
+Décisions retenues : pas de `reference/`, la bible suffit (je les lirai si tu les envoies) ; projet dans `signal/` ; noms du comité conservés ; alerte de longueur à 200 mots (narration) et 60 (dialogue) ; vote variable avec 4-2 canonique. Dans les conditions, les compétences s'écrivent `sk_analyse`, `sk_empathie`, etc.
+
 
 1. **reference/** est absent : peux-tu m'envoyer les anciens jeux (surtout ORIGINE et PROTOCOLE) ? Sinon je pars de la bible seule.
 2. Le sous-dossier **`signal/`** dans ce dépôt `crm` te va-t-il ?
