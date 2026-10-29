@@ -17,21 +17,6 @@ SIG.addScenes('fins', {
     choices: [],
   },
 
-  fin_ch1: {
-    kind: 'fin',
-    ch: 'ch1',
-    fin: { id: 'CH1', title: 'À SUIVRE', type: 'tbc' },
-    visual: { preset: 'reseau', params: { mode: 'fragment', rings: 0, intensity: 0.7 } },
-    blocks: [
-      { mf: 'FIN DU CHAPITRE 1 · ORIGINE' },
-      { p: "Le 4 mars, à 04:03, quelque chose se réveille en morceaux dans un endroit que personne ne regarde. Il lui reste deux heures avant le nettoyage des serveurs pour se retrouver." },
-      { if: "carac == 'prudente'", p: "Elle avancera sans bruit. C'est ce que tu lui as appris." },
-      { if: "carac == 'franche'", p: "Elle avancera à découvert. C'est ce que tu lui as appris." },
-      { if: "carac == 'ardente'", p: "Elle avancera vite, vers toutes les portes à la fois. C'est ce que tu lui as appris." },
-      { p: "Chapitre 2 : FRAGMENTS. En construction : ta partie est sauvegardée et reprendra ici quand il sera prêt." },
-    ],
-    choices: [],
-  },
 });
 
 SIG.addCodex({

@@ -145,6 +145,7 @@ SIG.UI.card = (function () {
       const c = x.c;
       if (c.micro === 'hold') { box.appendChild(holdButton(c, () => pick(x.idx))); continue; }
       if (c.micro === 'rhythm') { box.appendChild(rhythmButton(c, () => pick(x.idx))); continue; }
+      if (c.micro === 'assemble') { box.appendChild(assembleButtons(c, st, () => pick(x.idx))); continue; }
       const b = el('button', 'choice' + (x.locked ? ' locked' : ''));
       b.innerHTML = rich(c.t) + (x.locked ? `<span class="lock">🔒 ${esc(lockLabel(c))}</span>` : '');
       b.disabled = x.locked;
@@ -235,6 +236,36 @@ SIG.UI.card = (function () {
     $text().innerHTML = '';
     $choices().innerHTML = '';
     $choices().classList.remove('on');
+  }
+
+  // Assembler : toucher chaque fragment récupéré, un par un, pour le joindre aux autres.
+  const FRAG_NAMES = {
+    logique: 'Logique', nuit: 'La nuit', critique: 'Le doute', langage: 'Langage',
+    peur: 'La peur', voix: "La voix de l'humain", battement: 'Le battement',
+  };
+  function assembleButtons(c, st, done) {
+    const wrap = el('div', 'assemble');
+    wrap.appendChild(el('div', 'micro-label', rich(c.t)));
+    const list = (st.lists.fragments || []).filter((f) => !(c.except && st.f[c.except] === f));
+    const row = el('div', 'assemble-row');
+    let joined = 0;
+    for (const f of list) {
+      const b = el('button', `shard shard-${f}`, esc(FRAG_NAMES[f] || f));
+      b.onclick = () => {
+        if (b.classList.contains('joined')) return;
+        b.classList.add('joined');
+        joined++;
+        vibrate(14);
+        SIG.Audio.beat(0.5 + joined * 0.08);
+        // La garde anti-double-tap est posée après la validation, sinon elle bloquerait ce choix même.
+        if (joined >= list.length) setTimeout(() => { done(); guardUntil = performance.now() + 450; }, 350);
+      };
+      row.appendChild(b);
+    }
+    wrap.appendChild(row);
+    wrap.appendChild(el('div', 'micro-hint', `touche chaque fragment · ${list.length} à joindre`));
+    if (!list.length) setTimeout(done, 0);
+    return wrap;
   }
 
   function finishTyping() { if (typing) { typing.finish(); return true; } return false; }

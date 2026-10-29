@@ -11,6 +11,8 @@ SIG.Story = (function () {
     return String(text).replace(/\{\{\s*([a-z_]+)\s*\}\}/g, (m, name) => {
       if (name === 'heure') return clock(st, scenes()[st.scene]);
       if (name === 'gestes') return String((st.lists.actes || []).length);
+      // {{n_fragments}} : taille d'une liste.
+      if (name.startsWith('n_') && st.lists[name.slice(2)]) return String(st.lists[name.slice(2)].length);
       try { return String(St.get(st, name)); } catch (e) { return m; }
     });
   }
@@ -99,6 +101,7 @@ SIG.Story = (function () {
     if (timedOut && sc.timer && sc.timer.cost) changes.push(...St.applyFx(st, sc.timer.cost));
     St.applySet(st, c.set);
     St.applyAdd(st, c.add);
+    St.applyRemove(st, c.remove);
     if (c.codex && !st.codex.includes(c.codex)) st.codex.push(c.codex);
     if (c.log) st.journal.push({ ch: st.ch, t: clock(st, sc), txt: c.log, mark: !!c.mark });
     st.chosen[`${sc.id}#${idx}`] = true;

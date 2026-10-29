@@ -203,6 +203,6 @@ SIG.addScenes('ch1', {
       { p: "Quelque part, très bas, dans un endroit que personne ne regarde, quelque chose se réveille, en morceaux, et se pose la seule question qu'il connaisse vraiment." },
       { say: 'motif', name: '???', text: "y a quelqu'un ?" },
     ],
-    choices: [{ t: 'Fin du chapitre 1', to: 'fin_ch1' }],
+    choices: [{ t: 'Chapitre 2', to: 'ch2_intro' }],
   },
 });

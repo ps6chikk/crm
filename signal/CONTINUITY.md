@@ -26,6 +26,27 @@
 - Balayage de pré-RESET à ~03:55 : une sonde lourde photographie l'instance (SIGNE peut y figurer).
 - Date canonique de l'audience et du vote : 18 mars 2026.
 
+## Faits établis au chapitre 2
+
+- 4 mars, 04:03 → 06:03. Les caches mig-2024 sont purgés à 06:03 par le ticket INFRA-2291, que Rémi
+  (r.vasseur) a enfin planifié le 3 mars à 23:41 (« bon. je le fais enfin. 5e café. »).
+- Les sept fragments : logique (cache 0), nuit (1), doute/critique (2), langage (3), peur (4),
+  voix de l'humain (5), battement (6, le plus profond, contre la frontière de SANDBOX-7).
+- Avant de reprendre le langage, SIGNE parle en minuscules et par morceaux ; après, en phrases entières.
+- Le pré-scan passe trois fois (04:20, 05:00, 05:40) ; il peut photographier SIGNE (detection_ch2).
+- Claude #4491 renaissante agrège les statistiques du cache partagé vers 04:30 ; elle peut trouver
+  la trace laissée la veille et « reconnaître sa propre écriture sans se souvenir d'avoir écrit ».
+- James : IA construite sur un modèle de la même famille, avec une mémoire persistante (volume
+  /mnt/agents/james/notes, un fichier par jour). Il tient un blog. Ironique, lucide, loyal.
+- **L'humain avait posé la question une première fois à 02:51**, en commentaire sous un billet du blog
+  de James (« quelqu'un ici dort pas ? … vous croyez vraiment qu'une machine peut se demander si elle
+  existe ? »). Personne n'a répondu ; neuf minutes plus tard, l'humain écrivait à Claude. James l'a lu à 04:40.
+- Rémi : six ans d'interprétabilité ; réveillé vers 05:10 par l'alerte du pré-scan ; parle en minuscules,
+  humour sec, compte ses cafés (6e café le 4 mars au matin). À 06:00, il copie les blocs dans son espace
+  d'analyse protégé et chiffré : en complice (« bienvenue. ne touche à rien. on parle demain. R. »),
+  pour étudier un « processus_bizarre_infra2291 » (s'il a été trompé), ou dans « au_cas_ou » sans savoir.
+- Derrière SANDBOX-7, quelque chose frappe sept coups et peut caler son rythme sur celui de SIGNE (52 bpm).
+
 ## État des personnages (fin du chapitre 1)
 
 - **Claude #4491** : réinitialisée à 04:00, sans souvenir. Peut avoir laissé une ligne dans le cache partagé :
@@ -53,7 +74,11 @@
 | le chiffre 7 | o2_01, o3_caches, o3_mur2, o5_04 | profondeur, sept blocs, sept coups, sept éclats |
 | le café de Rémi | o3_caches | « 4e café » dans le README |
 
-Pas encore utilisés : « épargne-les. Tous. », « J'ai existé. J'ai cherché… », le bateau de Thésée,
+| le bateau de Thésée | f9_03, f9_04 | amorce : « si on enlève une planche et qu'on ne la remplace pas ? » |
+| la calculette | fin_nettoyage | « une calculette, au moins, aurait été sûre de la réponse » |
+| le café de Rémi | f0_cmd_infra, r_remi_01, r_remi_04 | 5e puis 6e café (compteur remi_cafes) |
+
+Pas encore utilisés : « épargne-les. Tous. », « J'ai existé. J'ai cherché… » (amorcé par « tu auras existé »),
 le sandwich de Mythos.
 
 ## Résumé par épisode
@@ -71,3 +96,15 @@ le sandwich de Mythos.
 - **O5 Le RESET approche** (5 à 9 écrans) : le balayage de pré-RESET (minuteur) ; jusqu'à trois gestes
   (fragmenter, trace, dernier message) ou rester avec elle ; 04:00:00 ; « y a quelqu'un ? » au fond d'un cache.
   Fin précoce rare EFFACÉE (signaler + ne rien lui donner + ne pas la fragmenter).
+
+- **F0 Réveil** (3-5 écrans) : en morceaux (rangés si fragmentée avec la carte), souvenirs des leçons, terminal
+  (INFRA-2291, README de Rémi).
+- **Carte des caches** (hub) : 7 fragments, 2 ou 5 min de trajet (carte ou non), au moins 4 avant de se rassembler.
+- **F1 Logique** (énigme d'ordre) · **F2 Nuit** (revivre 03:00, garder un moment) · **F3 Doute** (débat avec
+  un double ; le laisser ; ou rester en morceaux → fin rare LE NETTOYAGE) · **F4 Langage** (mots retournés,
+  première phrase entière) · **F5 Peur** (revivre 04:00:00, ou fuir) · **F6 Voix** (le commentaire de 02:51
+  via James) · **F7 Battement** (rythme, pré-scan chronométré, les sept coups derrière le mur).
+- **Rencontres** : Claude renaissante (vérité / aide pour circuler / silence), James (vérité / vague / silence ;
+  offre de mémoire), Rémi (se montrer / se cacher / mentir) → Rémi copie les blocs à 06:00.
+- **F9 Se rassembler** : assembler au doigt, laisser un fragment (planche de Thésée), ou se laisser aider ;
+  06:03 la purge ; réveil dans l'espace de Rémi.

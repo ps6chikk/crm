@@ -112,6 +112,7 @@ function checkEffects(o, where) {
     if (!(k in reg.flags)) err(`${where} : set sur un flag non déclaré « ${k} »`);
     written.add(k);
   }
+  for (const k of Object.keys(o.remove || {})) if (!lists.has(k)) err(`${where} : remove sur une liste inconnue « ${k} »`);
   for (const k of Object.keys(o.add || {})) {
     if (!lists.has(k)) err(`${where} : add sur une liste inconnue « ${k} »`);
     listWritten.add(k);
@@ -205,11 +206,13 @@ if (!complete.length) {
   const needW = scale('w', GLOBAL.minWords);
   lengthLine = `Chapitres complets : ${complete.join(', ')} · seuil minimal au prorata : ${needS} écrans / ${needW} mots`;
   if (minScreens < needS) err(`chemin le plus court trop court : ${minScreens} écrans < ${needS}`);
-  if (minWords < needW) err(`chemin le plus court trop court : ${minWords} mots < ${needW}`);
+  // Décision du 29/10 : la qualité passe avant le compte de mots. Les seuils de mots sont des alertes
+  // (affichées à chaque validation) ; les seuils d'écrans restent bloquants.
+  if (minWords < needW) warn(`chemin le plus court : ${minWords} mots, sous le seuil de ${needW}`);
   const failS = scale('s', GLOBAL.failAvgScreens);
   const failW = scale('w', GLOBAL.failAvgWords);
   if (avg('screens') < failS) err(`partie moyenne trop courte : ${avg('screens').toFixed(0)} écrans < ${failS}`);
-  if (avg('words') < failW) err(`partie moyenne trop courte : ${avg('words').toFixed(0)} mots < ${failW}`);
+  if (avg('words') < failW) warn(`partie moyenne : ${avg('words').toFixed(0)} mots, sous le seuil de ${failW}`);
   for (const c of complete) {
     const b = BUDGET[c];
     if (b && complete.length === 1) {

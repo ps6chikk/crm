@@ -1,6 +1,6 @@
 # SIGNAL — INTÉGRALE · Plan de construction (à valider)
 
-> Statut : **plan validé**. Prototype validé sur téléphone. Chapitre 1 ORIGINE écrit (5 épisodes). Étape en cours : chapitre 2 FRAGMENTS.
+> Statut : **plan validé**. Prototype validé sur téléphone. Chapitres 1 ORIGINE et 2 FRAGMENTS écrits. Seuils de mots passés en alerte (la qualité prime, décision du 29/10). Étape en cours : chapitre 3.
 
 ---
 

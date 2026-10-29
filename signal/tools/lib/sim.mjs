@@ -27,7 +27,8 @@ export function distanceToEnd(SIG) {
   for (const [a, ts] of Object.entries(g)) for (const b of ts) (rev[b] = rev[b] || []).push(a);
   const dist = {};
   const q = [];
-  for (const [id, sc] of Object.entries(scenes)) if (sc.kind === 'fin') { dist[id] = 0; q.push(id); }
+  // Le profil pressé vise la fin de chapitre ou de saga la plus proche, jamais une fin précoce.
+  for (const [id, sc] of Object.entries(scenes)) if (sc.kind === 'fin' && sc.fin.type !== 'early') { dist[id] = 0; q.push(id); }
   while (q.length) {
     const b = q.shift();
     for (const a of rev[b] || []) {
@@ -54,7 +55,8 @@ function score(strategy, c, dist, rnd, st) {
   }
 }
 
-export function play(SIG, seed, strategy = 'random', opts = {}) {
+export function play(sig, seed, strategy = 'random', opts = {}) {
+  SIG = sig;
   const { State, Story, util } = SIG;
   const rnd = util.rng(seed * 2654435761);
   const dist = opts.dist || distanceToEnd(SIG);
@@ -105,6 +107,7 @@ export function play(SIG, seed, strategy = 'random', opts = {}) {
   return res;
 }
 
+let SIG = null;
 function checkRanges(st, res, id) {
   const bad = (name, v, lo, hi) => {
     if (typeof v !== 'number' || Number.isNaN(v) || v < lo || v > hi) res.rangeErrors.push(`${name}=${v} à ${id}`);
@@ -114,7 +117,7 @@ function checkRanges(st, res, id) {
   for (const [k, v] of Object.entries(st.op)) bad(k, v, 0, 100);
   for (const [k, v] of Object.entries(st.sk)) bad(k, v, 0, 5);
   for (const [k, v] of Object.entries(st.vars || {})) bad(k, v, 0, 100);
-  bad('temps', st.temps, 0, 100);
+  bad('temps', st.temps, 0, Math.max(100, (SIG.Story.chapter(st.ch) || {}).temps || 100));
 }
 
 export function runMany(SIG, n, seed0 = 1) {

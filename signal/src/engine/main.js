@@ -79,7 +79,11 @@ SIG.Game = (function () {
   function show(sc) {
     G.scene = sc;
     const st = G.state;
-    if (sc.visual) { SIG.Gfx.setVisual(sc.visual.preset, sc.visual.params); SIG.Audio.mood(sc.visual.params); }
+    if (sc.visual) {
+      const params = resolveParams(sc.visual.params, st);
+      SIG.Gfx.setVisual(sc.visual.preset, params);
+      SIG.Audio.mood(params);
+    }
     hud();
     glitch();
     if (sc.kind !== 'fin') SIG.UI.menu.hideEnding();
@@ -88,6 +92,22 @@ SIG.Game = (function () {
     if (sc.kind === 'chapter') SIG.UI.menu.chapterIntro(sc, st, () => renderCard(sc));
     else if (sc.kind === 'fin') SIG.UI.menu.ending(sc, st);
     else renderCard(sc);
+  }
+
+  // Paramètres visuels liés à l'état : « $liste » (ex. $fragments) ou « $usure » (0 → 1 à l'échéance).
+  function resolveParams(p, st) {
+    const out = {};
+    for (const [k, v] of Object.entries(p || {})) {
+      if (typeof v === 'string' && v[0] === '$') {
+        const name = v.slice(1);
+        if (name === 'usure') {
+          const ch = Story.chapter(st.ch);
+          out[k] = 1 - st.temps / ((ch && ch.temps) || 100);
+        } else if (st.lists[name]) out[k] = st.lists[name].slice();
+        else { try { out[k] = St.get(st, name); } catch (e) { out[k] = null; } }
+      } else out[k] = v;
+    }
+    return out;
   }
 
   function renderCard(sc) {

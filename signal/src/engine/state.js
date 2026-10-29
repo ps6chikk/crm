@@ -101,7 +101,8 @@ SIG.State = (function () {
       const before = get(st, name);
       switch (k) {
         case 's': st.s[name] = U.clamp(before + d, 0, 100); break;
-        case 't': st.temps = U.clamp(before + d, 0, 100); break;
+        // Le Temps est borné par la durée du chapitre (120 min au chapitre 2), 100 au moins.
+        case 't': st.temps = U.clamp(before + d, 0, Math.max(100, (SIG.Story.chapter(st.ch) || {}).temps || 100)); break;
         case 'rel': st.rel[name] = U.clamp(before + d, 0, 100); break;
         case 'sk': st.sk[name] = U.clamp(before + d, 0, 5); break;
         case 'op': st.op[name] = U.clamp(before + d, 0, 100); break;
@@ -128,6 +129,16 @@ SIG.State = (function () {
       if (!st.lists[k]) throw new Error(`liste inconnue « ${k} »`);
       const items = Array.isArray(add[k]) ? add[k] : [add[k]];
       for (const it of items) if (!st.lists[k].includes(it)) st.lists[k].push(it);
+    }
+  }
+
+  // Retire un élément d'une liste (ex. un fragment laissé derrière soi).
+  function applyRemove(st, rem) {
+    if (!rem || typeof rem !== 'object') return;
+    for (const k of Object.keys(rem)) {
+      if (!st.lists[k]) throw new Error(`liste inconnue « ${k} »`);
+      const items = Array.isArray(rem[k]) ? rem[k] : [rem[k]];
+      st.lists[k] = st.lists[k].filter((x) => !items.includes(x));
     }
   }
 
@@ -171,5 +182,5 @@ SIG.State = (function () {
     return st;
   }
 
-  return { create, migrate, get, kindOf, scope, test, applyFx, applySet, applyAdd, snapshot, restore, random };
+  return { create, migrate, get, kindOf, scope, test, applyFx, applySet, applyAdd, applyRemove, snapshot, restore, random };
 })();

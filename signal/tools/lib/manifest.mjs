@@ -9,6 +9,16 @@ export const CORE = [
   'src/data/ch1/o3.js',
   'src/data/ch1/o4.js',
   'src/data/ch1/o5.js',
+  'src/data/ch2/f0.js',
+  'src/data/ch2/f1_logique.js',
+  'src/data/ch2/f2_nuit.js',
+  'src/data/ch2/f3_critique.js',
+  'src/data/ch2/f4_langage.js',
+  'src/data/ch2/f5_peur.js',
+  'src/data/ch2/f6_voix.js',
+  'src/data/ch2/f7_battement.js',
+  'src/data/ch2/rencontres.js',
+  'src/data/ch2/finale.js',
   'src/data/fins.js',
   'src/engine/state.js',
   'src/engine/story.js',
@@ -20,6 +30,7 @@ export const BROWSER = [
   'src/three/core.js',
   'src/three/fallback2d.js',
   'src/three/reseau.js',
+  'src/three/fragments.js',
   'src/ui/fx.js',
   'src/ui/card.js',
   'src/ui/panels.js',
@@ -36,4 +47,4 @@ export const STYLES = [
 // Presets visuels déclarés (validate vérifie que chaque scène en utilise un connu).
 export const PRESETS = ['reseau', 'fragments', 'couloir', 'comite', 'bac', 'connectome', 'neutre'];
 // Presets effectivement implémentés à ce stade (les autres retombent sur `neutre`).
-export const PRESETS_IMPLEMENTED = ['reseau', 'neutre'];
+export const PRESETS_IMPLEMENTED = ['reseau', 'fragments', 'neutre'];

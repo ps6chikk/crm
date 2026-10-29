@@ -96,3 +96,27 @@ body.viewing #hud { opacity: 0.4; }
   body { font-size: calc(18px * var(--fs)); }
   #card-scroll { padding: 30px 34px 40px; }
 }
+
+/* Assembler les fragments */
+.assemble { border: 1px solid rgba(189, 147, 249, 0.4); border-radius: 12px; padding: 12px; background: rgba(189, 147, 249, 0.06); }
+.assemble .micro-label { display: block; margin-bottom: 10px; }
+.assemble .micro-hint { position: static; transform: none; max-width: none; text-align: left; margin-top: 8px; color: var(--violet); }
+.assemble-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.shard {
+  flex: 1 1 calc(50% - 8px); min-height: 46px; border-radius: 10px; cursor: pointer;
+  background: rgba(255, 255, 255, 0.04); border: 1px dashed rgba(189, 147, 249, 0.6); color: var(--ink);
+  font-family: var(--mono); font-size: 12.5px; transition: 0.25s;
+}
+.shard.joined { background: rgba(189, 147, 249, 0.25); border-style: solid; color: #fff; transform: scale(0.97); }
+
+/* Voix des fragments (chapitre 2) */
+.who-logique { border-color: var(--blue); }
+.who-logique .who { color: var(--blue); }
+.who-logique .line { font-family: var(--mono); font-size: calc(14px * var(--fs)); }
+.who-critique { border-color: var(--violet); background: rgba(189, 147, 249, 0.04); }
+.who-critique .who { color: var(--violet); }
+.who-critique .line { font-style: italic; }
+.who-langage { border-color: var(--green); }
+.who-langage .who { color: var(--green); }
+.who-peur { border-color: var(--red); background: rgba(255, 85, 85, 0.05); }
+.who-peur .who { color: var(--red); }

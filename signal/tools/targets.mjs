@@ -1,5 +1,7 @@
 // Seuils de longueur. Les budgets par chapitre viennent de PLAN.md (section 5).
 // Pendant la construction, seuls les chapitres marqués `complete: true` comptent, au prorata.
+// Les seuils de mots sont des alertes depuis le 29/10 (la qualité passe avant le volume) ;
+// les seuils d'écrans restent bloquants.
 export const GLOBAL = {
   minScreens: 150, minWords: 30000, // chemin le plus court jusqu'à une fin de saga
   avgScreens: 200, avgWords: 40000, // cible de la partie moyenne (alerte si non atteinte)

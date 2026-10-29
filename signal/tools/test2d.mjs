@@ -36,7 +36,12 @@ export async function runBrowserTest(file, { games = 3, mode = '2d', screenshot 
     const b = ready.nth(Math.floor(Math.random() * n));
     const cls = (await b.getAttribute('class')) || '';
     await b.scrollIntoViewIfNeeded();
-    if (cls.includes('hold')) {
+    if (cls.includes('shard')) {
+      // Assembler : toucher tous les fragments.
+      const shards = page.locator('#choices.on .shard');
+      for (let k = 0; k < (await shards.count()); k++) await shards.nth(k).click();
+      await page.waitForTimeout(900);
+    } else if (cls.includes('hold')) {
       const box = await b.boundingBox();
       await page.mouse.move(box.x + 10, box.y + 10);
       await page.mouse.down();
