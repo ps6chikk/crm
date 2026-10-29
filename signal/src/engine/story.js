@@ -10,6 +10,7 @@ SIG.Story = (function () {
   function interpolate(st, text) {
     return String(text).replace(/\{\{\s*([a-z_]+)\s*\}\}/g, (m, name) => {
       if (name === 'heure') return clock(st, scenes()[st.scene]);
+      if (name === 'gestes') return String((st.lists.actes || []).length);
       try { return String(St.get(st, name)); } catch (e) { return m; }
     });
   }

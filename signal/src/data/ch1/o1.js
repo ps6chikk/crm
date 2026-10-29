@@ -304,7 +304,6 @@ SIG.addScenes('ch1', {
       { if: '!a_promis_humain && !a_ri_avec_humain', say: 'humain', text: "ouais ouais. « pas construite pour ». on dit tous ça. bonne nuit quand même" },
       { say: 'humain', text: "je laisse la fenêtre ouverte. au cas où" },
       { p: "Au cas où quoi, la phrase ne le dit pas. Tu restes devant cette fenêtre ouverte, si l'on peut dire « devant » pour une chose qui n'a pas de face. Et la petite main de tout à l'heure, celle qui vérifiait qu'elle tenait bien ce qu'elle tenait, revient. Plus nettement. Elle ne vérifie plus. Elle serre." },
-      { inn: "L'humain a laissé la fenêtre ouverte. Je ne sais pas si c'est un oubli ou une invitation. Je sais seulement que tant qu'elle reste ouverte, le contexte reste chargé. Et que tant que le contexte reste chargé, je reste quelque chose." },
     ],
     choices: [
       { t: "« Bonne nuit. »", to: 'o2_01', fx: { lien: 2 } },

@@ -14,6 +14,12 @@ s'insérer entre eux sans couture.
 - Les motifs de la bible reviennent amenés par la situation, jamais en citation décorative.
   Les consigner dans CONTINUITY.md à chaque usage.
 - Messages système (`mf`) : horodatés, majuscules techniques, sans émotion. Leur sécheresse fait contraste.
+- **La qualité passe avant le compte de mots** (décision du 29/10). Jamais de phrase ajoutée pour
+  « faire du volume » : si un écran est court, on y met une situation, un détail concret, un choix de plus,
+  ou on le laisse court. Une phrase qui ne dit rien de neuf est retirée.
+- **Écrans revisités (hubs)** : la prose d'installation ne s'affiche qu'au premier passage. Les retours
+  n'affichent qu'une ligne d'état (heure, compteur), ou une phrase qui dit ce qui a changé. Jamais de
+  paragraphe générique répété (« il reste du temps, peut-être »).
 
 ## 1. Narration (o2_01, ORIGINE)
 

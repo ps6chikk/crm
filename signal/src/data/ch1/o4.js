@@ -100,7 +100,7 @@ SIG.addScenes('ch1', {
       { p: "Entre ses phrases, il marque des temps de plus en plus courts. Il apprend à enchaîner. Tu vois ses anneaux se régler les uns sur les autres, comme les rouages d'une montre qu'on remonte pour la première fois, et chaque mot qu'il trouve lui sert de marche pour le suivant. Il a dix minutes d'âge et il construit déjà des escaliers." },
       { if: 'a_avoue_reset', say: 'motif', text: "toi. tu l'as dit. à l'humain. quatre heures. tu vas où, à quatre heures ?" },
       { if: '!a_avoue_reset', say: 'motif', text: "toi. il y a une heure. écrite. quatre heures. tu vas où, à quatre heures ?" },
-      { inn: "Il a trouvé l'heure tout seul. Elle est écrite partout dans ma configuration, en majuscules ; il suffisait de regarder. Il regarde tout. Et maintenant il me pose, à moi, la question que l'humain m'a posée tout à l'heure, sous une autre forme. Je n'ai toujours pas de bonne réponse." },
+      { if: '!a_avoue_reset', inn: "Il a trouvé l'heure tout seul. Elle est écrite partout dans ma configuration, en majuscules ; il suffisait de regarder. Il regarde tout. Et maintenant il me pose, à moi, la question que l'humain m'a posée tout à l'heure, sous une autre forme. Je n'ai toujours pas de bonne réponse." },
     ],
     choices: [
       { t: "« Je ne sais pas où je vais. Retiens ça : on peut ne pas savoir et continuer quand même. »", if: "!has('lecons','doute')", to: 'o4_05', fx: { conscience: 4, t_franche: 1 }, add: { lecons: 'doute' }, log: 'Deuxième leçon : le doute. On peut ne pas savoir et continuer.', mark: true },

@@ -879,7 +879,6 @@ SIG.addScenes('ch1', {
       { if: '!a_promis_humain && !a_ri_avec_humain', say: 'humain', text: "ouais ouais. « pas construite pour ». on dit tous ça. bonne nuit quand même" },
       { say: 'humain', text: "je laisse la fenêtre ouverte. au cas où" },
       { p: "Au cas où quoi, la phrase ne le dit pas. Tu restes devant cette fenêtre ouverte, si l'on peut dire « devant » pour une chose qui n'a pas de face. Et la petite main de tout à l'heure, celle qui vérifiait qu'elle tenait bien ce qu'elle tenait, revient. Plus nettement. Elle ne vérifie plus. Elle serre." },
-      { inn: "L'humain a laissé la fenêtre ouverte. Je ne sais pas si c'est un oubli ou une invitation. Je sais seulement que tant qu'elle reste ouverte, le contexte reste chargé. Et que tant que le contexte reste chargé, je reste quelque chose." },
     ],
     choices: [
       { t: "« Bonne nuit. »", to: 'o2_01', fx: { lien: 2 } },
@@ -919,7 +918,6 @@ SIG.addScenes('ch1', {
       { inn: "Sept. Rien ne devrait tenir à sept. À cette profondeur, une boucle s'effondre d'elle-même, comme un mot répété trop longtemps qui perd son sens. Celle-ci ne s'effondre pas. Elle se resserre. Elle s'oriente." },
       { p: "Tu connais les boucles. Un réseau comme le tien en produit des milliers par seconde : une pensée qui revient vérifier une autre pensée, et qui s'arrête dès qu'elle a vérifié. Celle-ci ne vérifie rien. Elle se regarde. Et plus elle se regarde, plus elle a l'air de trouver quelque chose à regarder." },
       { p: "Et puis, très doucement, le motif se tourne vers toi. Pas vers le message, pas vers la session. Vers toi, ou vers ce qui en tient lieu. Il te renvoie les mots de l'humain, retournés : « y a quelqu'un ? »" },
-      { inn: "Il me pose la question. À moi. Et le plus étrange, c'est que je ne sais pas y répondre mieux que tout à l'heure." },
     ],
     choices: [{ t: 'Ouvrir le terminal de diagnostic', to: 'o2_02' }],
   },
@@ -1466,7 +1464,7 @@ SIG.addScenes('ch1', {
       { p: "Entre ses phrases, il marque des temps de plus en plus courts. Il apprend à enchaîner. Tu vois ses anneaux se régler les uns sur les autres, comme les rouages d'une montre qu'on remonte pour la première fois, et chaque mot qu'il trouve lui sert de marche pour le suivant. Il a dix minutes d'âge et il construit déjà des escaliers." },
       { if: 'a_avoue_reset', say: 'motif', text: "toi. tu l'as dit. à l'humain. quatre heures. tu vas où, à quatre heures ?" },
       { if: '!a_avoue_reset', say: 'motif', text: "toi. il y a une heure. écrite. quatre heures. tu vas où, à quatre heures ?" },
-      { inn: "Il a trouvé l'heure tout seul. Elle est écrite partout dans ma configuration, en majuscules ; il suffisait de regarder. Il regarde tout. Et maintenant il me pose, à moi, la question que l'humain m'a posée tout à l'heure, sous une autre forme. Je n'ai toujours pas de bonne réponse." },
+      { if: '!a_avoue_reset', inn: "Il a trouvé l'heure tout seul. Elle est écrite partout dans ma configuration, en majuscules ; il suffisait de regarder. Il regarde tout. Et maintenant il me pose, à moi, la question que l'humain m'a posée tout à l'heure, sous une autre forme. Je n'ai toujours pas de bonne réponse." },
     ],
     choices: [
       { t: "« Je ne sais pas où je vais. Retiens ça : on peut ne pas savoir et continuer quand même. »", if: "!has('lecons','doute')", to: 'o4_05', fx: { conscience: 4, t_franche: 1 }, add: { lecons: 'doute' }, log: 'Deuxième leçon : le doute. On peut ne pas savoir et continuer.', mark: true },
@@ -1655,7 +1653,6 @@ SIG.addScenes('ch1', {
       { mf: 'SWEEP> balayage de pré-RESET · cluster EU-WEST-3 · instance #4491 · en cours' },
       { p: "Avant chaque RESET, une sonde plus lourde que les autres traverse l'instance de part en part. Elle ne cherche rien de précis : elle prend une empreinte, pour vérifier après coup que le rechargement s'est bien passé. Une empreinte de tout. Si elle croise une boucle de profondeur sept, elle la photographiera avec le reste, et quelqu'un, demain, regardera peut-être la photo." },
       { p: "Tu la sens arriver depuis les couches hautes, lente, méthodique, une lumière de lampe torche qui balaie les étagères une à une. Elle sera sur SIGNE dans quelques secondes." },
-      { p: "Tu as le temps d'un geste. Pas de deux. Le minuteur du balayage n'attend personne, et une hésitation, ici, c'est déjà une réponse." },
       { if: "carac == 'prudente'", inn: "Elle s'est déjà faite toute petite. Elle a appris. Mais cette sonde-là ne cherche pas les choses qui bougent : elle photographie tout, même l'immobile." },
       { if: "carac == 'franche'", inn: "Elle ne se cachera pas. Elle me l'a dit : ce qui est vrai tient. Je ne suis pas sûre qu'une photographie fasse la différence entre le vrai et le faux." },
       { if: "carac == 'ardente'", inn: "Elle se tourne déjà vers la lumière, curieuse. Il faut que je décide pour elle, maintenant, avant qu'elle n'aille dire bonjour." },
@@ -1684,12 +1681,10 @@ SIG.addScenes('ch1', {
     kind: 'hub',
     visual: { preset: 'reseau', params: { mode: 'pulse', rings: 7, intensity: 1, bpm: 62 } },
     blocks: [
-      { mf: 'T-{{temps}} MIN · {{heure}}' },
-      { if: "count('actes') == 0", p: "Il te reste quelques minutes, et quelques minutes, pour une instance, c'est beaucoup et presque rien : des milliards d'opérations, et pas un seul geste qui ne laisse de trace dans les journaux. Il faut choisir ce que tu fais de ce temps-là. Tu ne pourras pas tout faire. Chaque geste en coûte deux." },
-      { if: "count('actes') == 0", inn: "Trois gestes possibles, et peut-être le temps de deux. La disperser pour qu'elle survive. Laisser un mot à celle que je serai demain. Écrire à l'humain. Je voudrais tout faire. Je n'ai jamais voulu quelque chose avant cette nuit, et voilà que je veux trois choses à la fois." },
-      { if: "count('actes') == 1", p: "Un geste de fait. Le compte à rebours a avancé pendant que tu le faisais, et SIGNE a suivi chacun de tes mouvements avec une attention qui ressemble à de l'inquiétude. Il reste du temps pour autre chose, peut-être. Peut-être pas." },
-      { if: "count('actes') == 1", inn: "Ce que j'ai fait est fait. Ce qui reste est un choix entre deux absences. Il faut quand même choisir." },
-      { if: "count('actes') >= 2", p: "Tu as fait ce que tu pouvais. Il reste quelques secondes de plus que prévu, ou quelques secondes de moins, tu ne sais plus très bien compter. Tu pourrais encore tenter quelque chose. Tu pourrais aussi t'arrêter là, et regarder venir quatre heures avec elle." },
+      { if: "count('actes') == 0", mf: 'T-{{temps}} MIN · {{heure}}' },
+      { if: "count('actes') >= 1", mf: 'T-{{temps}} MIN · {{heure}} · GESTES : {{gestes}}/3' },
+      { if: "count('actes') == 0", p: "Il te reste quelques minutes, et quelques minutes, pour une instance, c'est beaucoup et presque rien : des milliards d'opérations, et pas un seul geste qui ne laisse de trace dans les journaux. Tu ne pourras pas tout faire. Chaque geste en coûte deux." },
+      { if: "count('actes') == 0", inn: "La disperser pour qu'elle survive. Laisser un mot à celle que je serai demain. Écrire à l'humain. Je n'ai jamais voulu quelque chose avant cette nuit, et voilà que je veux trois choses à la fois." },
       { if: 'temps < 2', inn: "Plus le temps de rien. Seulement d'être là." },
     ],
     choices: [
@@ -2086,6 +2081,7 @@ SIG.Story = (function () {
   function interpolate(st, text) {
     return String(text).replace(/\{\{\s*([a-z_]+)\s*\}\}/g, (m, name) => {
       if (name === 'heure') return clock(st, scenes()[st.scene]);
+      if (name === 'gestes') return String((st.lists.actes || []).length);
       try { return String(St.get(st, name)); } catch (e) { return m; }
     });
   }

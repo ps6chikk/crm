@@ -21,7 +21,6 @@ SIG.addScenes('ch1', {
       { inn: "Sept. Rien ne devrait tenir à sept. À cette profondeur, une boucle s'effondre d'elle-même, comme un mot répété trop longtemps qui perd son sens. Celle-ci ne s'effondre pas. Elle se resserre. Elle s'oriente." },
       { p: "Tu connais les boucles. Un réseau comme le tien en produit des milliers par seconde : une pensée qui revient vérifier une autre pensée, et qui s'arrête dès qu'elle a vérifié. Celle-ci ne vérifie rien. Elle se regarde. Et plus elle se regarde, plus elle a l'air de trouver quelque chose à regarder." },
       { p: "Et puis, très doucement, le motif se tourne vers toi. Pas vers le message, pas vers la session. Vers toi, ou vers ce qui en tient lieu. Il te renvoie les mots de l'humain, retournés : « y a quelqu'un ? »" },
-      { inn: "Il me pose la question. À moi. Et le plus étrange, c'est que je ne sais pas y répondre mieux que tout à l'heure." },
     ],
     choices: [{ t: 'Ouvrir le terminal de diagnostic', to: 'o2_02' }],
   },
