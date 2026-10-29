@@ -28,6 +28,7 @@ SIG.Game = (function () {
     root.style.setProperty('--fs', String([0.92, 1, 1.12, 1.26][s.textSize] || 1));
     root.classList.toggle('rm', !!(s.reducedMotion || reducedPref));
     SIG.Gfx.setReduced(!!(s.reducedMotion || reducedPref));
+    SIG.Audio.configure({ ambiance: s.ambiance !== 'off', text: !!s.sfxText, beat: !!s.sfxBeat });
     if (s.sound) SIG.Audio.enable(); else SIG.Audio.disable();
     document.getElementById('btn-sound').classList.toggle('on', !!s.sound);
   }
@@ -182,10 +183,12 @@ SIG.Game = (function () {
       onModeChange: (mode) => { if (mode === '2d') toast('Appareil un peu lent : passage automatique en mode 2D.'); },
     });
     SIG.Gfx.setVisual('reseau', { mode: 'idle', rings: 0, intensity: 0.35 });
+    // Le battement ne s'entend et ne se sent que pendant les micro-interactions (sinon il devient lassant).
     SIG.Gfx.onBeat(() => {
-      SIG.Audio.beat(0.6);
       const sc = G.scene;
-      if (sc && (sc.kind === 'micro')) vibrate(10);
+      if (!sc || sc.kind !== 'micro') return;
+      SIG.Audio.beat(0.6);
+      vibrate(10);
     });
 
     document.getElementById('btn-view').onclick = toggleView;

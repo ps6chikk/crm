@@ -45,6 +45,7 @@ SIG.Save = (function () {
   const DEFAULT_SETTINGS = {
     textSize: 1, textSpeed: 'normal', noTimer: false, sound: false, vibration: true,
     reducedMotion: false, force2d: false, showFps: false,
+    ambiance: 'douce', sfxText: true, sfxBeat: true,
   };
   function settings() { return Object.assign({}, DEFAULT_SETTINGS, read('settings') || {}); }
   function saveSettings(s) { write('settings', s); }

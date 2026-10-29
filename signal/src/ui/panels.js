@@ -148,7 +148,10 @@ SIG.UI.panels = (function () {
     row('Taille du texte', select('textSize', [[0, 'Petite'], [1, 'Normale'], [2, 'Grande'], [3, 'Très grande']]));
     row('Vitesse du texte', select('textSpeed', [['slow', 'Lente'], ['normal', 'Normale'], ['fast', 'Rapide'], ['instant', 'Instantanée']]));
     row('Mode sans minuteur', toggle('noTimer'));
-    row('Son', toggle('sound'));
+    row('Son (général)', toggle('sound'));
+    row('Ambiance musicale', select('ambiance', [['douce', 'Douce'], ['off', 'Aucune']]));
+    row('Bruit du texte', toggle('sfxText'));
+    row('Battement du motif', toggle('sfxBeat'));
     row('Vibrations', toggle('vibration'));
     row('Réduire les animations', toggle('reducedMotion'));
     row('Mode 2D (sans 3D)', toggle('force2d', () => toast('Pris en compte au prochain lancement du jeu.')));

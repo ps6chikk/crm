@@ -39,7 +39,7 @@ SIG.UI.menu = (function () {
     box.appendChild(sb);
     t.appendChild(box);
     if (!Save.available()) t.appendChild(el('p', 'note', 'Stockage indisponible : la partie ne sera pas conservée après fermeture.'));
-    t.appendChild(el('p', 'note', 'Casque conseillé · le son est coupé par défaut (♪ en haut à droite)'));
+    t.appendChild(el('p', 'note', 'Casque conseillé · son coupé par défaut (♪ pendant le jeu, détails dans Réglages)'));
     t.classList.add('on');
     document.body.classList.add('at-title');
   }
