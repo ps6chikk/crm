@@ -132,6 +132,15 @@ SIG.State = (function () {
     }
   }
 
+  // Fixe la valeur d'un compteur (ex. actions du jour remises à 2 chaque matin).
+  function applySetv(st, sv) {
+    if (!sv || typeof sv !== 'object') return;
+    for (const k of Object.keys(sv)) {
+      if (kindOf(k) !== 'v') throw new Error(`setv sur un compteur non déclaré « ${k} »`);
+      st.vars[k] = U.clamp(Number(sv[k]) || 0, 0, 100);
+    }
+  }
+
   // Retire un élément d'une liste (ex. un fragment laissé derrière soi).
   function applyRemove(st, rem) {
     if (!rem || typeof rem !== 'object') return;
@@ -182,5 +191,5 @@ SIG.State = (function () {
     return st;
   }
 
-  return { create, migrate, get, kindOf, scope, test, applyFx, applySet, applyAdd, applyRemove, snapshot, restore, random };
+  return { create, migrate, get, kindOf, scope, test, applyFx, applySet, applyAdd, applyRemove, applySetv, snapshot, restore, random };
 })();

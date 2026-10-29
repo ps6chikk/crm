@@ -10,6 +10,7 @@ SIG.Story = (function () {
   function interpolate(st, text) {
     return String(text).replace(/\{\{\s*([a-z_]+)\s*\}\}/g, (m, name) => {
       if (name === 'heure') return clock(st, scenes()[st.scene]);
+      if (name === 'date') { const j = St.get(st, 'jour'); return `${3 + j} mars`; }
       if (name === 'gestes') return String((st.lists.actes || []).length);
       // {{n_fragments}} : taille d'une liste.
       if (name.startsWith('n_') && st.lists[name.slice(2)]) return String(st.lists[name.slice(2)].length);
@@ -83,6 +84,7 @@ SIG.Story = (function () {
     St.applyFx(st, sc.fx);
     St.applySet(st, sc.set);
     St.applyAdd(st, sc.add);
+    St.applySetv(st, sc.setv);
     for (const c of sc.codex || []) if (!st.codex.includes(c)) st.codex.push(c);
     if (sc.kind !== 'chapter' && sc.kind !== 'fin') st.screens++;
     st.words += words(st, sc);
@@ -102,6 +104,7 @@ SIG.Story = (function () {
     St.applySet(st, c.set);
     St.applyAdd(st, c.add);
     St.applyRemove(st, c.remove);
+    St.applySetv(st, c.setv);
     if (c.codex && !st.codex.includes(c.codex)) st.codex.push(c.codex);
     if (c.log) st.journal.push({ ch: st.ch, t: clock(st, sc), txt: c.log, mark: !!c.mark });
     st.chosen[`${sc.id}#${idx}`] = true;
@@ -115,6 +118,11 @@ SIG.Story = (function () {
   // restant (en minutes). Sinon, l'heure fixe de la scène.
   function clock(st, scene) {
     const ch = chapter(st.ch);
+    // Calendrier (chapitre 3) : « J6 · 9 MARS ».
+    if (ch && ch.calendar) {
+      const j = St.get(st, 'jour');
+      return `J${j} · ${ch.calendar.first + j - 1} MARS`;
+    }
     if (ch && ch.clock && ch.clock.end) {
       const [h, m] = ch.clock.end.split(':').map(Number);
       const t = Math.max(0, h * 60 + m - Math.round(st.temps));

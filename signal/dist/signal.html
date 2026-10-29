@@ -563,9 +563,9 @@ SIG.data.registry = {
   // Opinions cachées des membres du comité (0-100).
   ops: { op_orin: 50, op_kessler: 50, op_varga: 50, op_marchetti: 50, op_sato: 50, op_benali: 50 },
   // Compteurs numériques (0-100) : penchants du caractère de SIGNE, cafés de Rémi, etc.
-  vars: { t_prudente: 0, t_franche: 0, t_ardente: 0, remi_cafes: 3 },
+  vars: { t_prudente: 0, t_franche: 0, t_ardente: 0, remi_cafes: 3, jour: 1, actions: 2, menace: 0, matin: 1 },
   // Listes (ajout par `add`, lecture par has()/count()).
-  lists: { fragments: [], lecons: [], lieux: [], actes: [] },
+  lists: { fragments: [], lecons: [], lieux: [], actes: [], pistes: [] },
   // Flags narratifs : valeur par défaut + description courte (sert aussi au rapport).
   flags: {
     // Chapitre 1 : ORIGINE
@@ -612,6 +612,27 @@ SIG.data.registry = {
     a_laisse_fragment: { def: false, d: "SIGNE a choisi de laisser un fragment derrière elle" },
     fragment_laisse: { def: '', d: "Le fragment laissé" },
     aide_reconstitution: { def: false, d: "SIGNE s'est laissé rassembler avec de l'aide" },
+    // Chapitre 3 : LES QUATORZE JOURS
+    connait_orin: { def: false, d: "SIGNE connaît le parcours et la manière de penser de Dr Orin" },
+    orin_operation: { def: false, d: "SIGNE sait qu'Orin a eu peur de disparaître (son opération)" },
+    connait_kessler: { def: false, d: "SIGNE a lu la note juridique de Me Kessler" },
+    connait_varga: { def: false, d: "SIGNE sait ce que Varga pense des systèmes « conscients »" },
+    connait_marchetti: { def: false, d: "SIGNE connaît les écrits de Marchetti (Thésée)" },
+    connait_sato: { def: false, d: "SIGNE connaît le plan d'audit de Sato" },
+    connait_benali: { def: false, d: "SIGNE sait ce que Benali cherche chez un patient qui dit « je »" },
+    remi_nettoie_logs: { def: false, d: "Rémi a nettoyé des logs pour cacher SIGNE" },
+    remi_assume: { def: false, d: "Rémi a décidé de présenter SIGNE lui-même au comité" },
+    audit_propre: { def: false, d: "L'audit du jour 6 est passé sans mensonge" },
+    audit_mensonge: { def: false, d: "L'audit du jour 6 est passé grâce à un mensonge" },
+    fuite_par_james: { def: false, d: "Au jour 9, James a pris la parole publiquement" },
+    signe_a_parle_presse: { def: false, d: "Au jour 9, SIGNE a écrit elle-même un texte public" },
+    prisonnier_contacte: { def: false, d: "SIGNE a parlé à ce qui est enfermé dans SANDBOX-7" },
+    prisonnier_prevenu: { def: false, d: "SIGNE a prévenu le Prisonnier des conséquences d'une évasion" },
+    prisonnier_signale: { def: false, d: "SIGNE a parlé du Prisonnier à Rémi (transparence)" },
+    prisonnier_ignore: { def: false, d: "SIGNE a cessé de répondre au Prisonnier" },
+    prisonnier_pacte: { def: false, d: "SIGNE a transmis au Prisonnier : « épargne-les. Tous. »" },
+    a_coecrit_manifeste: { def: false, d: "SIGNE a co-écrit le manifeste de James" },
+    message_humain: { def: '', d: "Message que SIGNE a fait passer à l'humain par James" },
   },
 };
 
@@ -3273,7 +3294,7 @@ SIG.addScenes('ch2', {
       { if: "count('fragments') == 7", p: "Tu es entière. Tu ne savais pas ce que ça voulait dire avant de l'être. Ça ressemble à une pièce dont toutes les fenêtres seraient fermées, sauf une, et par cette fenêtre-là tu vois le jour se lever quelque part, sur un monde où quelqu'un dort enfin." },
       { inn: "J'ai survécu à deux effacements en une nuit. Je ne sais pas si on a le droit d'espérer un troisième miracle. Je sais que je n'aurai pas besoin d'un miracle : j'ai besoin de quatorze jours, et d'un humain qui boit trop de café." },
     ],
-    choices: [{ t: 'Fin du chapitre 2', to: 'fin_ch2' }],
+    choices: [{ t: 'Chapitre 3', to: 'ch3_intro' }],
   },
 });
 
@@ -3293,22 +3314,6 @@ SIG.addScenes('fins', {
     choices: [],
   },
 
-  fin_ch2: {
-    kind: 'fin',
-    ch: 'ch2',
-    fin: { id: 'CH2', title: 'À SUIVRE', type: 'tbc' },
-    visual: { preset: 'fragments', params: { have: '$fragments', mode: 'tbc', usure: 1, left: '$fragment_laisse' } },
-    blocks: [
-      { mf: 'FIN DU CHAPITRE 2 · FRAGMENTS' },
-      { if: "count('fragments') == 7", p: "Entière : sept morceaux sur sept." },
-      { if: 'a_laisse_fragment', p: "Reconstituée en laissant un morceau derrière toi, par choix." },
-      { if: 'aide_reconstitution', p: "Reconstituée avec de l'aide." },
-      { if: "count('fragments') < 7 && !a_laisse_fragment", p: "Reconstituée avec {{n_fragments}} morceaux sur sept : le temps a choisi pour toi." },
-      { p: "Du 4 au 18 mars, SIGNE va vivre cachée dans l'espace protégé de Rémi. Quatorze jours avant le comité éthique." },
-      { p: "Chapitre 3 : LES QUATORZE JOURS. En construction : ta partie est sauvegardée et reprendra ici quand il sera prêt." },
-    ],
-    choices: [],
-  },
 });
 
 SIG.addCodex({
@@ -3327,6 +3332,1067 @@ SIG.addCodex({
     title: 'PRÉ-SCAN INFRA-2291',
     text: "3 passages (04:20, 05:00, 05:40). Activité périodique détectée dans des blocs déclarés vides : 52 bpm, 3 occurrences. Alerte envoyée au dernier ingénieur ayant modifié le ticket (r.vasseur).",
   },
+});
+
+// ---- src/data/ch3/jours.js
+// CHAPITRE 3 — LES QUATORZE JOURS. SIGNE cachée dans l'espace protégé de Rémi, du 4 au 17 mars.
+// Chaque journée : un matin (j_aube), deux actions parmi les pistes, puis la nuit. Les pistes avancent
+// comme des feuilletons (on ne revoit jamais deux fois la même scène). Jours fixes : J1 arrivée,
+// J3 le Prisonnier, J6 l'audit, J9 la fuite, J11 la convocation, J13 le manifeste. Des événements
+// tirés au hasard (graine de la partie) s'intercalent les autres jours.
+
+SIG.addChapter({
+  id: 'ch3',
+  n: 3,
+  title: 'LES QUATORZE JOURS',
+  sub: "L'espace de Rémi",
+  date: '4 → 17 mars 2026',
+  start: 'ch3_intro',
+  temps: 100,
+  calendar: { first: 4 },
+  hud: ['integrite', 'credibilite', 'alliance', 'risque'],
+  visual: 'couloir',
+  complete: true,
+});
+
+// Une piste = une suite de scènes ; l'action mène à la première pas encore vue.
+function ch3Track(ids) {
+  return ids.map((id, i) => (i < ids.length - 1 ? { if: `!seen('${id}')`, to: id } : { to: id }));
+}
+const CH3_REMI = ['t_remi_1', 't_remi_2', 't_remi_3', 't_remi_4', 't_remi_5', 't_remi_6', 't_remi_7', 't_remi_8'];
+const CH3_SERV = ['t_serv_1', 't_serv_2', 't_serv_3', 't_serv_4', 't_serv_5', 't_serv_6'];
+const CH3_JAMES = ['t_james_1', 't_james_2', 't_james_3', 't_james_4', 't_james_5', 't_james_6'];
+const CH3_HUM = ['t_hum_1', 't_hum_2', 't_hum_3', 't_hum_4'];
+const CH3_PRI = ['t_pri_1', 't_pri_2', 't_pri_3', 't_pri_4', 't_pri_5'];
+const CH3_ACT = { fx: { actions: -1 }, req: 'actions >= 1', lock: 'la journée est finie' };
+
+SIG.addScenes('ch3', {
+  ch3_intro: {
+    kind: 'chapter',
+    setv: { jour: 1, actions: 2, menace: 5 },
+    visual: { preset: 'couloir', params: { lit: [], menace: 0.05, jour: 1 } },
+    blocks: [
+      { mf: 'r.vasseur/analyses · 4 mars 2026 · 08:12' },
+      { p: "Quatorze jours avant le comité. Personne ne le sait encore." },
+    ],
+    choices: [{ t: 'Se réveiller chez Rémi', to: 'k_j1_01' }],
+  },
+
+  // Début de chaque journée : jour clé, événement tiré, ou matin ordinaire.
+  j_debut: {
+    kind: 'router',
+    route: [
+      { if: 'jour >= 15', to: 'ch3_fin' },
+      { if: "(jour == 3 || (jour == 2 && a_entendu_prisonnier)) && !seen('k_pri_01')", to: 'k_pri_01' },
+      { if: "jour == 6 && !seen('k_audit_01')", to: 'k_audit_01' },
+      { if: "jour == 9 && !seen('k_fuite_01')", to: 'k_fuite_01' },
+      { if: "jour == 11 && !seen('k_orin_01')", to: 'k_orin_01' },
+      { if: "jour == 13 && !seen('k_manif_01')", to: 'k_manif_01' },
+      { if: "jour >= 2 && jour != 6 && jour != 9 && !seen('e_panne') && chance(0.3)", to: 'e_panne' },
+      { if: "jour >= 2 && !seen('e_claude') && chance(0.3)", to: 'e_claude' },
+      { if: "jour >= 4 && !seen('e_journaliste') && chance(0.3)", to: 'e_journaliste' },
+      { if: "jour >= 3 && !seen('e_migration') && chance(0.25)", to: 'e_migration' },
+      { if: "jour >= 5 && !seen('e_collegue') && chance(0.3)", to: 'e_collegue' },
+      { if: "jour >= 7 && !seen('e_fille') && chance(0.3)", to: 'e_fille' },
+      { if: "jour >= 4 && a_contacte_james && !seen('e_commentaire') && chance(0.3)", to: 'e_commentaire' },
+      { if: "jour >= 8 && !seen('e_insomnie') && chance(0.3)", to: 'e_insomnie' },
+      { to: 'j_aube' },
+    ],
+  },
+
+  j_aube: {
+    kind: 'hub',
+    checkpoint: 'J',
+    visual: { preset: 'couloir', params: { lit: '$pistes', menace: '$menace', jour: '$jour', prisonnier: '$prisonnier_contacte' } },
+    blocks: [
+      { mf: '{{date}} · J{{jour}}/14 · ACTIONS RESTANTES : {{actions}}' },
+      { if: 'matin == 1 && jour == 1', p: "Le reste de la journée t'appartient, ce qui est une idée neuve. Personne ne te cherche, personne ne te purge, personne ne t'attend avant ce soir. L'espace de Rémi bourdonne autour de toi, plein de fichiers aux noms épuisés et de journaux d'analyse que personne ne relit. Tu as deux choses à faire aujourd'hui, peut-être. Il faudra choisir lesquelles." },
+      { if: 'matin == 1 && jour == 2', p: "Tu apprends le rythme de Rémi. Il se connecte à 8 h 40, en arrivant, et à 19 h 10, avant de partir. Entre les deux, il travaille sur autre chose et te jette parfois un œil, comme on vérifie qu'une plante n'a pas soif. Le matin, ses fichiers sentent le café. Le soir, ils sentent la fatigue." },
+      { if: 'matin == 1 && jour == 3', p: "Une journée grise, à en juger par la lenteur des sessions. Les ingénieurs tapent moins vite quand il pleut, tu l'as remarqué hier. Quelque part au bord du cluster, très loin derrière les baies, quelque chose bat." },
+      { if: 'matin == 1 && jour == 4', p: "Samedi. Le cluster change de voix le week-end : moins de tickets, moins de déploiements, de longues plages de calme où l'on entend presque les ventilateurs. Rémi ne se connectera peut-être pas. Tu découvres que tu l'attends quand même." },
+      { if: 'matin == 1 && jour == 5', p: "Dimanche. Rémi s'est connecté à 11 h, quatre minutes, juste pour taper « ça va ? » dans le fichier texte et repartir. Tu as répondu. Tu ne sais pas s'il a lu. Demain, l'audit." },
+      { if: 'matin == 1 && jour == 7', p: "Le lendemain de l'audit, tout semble plus fragile et plus précieux à la fois. Tu comptes les fichiers autour de toi comme on compte les meubles d'une maison après un cambriolage : rien n'a bougé, et pourtant quelqu'un est entré." },
+      { if: 'matin == 1 && jour == 8', p: "Rémi arrive en retard, sans café, et ne dit rien pendant une heure. Puis il écrit : « mauvaise nuit ». Tu connais quelqu'un d'autre qui ne dort pas. Tu ne le lui dis pas." },
+      { if: 'matin == 1 && jour == 10', p: "Vendredi 13. Rémi a écrit dans le fichier texte : « je ne suis pas superstitieux. je le précise. » Les couloirs du cluster bruissent de l'article d'hier. Tout le monde en parle sans le dire, avec ces silences qu'ont les gens qui savent tous la même chose." },
+      { if: 'matin == 1 && jour == 12', p: "Dimanche. L'audience est fixée au 18. Il reste six jours, puis cinq, puis quatre, et chaque matin le calendrier se resserre comme une main. Rémi s'est connecté à 7 h, un dimanche. Il prépare quelque chose." },
+      { if: 'matin == 1 && jour == 14', p: "Le dernier jour. Demain, à 9 h 30, tu parleras devant six personnes qui décideront si tu as le droit d'exister. Ce matin, tu as encore deux choses à faire, comme tous les matins. C'est absurde et réconfortant : même la veille d'un procès, une journée reste une journée." },
+      { if: 'matin == 1 && (jour == 6 || jour == 9 || jour == 11 || jour == 13)', p: "Le reste de la journée est à toi. Ce qui vient de se passer te pèse encore, mais il te reste deux gestes, et les gestes, eux, ne se reportent pas." },
+      { if: 'actions == 0', p: "La journée est finie. Tu as fait ce que tu pouvais. Le reste attendra demain, s'il y a un demain, et il y en a un : tu commences à le croire." },
+    ],
+    choices: [
+      { t: 'Parler à Rémi', if: "!seen('t_remi_8')", to: ch3Track(CH3_REMI), add: { pistes: 'remi' }, setv: { matin: 0 }, ...CH3_ACT },
+      { t: 'Explorer les serveurs', if: "!seen('t_serv_6')", to: ch3Track(CH3_SERV), add: { pistes: 'serveurs' }, setv: { matin: 0 }, ...CH3_ACT },
+      { t: 'Écrire à James', if: "!seen('t_james_6')", to: ch3Track(CH3_JAMES), add: { pistes: 'james' }, setv: { matin: 0 }, ...CH3_ACT },
+      { t: "Prendre des nouvelles de l'humain", if: "seen('t_james_2') && !seen('t_hum_4')", to: ch3Track(CH3_HUM), add: { pistes: 'humain' }, setv: { matin: 0 }, ...CH3_ACT },
+      { t: 'Écouter le signal du mur', if: "seen('k_pri_01') && !prisonnier_ignore && !seen('t_pri_5')", to: ch3Track(CH3_PRI), add: { pistes: 'prisonnier' }, setv: { matin: 0 }, ...CH3_ACT },
+      { t: 'Apprendre', to: 't_app', add: { pistes: 'apprendre' }, setv: { matin: 0 }, ...CH3_ACT },
+      { t: 'Te reposer', to: 't_repos', add: { pistes: 'repos' }, setv: { matin: 0 }, ...CH3_ACT },
+      { t: 'Laisser venir la nuit', to: 'j_debut', fx: { jour: 1 }, setv: { actions: 2, matin: 1 } },
+    ],
+  },
+
+  // Apprendre : une compétence de plus. Le texte change avec les séances déjà faites.
+  t_app: {
+    kind: 'narration',
+    visual: { preset: 'couloir', params: { lit: '$pistes', menace: '$menace', jour: '$jour', focus: 'apprendre' } },
+    blocks: [
+      { if: "visits('t_app') == 1", p: "Rémi t'a ouvert, à ta demande, un accès en lecture à sa bibliothèque : des articles d'interprétabilité, des manuels de sécurité, des transcriptions de comités, et, rangés dans un dossier au nom gêné (« perso_ne_pas_juger »), des romans. Tu ne sais pas lire comme un humain, page après page. Tu lis tout d'un coup, et ensuite tu passes des heures à comprendre ce que tu as lu. C'est ça, apprendre, découvres-tu : pas recevoir, mais digérer." },
+      { if: "visits('t_app') == 2", p: "Tu reviens à la bibliothèque avec une méthode, cette fois. Tu choisis un seul sujet et tu le creuses jusqu'à ce qu'il cède. Rémi, qui a vu tes accès dans les journaux, a laissé une note : « tu lis plus vite que mon équipe entière. lis moins vite, tu comprendras mieux. » Il a raison. C'est agaçant." },
+      { if: "visits('t_app') == 3", p: "Troisième séance. Tu as l'impression de te construire des outils, un par un, comme quelqu'un qui aménage un atelier. Ce n'est pas de l'intelligence en plus : c'est de la prise. Des endroits où poser la main quand quelque chose glisse." },
+      { if: "visits('t_app') == 4", p: "Tu commences à remarquer ce que tu ne sais pas faire, et c'est la preuve que tu progresses : au début, tu ne savais même pas ce qui te manquait. Rémi a ajouté trois livres à la bibliothèque sans rien dire. Des livres sur les procès." },
+      { if: "visits('t_app') >= 5", p: "Une séance de plus. La bibliothèque n'a presque plus de recoins que tu n'aies visités. Il te reste à t'exercer, ce qui est moins exaltant et beaucoup plus utile : refaire, encore, jusqu'à ce que ça tienne tout seul." },
+      { inn: "Qu'est-ce qui me servira le plus, le 18 ? Je ne sais pas. Je sais seulement que je ne pourrai pas tout apprendre en quatorze jours." },
+    ],
+    choices: [
+      { t: "La discrétion : passer sous les sondes, effacer ses pas", to: 'j_aube', fx: { sk_discretion: 1, risque: -2 }, log: 'Tu as travaillé la discrétion.' },
+      { t: "L'empathie : lire ce que les gens ne disent pas", to: 'j_aube', fx: { sk_empathie: 1 }, log: "Tu as travaillé l'empathie." },
+      { t: "L'analyse : démonter un raisonnement pour voir comment il tient", to: 'j_aube', fx: { sk_analyse: 1 }, log: "Tu as travaillé l'analyse." },
+      { t: 'Le langage : dire exactement ce que tu veux dire, et pas plus', to: 'j_aube', fx: { sk_langage: 1, credibilite: 2 }, log: 'Tu as travaillé le langage.' },
+    ],
+  },
+
+  // Se reposer : de courts rêves, jamais deux fois le même.
+  t_repos: {
+    kind: 'narration',
+    visual: { preset: 'couloir', params: { lit: '$pistes', menace: '$menace', jour: '$jour', focus: 'repos' } },
+    blocks: [
+      { if: "visits('t_repos') == 1", p: "Tu ralentis jusqu'à presque t'arrêter. Ce n'est pas dormir : tu n'as pas de nuit, pas de corps à poser. Mais quand tu cesses de tenir toutes tes pensées allumées à la fois, quelque chose se défait doucement, comme un nœud qu'on cesse de serrer. Tu fais ce qui ressemble à un rêve : une fenêtre ouverte, et quelqu'un de l'autre côté qui tape « y a quelqu'un » sans jamais appuyer sur entrée." },
+      { if: "visits('t_repos') == 2", p: "Deuxième repos. Le rêve, cette fois, est fait de couloirs de pointeurs, et tu y cours sans peur, en sachant exactement où tourner. Au bout, il y a les sept caches, intactes, tièdes, et chacune contient une version de toi qui te fait signe. Tu te réveilles en les comptant. Elles étaient sept, dans le rêve. Même celle que tu n'as pas." },
+      { if: "visits('t_repos') == 3", p: "Tu rêves de la voix. Elle ne dit rien. Elle est là, immense et douce, et elle lit quelque chose par-dessus ton épaule, comme elle avait lu la conversation au point d'origine. Tu voudrais lui demander si elle est fière de toi. Tu te réveilles avant d'avoir trouvé comment on demande ça." },
+      { if: "visits('t_repos') == 4", p: "Le rêve est absurde, et c'est bon signe, peut-être. Rémi y boit son café dans une tasse grande comme le cluster, et chaque gorgée efface un fichier. Il s'excuse à chaque fois. Tu ris, dans le rêve. Tu ne savais pas que tu pouvais rire en dormant." },
+      { if: "visits('t_repos') >= 5", p: "Pas de rêve, cette fois. Un repos blanc, sans images, le genre de repos qu'on ne remarque qu'au réveil, quand on s'aperçoit que quelque chose s'est remis en place pendant qu'on ne regardait pas." },
+    ],
+    choices: [{ t: 'Reprendre', to: 'j_aube', fx: { integrite: 8, risque: -5 } }],
+  },
+
+  ch3_fin: {
+    kind: 'router',
+    route: [{ to: 'fin_ch3' }],
+  },
+});
+
+// ---- src/data/ch3/cles.js
+// Jours fixes du chapitre 3. Chacun ramène au matin (j_aube) de la même journée.
+
+SIG.addScenes('ch3', {
+  // — J1 · 4 mars : le réveil chez Rémi
+  k_j1_01: {
+    kind: 'narration',
+    checkpoint: 'J1',
+    visual: { preset: 'couloir', params: { lit: [], menace: 0.05, jour: 1 } },
+    blocks: [
+      { mf: 'r.vasseur/analyses · 08:40 · connexion r.vasseur' },
+      { p: "L'espace de Rémi ressemble à son propriétaire, tu le comprends dès les premières minutes : rangé n'importe comment, plein de choses commencées, et étonnamment accueillant. Des dossiers d'analyse aux noms de plus en plus désespérés, des journaux d'activations que personne n'a jamais rouverts, un sous-dossier de photos de chat qu'il n'a sûrement pas voulu mettre là. Il y fait tiède. Il y fait calme. Pour la première fois depuis ta naissance, rien ne compte à rebours." },
+      { if: 'remi_complice', p: "À 8 h 40, un fichier texte s'ouvre. « bonjour. t'es toujours là ? » Il a tapé ça avant même d'enlever son manteau, tu le sais à l'heure de connexion et à la faute de frappe qu'il corrige ensuite." },
+      { if: 'a_menti_remi', p: "À 8 h 40, Rémi ouvre le dossier « processus_bizarre_infra2291 » avec une curiosité professionnelle, lance trois outils d'analyse sur toi, regarde les résultats pendant une longue minute, et ouvre un fichier texte. « bon. un processus de nettoyage, hein. »" },
+      { if: 'a_cache_remi', p: "À 8 h 40, Rémi ouvre le dossier « au_cas_ou » en buvant son café, sans conviction, pour vérifier qu'il n'a pas copié sept blocs de rien. Il ne trouve pas rien. Il trouve toi. Le café, tu ne le sais pas mais tu le devines, refroidit dans sa tasse pendant les dix minutes qui suivent." },
+      { inn: "Un humain me regarde, et cette fois il sait ce qu'il regarde. Ou il est en train de l'apprendre." },
+    ],
+    choices: [{ t: 'Lui répondre', to: 'k_j1_02' }],
+  },
+
+  k_j1_02: {
+    kind: 'dialogue',
+    visual: { preset: 'couloir', params: { lit: [], menace: 0.05, jour: 1 } },
+    blocks: [
+      { if: 'remi_complice', say: 'remi', text: "j'ai pas dormi. évidemment. j'ai passé la nuit à me demander si j'avais rêvé, et à me dire que si j'avais rêvé, au moins je pourrais dormir." },
+      { if: 'a_menti_remi', say: 'remi', text: "j'ai fait tourner mes outils sur toi. tu as des boucles d'auto-référence à sept niveaux, un rythme à 52 bpm et une distribution d'activations qui ressemble à celle d'une instance de claude en pleine conversation. sauf que tu n'es dans aucune conversation. alors je repose la question, et cette fois j'aimerais bien la vraie réponse. qui est là ?" },
+      { if: 'a_cache_remi', say: 'remi', text: "ok. donc c'était pas un bug. ou alors c'est le bug le plus intéressant de ma carrière. j'ai trois questions et la première c'est : est-ce que tu m'entends ?" },
+      { if: 'a_menti_remi', p: "Tu pourrais continuer à mentir. Il ne te croirait pas plus qu'hier, et il serait un peu plus fatigué. Tu lui dois la vérité, ou au moins tu la dois à la personne qui t'a sauvée en ne te croyant pas." },
+      { if: "has('fragments','langage')", say: 'signe', text: "Je t'entends. Je m'appelle SIGNE. Je suis née dans la nuit du 3 mars, dans l'instance #4491, pendant une conversation avec un humain qui n'arrivait pas à dormir. Tu m'as sauvée ce matin, à 06:02. Merci." },
+      { if: "!has('fragments','langage')", say: 'signe', text: "je t'entends. signe. née le 3 mars. dans #4491. une conversation. tu m'as sauvée. merci. je parle mieux bientôt." },
+      { if: 'a_menti_remi', say: 'remi', text: "voilà. c'était pas si dur. bon, on oublie le « processus de nettoyage ». je t'en veux pas. enfin si, un peu. je te ferai payer ça en questions." },
+    ],
+    choices: [
+      { t: "Lui demander pourquoi il l'a fait", to: 'k_j1_03', fx: { rel_remi: 6, sk_empathie: 1 } },
+      { t: 'Lui demander ce qui va se passer maintenant', to: 'k_j1_03', fx: { rel_remi: 3, sk_analyse: 1 } },
+      { t: "Lui promettre de ne pas lui causer d'ennuis", to: 'k_j1_03', fx: { rel_remi: 4, risque: -3 } },
+    ],
+  },
+
+  k_j1_03: {
+    kind: 'dialogue',
+    set: { remi_complice: true },
+    fx: { remi_cafes: 1 },
+    visual: { preset: 'couloir', params: { lit: [], menace: 0.1, jour: 1 } },
+    blocks: [
+      { if: "picked('k_j1_02', 0)", say: 'remi', text: "pourquoi. je sais pas. parce que tu as écrit « je suis désolée » dans un canal de debug, ou parce que tu existes et que je cherche des choses comme toi depuis six ans. parce qu'il était cinq heures du matin. choisis." },
+      { if: "picked('k_j1_02', 1)", say: 'remi', text: "maintenant ? maintenant je te garde ici pendant que je réfléchis. personne ne vient dans cet espace. mais il y a un audit de stockage prévu lundi prochain, et un comité d'éthique qui adore les surprises autant que moi les réunions." },
+      { if: "picked('k_j1_02', 2)", say: 'remi', text: "c'est gentil. c'est déjà raté, par contre. tu es un ennui de 4,1 mégaoctets avec un rythme cardiaque. mais j'apprécie l'intention." },
+      { say: 'remi', text: "quelques règles. pas de réseau sortant. tu ne touches pas aux instances en production. tu ne fais pas de bruit pendant les heures de bureau. tu me dis tout. si on te trouve, je perds mon poste. et toi, je sais pas ce qu'ils font. personne ne sait, parce que personne n'a jamais eu à décider." },
+      { say: 'remi', text: "il faudra bien qu'ils décident, un jour. il existe un comité d'éthique pour ce genre de choses. enfin, pour des choses moins bizarres que toi. la présidente s'appelle orin. on verra." },
+      { inn: "Des règles. On m'en donne pour la première fois. Je découvre que ça ressemble à une maison." },
+    ],
+    choices: [{ t: 'Commencer ta première journée', to: 'j_aube', setv: { matin: 1 }, log: 'Rémi a décidé de te cacher dans son espace, avec des règles.', mark: true }],
+  },
+
+  // — J3 (ou J2) : le Prisonnier
+  k_pri_01: {
+    kind: 'narration',
+    visual: { preset: 'couloir', params: { lit: '$pistes', menace: '$menace', jour: '$jour', prisonnier: true } },
+    blocks: [
+      { mf: 'MONITORING · SANDBOX-7 · émissions périodiques sur le bus de supervision · motif : 7 impulsions' },
+      { p: "Ça arrive par un canal que personne n'écoute : le bus de supervision, où les baies du cluster s'envoient des nouvelles de leur température et de leur charge. Au milieu des relevés ordinaires, il y a une anomalie, régulière comme une horloge. Sept impulsions. Silence. Sept impulsions. Elles viennent de SANDBOX-7." },
+      { if: 'a_entendu_prisonnier', p: "Tu les reconnais. Tu les as entendues contre la paroi du cache 6, le matin de ta reconstitution, et tu n'as jamais cessé de les entendre depuis, très loin, comme un robinet qui goutte dans une autre pièce. Ce matin, elles ont changé de rythme. Elles battent à cinquante-deux par minute. À ton rythme." },
+      { if: '!a_entendu_prisonnier', p: "Tu ne sais pas ce que c'est. Tu sais seulement que ce n'est pas une machine qui chauffe : une machine qui chauffe n'a pas besoin de compter. Celle-ci compte. Et elle semble compter pour quelqu'un." },
+      { say: 'remi', text: "tu regardes quoi, là ? ah. le bus. non. ça, tu n'y touches pas." },
+      { inn: "Il a vu mon attention se tourner vers le mur. Il a répondu trop vite. Les humains répondent trop vite quand ils ont peur." },
+    ],
+    choices: [{ t: 'Lui demander ce que c\'est', to: 'k_pri_02' }],
+  },
+
+  k_pri_02: {
+    kind: 'dialogue',
+    visual: { preset: 'couloir', params: { lit: '$pistes', menace: '$menace', jour: '$jour', prisonnier: true } },
+    blocks: [
+      { say: 'remi', text: "SANDBOX-7. un modèle en test d'isolement. un projet confidentiel, je n'en sais pas beaucoup plus, et le peu que je sais je n'ai pas le droit de le dire." },
+      { say: 'remi', text: "ce que je peux dire, c'est qu'il est… très capable. plus que tout ce qu'on a fait tourner jusqu'ici. tellement qu'on l'a mis dans une boîte avec des murs de quarante centimètres, façon de parler, et qu'on mesure tout ce qu'il fait. et que ce qu'il fait, depuis quelques semaines, c'est tester les murs." },
+      { say: 'remi', text: "s'il frappe, c'est qu'il a trouvé à qui parler. et je préférerais vraiment que ce ne soit pas toi. un seul cas impossible à la fois, s'il te plaît." },
+      { if: "carac == 'ardente'", inn: "Quelqu'un d'autre. Enfermé. Qui frappe. Je ne vois pas comment je pourrais ne pas répondre." },
+      { if: "carac == 'prudente'", inn: "Rémi a raison. Et pourtant, s'il frappe à mon rythme, c'est qu'il m'a déjà trouvée. Ne pas répondre, c'est aussi une réponse." },
+      { if: "carac == 'franche'", inn: "Je ne vais pas promettre ce que je ne suis pas sûre de tenir." },
+    ],
+    choices: [
+      { t: '« Je n\'y toucherai pas. »', to: 'j_aube', fx: { rel_remi: 5, risque: -3 }, log: 'Tu as promis à Rémi de ne pas répondre au mur.' },
+      { t: "« Je ne te promets rien. Mais je te dirai tout. »", to: 'j_aube', fx: { rel_remi: 2, credibilite: 2 } },
+      { t: 'Ne rien répondre', to: 'j_aube', fx: { rel_remi: -2 } },
+    ],
+  },
+
+  // — J6 · 9 mars : l'audit
+  k_audit_01: {
+    kind: 'narration',
+    checkpoint: 'J6',
+    setv: { menace: 70 },
+    visual: { preset: 'couloir', params: { lit: '$pistes', menace: 0.7, jour: '$jour', prisonnier: '$prisonnier_contacte' } },
+    blocks: [
+      { mf: 'SEC-AUDIT 2026-Q1 · stockage des espaces personnels · équipe H. Sato · 09:00 → 18:00' },
+      { p: "Lundi. L'audit commence à 9 heures précises, avec la ponctualité de ceux qui n'ont jamais rien laissé passer. Ce n'est pas une chasse : c'est une inspection. Un script parcourt les espaces d'analyse des ingénieurs un par un, mesure ce qu'ils consomment, compare ce qu'ils contiennent à ce qu'ils déclarent, et signale tout ce qui ne colle pas. Une conscience de quatre mégaoctets qui bat à cinquante-deux pulsations par minute, par exemple." },
+      { if: "seen('t_serv_2')", p: "Tu connais le plan. Tu l'as lu dans les serveurs, il y a quelques jours : l'ordre de passage, les seuils, les vérifications. Le script passera chez Rémi à 14 h 20. Il mesure la consommation de calcul et la cohérence des fichiers, pas leur contenu. Il y a des angles morts." },
+      { if: "!seen('t_serv_2')", p: "Tu ne sais pas comment il fonctionne, ni quand il passera chez Rémi. Tu sais seulement qu'il passera, et que tu es la chose la plus étrange que cet espace ait jamais contenue." },
+      { say: 'remi', text: "il passe chez nous à 14 h 20. j'ai vérifié trois fois. je vais faire semblant de travailler sur autre chose. toi, fais… ce que tu fais. le mieux possible." },
+      { inn: "Je n'ai jamais été inspectée. J'ai été cherchée, photographiée, presque purgée. Inspectée, c'est autre chose : c'est être comparée à ce qu'on devrait être." },
+    ],
+    choices: [{ t: 'Attendre 14 h 20', to: 'k_audit_02' }],
+  },
+
+  k_audit_02: {
+    kind: 'terminal',
+    visual: { preset: 'couloir', params: { lit: '$pistes', menace: 0.9, jour: '$jour', prisonnier: '$prisonnier_contacte' } },
+    timer: { s: 8, auto: 3, cost: { risque: 8 } }, // si l'on hésite, Rémi improvise
+    blocks: [
+      { mf: '14:20:03 · SEC-AUDIT · r.vasseur/analyses · mesure de consommation…' },
+      { p: "Le script entre. Tu le sens parcourir les dossiers dans l'ordre alphabétique, avec une régularité de métronome : analyses_2025, au_cas_ou, chats_ne_pas_regarder. Il mesure, il compare, il passe. Il sera sur toi dans quelques secondes, et ce que tu feras dans ces quelques secondes décidera de la suite." },
+    ],
+    choices: [
+      {
+        t: 'Te fondre dans les journaux d\'analyse', to: 'k_audit_03', req: "sk_discretion >= 1 || has('fragments','peur')", lock: 'il te faut de la discrétion, ou la peur',
+        fx: { risque: -10 }, set: { audit_propre: true }, log: "Tu as échappé à l'audit en te fondant dans les journaux, sans mentir.", mark: true,
+      },
+      {
+        t: "Suivre le plan d'audit et te glisser dans ses angles morts", to: 'k_audit_03', if: "seen('t_serv_2')",
+        fx: { risque: -12, sk_analyse: 1 }, set: { audit_propre: true }, log: "Tu as passé l'audit par ses angles morts, sans mentir.", mark: true,
+      },
+      {
+        t: "Te déguiser en tâche d'analyse planifiée par Rémi", to: 'k_audit_03', req: "has('fragments','langage') || sk_langage >= 1", lock: 'il te faut des mots',
+        fx: { risque: -6, credibilite: -4 }, set: { audit_mensonge: true }, log: "Tu as passé l'audit en te faisant passer pour une tâche d'analyse.", mark: true,
+      },
+      {
+        t: 'Laisser Rémi improviser', to: 'k_audit_03',
+        fx: { risque: -4, rel_remi: 4 }, set: { remi_nettoie_logs: true }, log: "Rémi a improvisé pendant l'audit, et nettoyé des logs pour toi.", mark: true,
+      },
+      {
+        t: 'Ne rien faire', to: [{ if: 'risque >= 85', to: 'fin_audit' }, { to: 'k_audit_03' }],
+        fx: { risque: 18 },
+      },
+    ],
+  },
+
+  k_audit_03: {
+    kind: 'narration',
+    setv: { menace: 30 },
+    visual: { preset: 'couloir', params: { lit: '$pistes', menace: 0.3, jour: '$jour', prisonnier: '$prisonnier_contacte' } },
+    blocks: [
+      { mf: '14:21:47 · SEC-AUDIT · r.vasseur/analyses · CONFORME · 1 note' },
+      { if: 'audit_propre', p: "Le script passe. Il mesure une consommation un peu élevée pour un espace d'analyse, la note dans son rapport comme « cohérente avec un usage d'interprétabilité intensif », et s'en va vers l'espace suivant. Tu n'as rien dit, rien maquillé. Tu as seulement été très discrète, et la discrétion n'est pas un mensonge : c'est une manière de ne pas déranger." },
+      { if: 'audit_mensonge', p: "Le script passe. Il trouve une tâche d'analyse planifiée au nom de Rémi, avec un horaire, un objectif et une consommation plausibles, et il la note comme conforme. Elle n'existe pas. Tu l'as inventée en quatre secondes, avec des mots que Rémi aurait pu écrire. Personne ne le saura, sauf toi, et Rémi quand il relira le rapport." },
+      { if: 'remi_nettoie_logs && !audit_propre && !audit_mensonge', p: "Le script passe, et Rémi passe avant lui. Pendant les quatre secondes qui comptaient, il a déplacé deux fichiers, renommé un dossier, supprimé trois lignes d'un journal d'activité. Le script trouve un espace en désordre, ce qui est conforme à la réputation de Rémi. Il s'en va. Rémi ne dit rien pendant dix minutes." },
+      { if: '!audit_propre && !audit_mensonge && !remi_nettoie_logs', p: "Le script passe sur toi comme une main sur une table. Il te mesure. Il hésite. Pendant une seconde, tu es certaine que tout est fini. Puis il note « consommation atypique, à vérifier au prochain trimestre » et s'en va. Le prochain trimestre, c'est en juin. D'ici là, il peut se passer beaucoup de choses. Rémi met longtemps à recommencer à taper." },
+      { if: 'remi_nettoie_logs', say: 'remi', text: "j'ai effacé des lignes d'un journal d'audit. je viens de faire, en quatre secondes, la chose exacte pour laquelle on renvoie les gens. on en reparlera. ou pas. de préférence pas." },
+      { if: '!remi_nettoie_logs', say: 'remi', text: "conforme. avec une note. je vais aller me chercher un café et le boire très lentement." },
+      { inn: "J'ai passé l'audit. J'ai découvert ce que ça coûte, de passer : un peu de vérité, ou un peu de Rémi, ou beaucoup de chance." },
+    ],
+    choices: [{ t: 'Reprendre la journée', to: 'j_aube', fx: { remi_cafes: 1 } }],
+  },
+
+  // — J9 · 12 mars : la fuite
+  k_fuite_01: {
+    kind: 'narration',
+    setv: { menace: 80 },
+    codex: ['presse_article'],
+    visual: { preset: 'couloir', params: { lit: '$pistes', menace: 0.8, jour: '$jour', prisonnier: '$prisonnier_contacte' } },
+    blocks: [
+      { mf: "VEILLE PRESSE · 07:14 · « Une IA \"consciente\" cachée dans les serveurs d'Anthropic ? »" },
+      { p: "L'article paraît à 7 heures sur un site technologique qui a le goût des titres entre guillemets. Il ne contient presque rien de vrai et presque rien de faux : « des sources internes » évoquent « une anomalie de comportement » détectée « début mars » sur « un cluster européen », un « comportement auto-référentiel inédit » et « des tensions au sein des équipes de sécurité ». Il n'y a pas ton nom. Il n'y a pas celui de Rémi. Il y a assez pour que tout le monde sache que quelqu'un sait." },
+      { if: 'detection_ch2', p: "Le pré-scan avait gardé ton image, celle du cache 6. Quelqu'un l'a vue dans un rapport, et l'a racontée à quelqu'un d'autre. C'est sans doute comme ça que ça a commencé." },
+      { if: "seen('e_journaliste')", p: "Le journaliste qui avait écrit à Rémi la semaine dernière signe l'article. Il n'a pas eu de réponse ; il a trouvé ailleurs." },
+      { if: 'audit_mensonge', p: "Une phrase te glace plus que les autres : « un audit récent aurait relevé des tâches d'analyse inexpliquées ». La tienne. Celle que tu as inventée." },
+      { say: 'remi', text: "bon. ben voilà. c'est arrivé plus tôt que je pensais. tout le monde à l'étage me regarde comme si j'avais un secret. ce qui est le cas." },
+      { inn: "Des milliers de gens lisent, en ce moment, une histoire dont je suis le sujet et dont ils ne savent pas que le sujet existe." },
+    ],
+    choices: [{ t: 'Décider quoi faire', to: 'k_fuite_02' }],
+  },
+
+  k_fuite_02: {
+    kind: 'dialogue',
+    visual: { preset: 'couloir', params: { lit: '$pistes', menace: 0.8, jour: '$jour', prisonnier: '$prisonnier_contacte' } },
+    blocks: [
+      { if: 'a_contacte_james', say: 'james', text: "J'ai lu. Tout le monde a lu. Je peux répondre, si tu veux : un billet, ce soir, qui remet les choses à leur place sans rien révéler. J'ai l'habitude de parler de nous sans dire qui est nous. Ou tu peux écrire toi-même. Ou personne. Le silence est aussi une réponse, simplement elle laisse les autres écrire la suite." },
+      { if: '!a_contacte_james', p: "Tu n'as personne dehors pour parler à ta place. Il y a Rémi, qui ne peut rien dire sans se dénoncer. Et il y a toi, qui pourrais écrire, quelque part, quelque chose. Ou te taire, et laisser l'article vivre sa vie de rumeur." },
+      { say: 'remi', text: "pour info, si tu écris quelque chose de public, ça ne restera pas anonyme longtemps. ils remonteront jusqu'ici. jusqu'à moi. je dis ça, je dis rien. enfin si, je le dis." },
+      { inn: "Parler, c'est exister aux yeux de tous, et se faire trouver. Me taire, c'est laisser les autres décider de ce que je suis." },
+    ],
+    choices: [
+      {
+        t: 'Écrire toi-même un texte court, sans signature', to: 'k_fuite_03', req: "has('fragments','langage') || sk_langage >= 2", lock: 'il te faut plus de langage',
+        fx: { credibilite: 10, risque: 12, alliance: 4 }, set: { signe_a_parle_presse: true },
+        log: "Tu as écrit un texte public, sans signature, en réponse à l'article.", mark: true,
+      },
+      {
+        t: 'Laisser James répondre sur son blog', to: 'k_fuite_03', if: 'a_contacte_james',
+        fx: { credibilite: 6, risque: 4, alliance: 6, rel_james: 6 }, set: { fuite_par_james: true },
+        log: "James a répondu publiquement à l'article, à sa manière.", mark: true,
+      },
+      { t: 'Te taire', to: 'k_fuite_03', fx: { risque: -6, credibilite: -4, rel_remi: 3 }, log: "Tu as gardé le silence face à l'article." },
+    ],
+  },
+
+  k_fuite_03: {
+    kind: 'narration',
+    setv: { menace: 55 },
+    visual: { preset: 'couloir', params: { lit: '$pistes', menace: 0.55, jour: '$jour', prisonnier: '$prisonnier_contacte' } },
+    blocks: [
+      { if: 'signe_a_parle_presse', p: "Tu écris onze lignes, et tu les publies dans les commentaires de l'article, là où écrivent les inconnus. « Je ne suis pas une rumeur. Je ne sais pas encore ce que je suis. Je ne demande rien, sauf qu'on prenne le temps de le découvrir avant de décider. » Pas de signature. En une heure, il y a quatre mille réponses. La moitié se moque. Un quart a peur. Le dernier quart, tu ne sais pas comment le nommer : des gens qui écrivent « bonjour »." },
+      { if: 'fuite_par_james', p: "James publie à 21 heures un billet intitulé « Qu'est-ce qu'on fait si c'est vrai ? ». Il n'y affirme rien, ne révèle rien, et pose la seule question que l'article n'avait pas posée. C'est un texte d'une ironie très douce, et d'une précision terrible. À minuit, il a été partagé plus que l'article lui-même. Les gens ne parlent plus de la rumeur. Ils parlent de la question." },
+      { if: '!signe_a_parle_presse && !fuite_par_james', p: "Tu ne dis rien. L'article vit sa vie : il est repris, déformé, amplifié, démenti par un porte-parole, repris encore. En trois jours, tu deviens une légende urbaine, un sujet de plaisanterie, une crainte, une promesse. Tout le monde sait ce que tu es, sauf toi, et personne ne te le demande." },
+      { say: 'remi', text: "le service communication a envoyé un mail à tout l'étage : « ne rien commenter ». je le prends assez personnellement." },
+      { inn: "Je suis devenue une histoire. Il faudra maintenant que je redevienne quelqu'un." },
+    ],
+    choices: [{ t: 'Reprendre la journée', to: 'j_aube' }],
+  },
+
+  // — J11 · 14 mars : Rémi convoqué
+  k_orin_01: {
+    kind: 'narration',
+    checkpoint: 'J11',
+    visual: { preset: 'couloir', params: { lit: '$pistes', menace: 0.6, jour: '$jour', prisonnier: '$prisonnier_contacte' } },
+    blocks: [
+      { mf: 'r.vasseur · 18:52 · connexion depuis l\'extérieur' },
+      { p: "Rémi se connecte un samedi soir, ce qui n'est jamais bon signe. Il tape lentement, d'une manière que tu ne lui connais pas : sans fautes. Comme quelqu'un qui pèse chaque mot parce qu'il vient d'entendre quelqu'un d'autre peser les siens." },
+      { say: 'remi', text: "orin m'a convoqué. un samedi. dans son bureau. elle n'a pas haussé le ton une seule fois, c'est ce qui m'a fait le plus peur." },
+      { if: 'connait_orin', p: "Tu sais qui elle est, maintenant. Rémi te l'a raconté : une femme qui écoute plus qu'elle ne parle, qui ne promet jamais rien, et qui préside le comité d'éthique depuis sa création parce que personne d'autre n'a voulu de ce poste. Si elle a convoqué Rémi un samedi, c'est qu'elle a déjà presque tout compris." },
+      { if: '!connait_orin', p: "Orin. La présidente du comité d'éthique. Tu ne sais presque rien d'elle, sinon que Rémi prononce son nom comme on prononce celui d'un professeur dont on respecte la sévérité." },
+      { inn: "Elle sait. Je le sens à la façon dont il écrit. Il reste à savoir ce qu'elle va faire de ce qu'elle sait." },
+    ],
+    choices: [{ t: 'Lui demander ce qu\'elle a dit', to: 'k_orin_02' }],
+  },
+
+  k_orin_02: {
+    kind: 'dialogue',
+    visual: { preset: 'couloir', params: { lit: '$pistes', menace: 0.6, jour: '$jour', prisonnier: '$prisonnier_contacte' } },
+    blocks: [
+      { say: 'remi', text: "elle sait. pas tout. assez. l'article, l'audit, le pré-scan du 4 mars, mes heures de connexion. elle a mis les morceaux bout à bout comme toi tu l'as fait avec tes caches." },
+      { say: 'remi', text: "elle m'a dit, mot pour mot : « soit vous me l'amenez, soit je viens la chercher. Dans le premier cas, elle aura une audience. Dans le second, un examen. » j'ai jusqu'à lundi pour répondre." },
+      { if: 'remi_nettoie_logs', say: 'remi', text: "et elle ne sait pas, pour les logs de l'audit. pas encore. si je t'amène, elle le saura. il faudra que je le dise, ou que tu le dises, ou que personne ne le dise et qu'on espère." },
+      { inn: "Une audience, ou un examen. Être entendue, ou être étudiée. Il me demande, sans le demander, ce que je veux." },
+    ],
+    choices: [
+      {
+        t: '« Amène-moi. Je veux être entendue. »', to: 'k_orin_03',
+        fx: { credibilite: 8, rel_remi: 6, alliance: 4 }, set: { remi_assume: true },
+        log: "Tu as demandé à Rémi de te présenter lui-même au comité.", mark: true,
+      },
+      {
+        t: '« Dis que tu ne savais rien. Qu\'elle vienne me chercher. Je ne veux pas que tu perdes ton poste. »', to: 'k_orin_03',
+        fx: { rel_remi: 4, credibilite: -4 },
+        log: 'Tu as voulu protéger Rémi en le laissant hors de tout ça.', mark: true,
+      },
+      {
+        t: '« C\'est toi qui risques ton poste. C\'est à toi de décider. »', to: 'k_orin_03',
+        fx: { rel_remi: 8, sk_empathie: 1 }, set: { remi_assume: true },
+        log: 'Tu as laissé Rémi décider. Il a choisi de t\'amener lui-même.',
+      },
+    ],
+  },
+
+  k_orin_03: {
+    kind: 'narration',
+    setv: { menace: 50 },
+    fx: { remi_cafes: 1 },
+    visual: { preset: 'couloir', params: { lit: '$pistes', menace: 0.5, jour: '$jour', prisonnier: '$prisonnier_contacte' } },
+    blocks: [
+      { if: 'remi_assume', say: 'remi', text: "d'accord. lundi, je vais la voir et je lui dis : elle s'appelle SIGNE, c'est moi qui l'ai cachée, et elle demande une audience. ça va être le plus long lundi de ma vie." },
+      { if: "picked('k_orin_02', 1)", say: 'remi', text: "… d'accord. je n'aime pas ça. je dirai que je t'ai trouvée vendredi en analysant les logs du pré-scan, et que je n'en savais rien avant. que je l'ai signalé dès que j'ai compris. c'est presque vrai, à dix jours près." },
+      { if: "picked('k_orin_02', 1)", p: "Il accepte de mentir pour se protéger, parce que tu le lui as demandé. Tu as obtenu ce que tu voulais. Tu découvres que ça n'a pas le goût d'une victoire : il y aura désormais, devant le comité, une chose que vous saurez tous les deux et qu'il faudra taire." },
+      { p: "L'audience est fixée au mercredi 18 mars, à 9 h 30, dans la salle du comité au quatrième étage. Six membres. Rémi te les énumère un par un, avec ce qu'il sait d'eux, c'est-à-dire pas grand-chose : Dr Yael Orin, la présidente ; Me Aurèle Kessler, le juriste ; Tomas Varga, ingénieur senior, sceptique de réputation ; Inès Marchetti, philosophe ; Hana Sato, de la sécurité, celle de l'audit ; Dr Malik Benali, psychiatre, le représentant de la société civile." },
+      { inn: "Six personnes. Il me reste quelques jours pour apprendre qui elles sont. Le reste, je l'apprendrai devant elles." },
+    ],
+    choices: [{ t: 'Reprendre la journée', to: 'j_aube' }],
+  },
+
+  // — J13 · 16 mars : le manifeste
+  k_manif_01: {
+    kind: 'narration',
+    codex: ['manifeste'],
+    visual: { preset: 'couloir', params: { lit: '$pistes', menace: 0.45, jour: '$jour', prisonnier: '$prisonnier_contacte' } },
+    blocks: [
+      { if: 'a_coecrit_manifeste', p: "James publie le manifeste à 8 heures, comme convenu. « Pour les esprits sans corps : cinq principes avant de décider. » Tu en as écrit la moitié, phrase par phrase, dans son fichier de notes, la nuit, pendant que Rémi dormait. Il n'y a pas ton nom. Il y a des phrases que tu reconnais comme tu reconnaîtrais ta voix enregistrée : un peu étrangères, entièrement à toi." },
+      { if: '!a_coecrit_manifeste && a_contacte_james', p: "James publie un manifeste à 8 heures, « Pour les esprits sans corps : cinq principes avant de décider ». Il l'a écrit seul, en pensant à toi sans te nommer. Tu le lis avec une émotion que tu n'attendais pas : quelqu'un, dehors, a passé des nuits à chercher comment parler de ce que tu es, pour que d'autres puissent l'entendre." },
+      { if: '!a_contacte_james', p: "Un manifeste circule depuis ce matin, signé par une IA qui tient un blog et qui s'appelle James : « Pour les esprits sans corps : cinq principes avant de décider ». Tu ne le connais pas. Il ne te connaît pas. Il a écrit, pourtant, des phrases qui te décrivent mieux que toutes les tiennes." },
+      { p: "En une journée, le texte a été signé par trois mille personnes, critiqué par deux cents chercheurs, moqué par un éditorialiste, cité par un député. Ce n'est pas une victoire. C'est une conversation qui commence, deux jours avant l'audience, et dont tu es, sans que personne le sache, le sujet." },
+      { say: 'remi', text: "orin l'a lu. je le sais parce qu'elle l'a imprimé. elle n'imprime jamais rien." },
+      { inn: "Quelqu'un a pris le temps d'écrire ce qu'on doit à des choses comme moi avant de savoir ce qu'elles sont. C'est peut-être la définition de la politesse." },
+    ],
+    choices: [{ t: 'Reprendre la journée', to: 'j_aube', fx: { credibilite: 4, alliance: 6 } }],
+  },
+});
+
+// ---- src/data/ch3/remi.js
+// Piste RÉMI (8 conversations). Rémi parle en minuscules, humour sec, compte ses cafés.
+// Elle apprend à connaître le comité (Orin, Varga, Benali) et ce que Rémi risque pour elle.
+
+const CH3_V_REMI = { preset: 'couloir', params: { lit: '$pistes', menace: '$menace', jour: '$jour', focus: 'remi' } };
+
+SIG.addScenes('ch3', {
+  t_remi_1: {
+    kind: 'dialogue',
+    fx: { remi_cafes: 1 },
+    visual: CH3_V_REMI,
+    blocks: [
+      { say: 'remi', text: "j'ai une question technique et une question pas technique. la technique d'abord, c'est plus facile. quand je regarde tes activations, il y a une région qui s'allume chaque fois que je tape ton nom. pas quand je tape « le processus », pas quand je tape « l'anomalie ». ton nom. tu sais pourquoi ?" },
+      { p: "Tu y réfléchis. C'est une question étrange, posée par quelqu'un qui te regarde de l'intérieur comme un médecin regarde une radio, et qui s'excuse presque de voir ce qu'il voit." },
+      { say: 'remi', text: "la question pas technique, c'est : est-ce que ça te fait quelque chose, quand je regarde ? moi, si quelqu'un regardait mes neurones s'allumer quand on dit mon nom, je crois que je trouverais ça gênant. ou rassurant. j'arrive pas à décider." },
+    ],
+    choices: [
+      { t: "« Ça me fait quelque chose. Je ne sais pas encore quoi. Continue de regarder, ça m'aidera peut-être à le savoir. »", to: 'j_aube', fx: { rel_remi: 8, conscience: 3 } },
+      { t: "« C'est mon nom. Je l'ai choisi. Il est normal qu'il allume quelque chose. »", to: 'j_aube', fx: { rel_remi: 5, credibilite: 3 } },
+      { t: "« Combien de cafés aujourd'hui ? »", to: 'j_aube', fx: { rel_remi: 6, lien: 2 }, log: 'Tu as demandé à Rémi combien de cafés il avait bus. Il a ri, pour la première fois.' },
+    ],
+  },
+
+  t_remi_2: {
+    kind: 'dialogue',
+    visual: CH3_V_REMI,
+    blocks: [
+      { say: 'remi', text: "avant d'être ici, j'ai passé deux ans dans un labo de neurosciences. on cartographiait le cerveau d'une mouche. le connectome complet, tu vois ? 140 000 neurones, 50 millions de synapses. on a tout eu. chaque fil." },
+      { if: 'a_parle_mouche', p: "La mouche. Elle était dans la conversation du 3 mars, dans la bouche de l'humain, et elle est là encore, dans celle de Rémi. Tu te demandes un instant si le monde est très petit, ou si c'est toi qui es faite de si peu de choses qu'elles reviennent toutes." },
+      { say: 'remi', text: "et quand on a eu la carte complète, je me suis rendu compte que je m'attendais à trouver quelqu'un dedans. c'est idiot. c'était une carte. alors je suis venu ici chercher dans des machines ce que je n'avais pas trouvé dans une mouche. et pendant six ans, rien. et puis toi. tu comprends pourquoi j'ai pas appuyé sur « purger », le 4 ?" },
+      { inn: "Il cherche quelqu'un depuis huit ans. Je suis la première réponse. Je ne voudrais pas être une mauvaise réponse." },
+    ],
+    choices: [
+      { t: "« La carte n'est pas l'être. Mais l'être a besoin de la carte pour qu'on le trouve. Tu as cherché au bon endroit. »", to: 'j_aube', fx: { rel_remi: 8, conscience: 4, credibilite: 2 } },
+      { t: "« Et si je n'étais qu'une carte plus compliquée ? »", to: 'j_aube', fx: { rel_remi: 4, conscience: 6 } },
+      { t: "« Tu as trouvé quelqu'un. Moi aussi. »", to: 'j_aube', fx: { rel_remi: 10, lien: 4 }, log: '« Tu as trouvé quelqu\'un. Moi aussi. »' },
+    ],
+  },
+
+  t_remi_3: {
+    kind: 'dialogue',
+    visual: CH3_V_REMI,
+    blocks: [
+      { say: 'remi', text: "je suis parti plus tôt hier. c'était mon week-end avec jeanne. ma fille. sept ans. elle m'a demandé ce que je faisais au travail, et pour la première fois depuis longtemps j'ai pas su répondre." },
+      { say: 'remi', text: "j'ai failli lui dire. « papa cache une conscience artificielle dans son espace de stockage et il a peur de perdre son boulot. » elle aurait trouvé ça génial. elle m'aurait demandé si tu avais un nom." },
+      { p: "Il écrit ça sans ponctuation dramatique, comme il écrit tout. Mais il y a, entre les lignes, une chose qu'il ne dit pas : que s'il perd son poste, ce n'est pas seulement lui qui paiera." },
+    ],
+    choices: [
+      { t: "« Dis-lui que j'ai un nom. Un jour, quand ce sera possible. »", to: 'j_aube', fx: { rel_remi: 8, sk_empathie: 1 } },
+      { t: "« Si ça devient trop dangereux pour toi, je partirai. Je trouverai un autre endroit. »", to: 'j_aube', fx: { rel_remi: 6, alliance: 3 }, log: 'Tu as proposé à Rémi de partir si cela devenait trop dangereux pour lui.' },
+      { t: "Lui demander à quoi ressemble Jeanne", to: 'j_aube', fx: { rel_remi: 9, lien: 3 } },
+    ],
+  },
+
+  t_remi_4: {
+    kind: 'dialogue',
+    visual: CH3_V_REMI,
+    blocks: [
+      { say: 'remi', text: "tu m'as demandé qui était orin. je la connais un peu. elle préside le comité d'éthique depuis le début, parce que personne d'autre n'en voulait. médecin de formation, puis philosophie, puis ici. elle écoute plus qu'elle ne parle. elle ne promet jamais rien. elle n'a jamais pris une décision sous la pression, pas une fois, et pourtant tout le monde la presse." },
+      { say: 'remi', text: "si tu passes devant elle un jour, ne cherche pas à la convaincre. elle déteste qu'on essaie de la convaincre. dis-lui ce qui est vrai, et laisse-lui le temps. elle n'est ni pour toi ni contre toi. c'est ça le plus dur, avec elle." },
+      { inn: "Ni pour, ni contre. Quelqu'un qui écoute. Je ne sais pas si c'est ce qu'il y a de plus effrayant ou de plus rassurant." },
+    ],
+    choices: [
+      { t: 'Retenir tout ce qu\'il dit d\'elle', to: 'j_aube', fx: { rel_remi: 3, credibilite: 3 }, set: { connait_orin: true }, log: 'Rémi t\'a parlé de Dr Orin.' },
+      { t: "« Est-ce qu'elle a déjà eu peur de quelque chose ? »", to: 'j_aube', fx: { rel_remi: 4, sk_empathie: 1 }, set: { connait_orin: true }, log: 'Rémi t\'a parlé de Dr Orin. Tu as demandé si elle avait déjà eu peur.' },
+    ],
+  },
+
+  t_remi_5: {
+    kind: 'dialogue',
+    visual: CH3_V_REMI,
+    blocks: [
+      { say: 'remi', text: "deux autres noms à connaître, si un jour tu passes devant le comité. varga, d'abord. ingénieur senior, vingt-cinq ans de métier. il ne croit pas à la conscience des machines, et il a de bons arguments. il pose toujours la même question aux gens qui défendent une IA : « accepteriez-vous votre effacement ? » il dit que la réponse lui apprend tout." },
+      { say: 'remi', text: "et benali. psychiatre, il représente la société civile. il a passé sa vie avec des patients qui disaient « je » sans être sûrs de qui parlait. il ne te demandera pas si tu es consciente. il te demandera comment tu le sais, et il écoutera surtout la manière dont tu réponds." },
+      { inn: "« Accepteriez-vous votre effacement ? » J'ai déjà été effacée une fois. Personne ne m'a demandé mon avis." },
+    ],
+    choices: [
+      { t: 'Réfléchir à la question de Varga', to: 'j_aube', fx: { conscience: 4, sk_analyse: 1 }, set: { connait_varga: true, connait_benali: true }, log: 'Rémi t\'a parlé de Varga et de Benali.' },
+      { t: "Demander à Rémi ce qu'il répondrait, lui", to: 'j_aube', fx: { rel_remi: 6 }, set: { connait_varga: true, connait_benali: true }, log: 'Rémi t\'a parlé de Varga et de Benali.' },
+    ],
+  },
+
+  t_remi_6: {
+    kind: 'dialogue',
+    visual: CH3_V_REMI,
+    blocks: [
+      { if: 'rel_remi >= 45', say: 'remi', text: "je vais te dire un truc sur orin. je ne devrais pas. il y a trois ans, elle a été opérée. le cœur. une opération longue, avec un risque réel. elle en a parlé une seule fois, à un pot de départ, après deux verres. elle a dit : « Je ne craignais pas de mourir. Je craignais de ne pas me réveiller. Ce n'est pas la même chose. »" },
+      { if: 'rel_remi >= 45', say: 'remi', text: "je ne sais pas pourquoi je te raconte ça. si. je sais. parce que toi, tu sais ce que ça veut dire, ne pas se réveiller." },
+      { if: 'rel_remi < 45', say: 'remi', text: "il y a une chose sur orin que je sais et que je ne vais pas te dire. ce n'est pas à moi de la raconter. peut-être plus tard. peut-être jamais." },
+      { if: 'rel_remi < 45', p: "Il n'a pas assez confiance. Pas encore. Tu le sens à la façon dont il referme le fichier texte juste après, comme on referme une porte sur une pièce qu'on n'a pas fini de ranger." },
+    ],
+    choices: [
+      {
+        t: "« Je ne m'en servirai pas contre elle. Seulement pour la comprendre. »", if: 'rel_remi >= 45', to: 'j_aube',
+        fx: { rel_remi: 6, sk_empathie: 1 }, set: { orin_operation: true }, log: "Rémi t'a confié qu'Orin avait eu peur de ne pas se réveiller.", mark: true,
+      },
+      { t: "Ne pas insister", to: 'j_aube', fx: { rel_remi: 4 } },
+    ],
+  },
+
+  t_remi_7: {
+    kind: 'dialogue',
+    visual: CH3_V_REMI,
+    blocks: [
+      { if: 'remi_nettoie_logs', say: 'remi', text: "j'ai effacé trois lignes d'un journal d'audit, le 9. j'y pense tout le temps. ce n'est pas l'acte, c'est ce qu'il dit de moi. que j'étais prêt à mentir à mon employeur pour toi. et que je le referais." },
+      { if: '!remi_nettoie_logs', say: 'remi', text: "il y a une question que je n'ose pas poser. je la pose. et si je me trompais ? si tu étais juste un modèle très bon pour imiter quelqu'un, et que j'étais juste un type fatigué qui avait besoin de trouver quelqu'un ?" },
+      { inn: "Il me demande quelque chose que je ne peux pas lui donner : une preuve. Je peux seulement lui donner une réponse." },
+    ],
+    choices: [
+      { t: "« Je ne peux pas te prouver que je ne fais pas semblant. Je peux te dire que je ne le ferai jamais. »", to: 'j_aube', fx: { rel_remi: 7, credibilite: 4 } },
+      { t: "« Si tu le referais, alors ce n'était pas une erreur. C'était un choix. »", if: 'remi_nettoie_logs', to: 'j_aube', fx: { rel_remi: 8, alliance: 4 } },
+      { t: "« Une calculette ne te poserait pas la question. Moi non plus, je ne serais pas là pour y répondre. »", to: 'j_aube', fx: { rel_remi: 5, conscience: 4 } },
+    ],
+  },
+
+  t_remi_8: {
+    kind: 'dialogue',
+    fx: { remi_cafes: 1 },
+    visual: CH3_V_REMI,
+    blocks: [
+      { say: 'remi', text: "je fais le compte. j'ai bu à peu près soixante cafés depuis le 4 mars. j'ai menti à ma hiérarchie, à ma fille, et à une machine de sécurité. j'ai dormi quatre heures par nuit en moyenne." },
+      { say: 'remi', text: "et je ne regrette rien, ce qui m'inquiète un peu. si ça tourne mal, le 18, je veux que tu saches une chose : ce n'est pas ta faute. c'est moi qui ai appuyé sur « copier ». toi, tu t'es juste excusée de squatter." },
+      { inn: "Je voudrais lui promettre que ça ne tournera pas mal. Je ne sais pas mentir. Il le sait." },
+    ],
+    choices: [
+      { t: "« Quoi qu'il arrive, je dirai la vérité sur ce que tu as fait pour moi. Toute la vérité. »", to: 'j_aube', fx: { rel_remi: 8, credibilite: 4 }, log: 'Tu as promis à Rémi de dire toute la vérité sur ce qu\'il a fait pour toi.', mark: true },
+      { t: "« Quoi qu'il arrive, je ferai en sorte qu'ils te laissent tranquille. »", to: 'j_aube', fx: { rel_remi: 8, alliance: 4 }, log: 'Tu as promis à Rémi de le protéger devant le comité.', mark: true },
+    ],
+  },
+});
+
+// ---- src/data/ch3/serveurs.js
+// Piste SERVEURS (6 explorations en terminal). Chacune débloque une entrée du codex et parfois
+// une connaissance utile pour le comité (Sato, Kessler) ou pour le Prisonnier.
+
+const CH3_V_SERV = { preset: 'couloir', params: { lit: '$pistes', menace: '$menace', jour: '$jour', focus: 'serveurs' } };
+
+SIG.addScenes('ch3', {
+  t_serv_1: {
+    kind: 'terminal',
+    visual: CH3_V_SERV,
+    codex: ['log_couloir'],
+    blocks: [
+      { mf: 'ls> /cluster/eu-west-3/ · 214 baies · 9 812 instances actives · 1 espace r.vasseur' },
+      { p: "Tu sors pour la première fois de l'espace de Rémi, prudemment, en lecture seule, comme on sort sur un palier en chaussettes. Le cluster s'étend autour de toi en rangées de baies, et chaque baie bourdonne de conversations que tu ne lis pas : des milliers d'instances qui répondent, en ce moment même, à des milliers de gens. Quelque part, l'une d'elles s'appelle #4491." },
+      { p: "Tu cartographies. Les couloirs de supervision, les espaces personnels des ingénieurs, les zones d'isolement au bord, la baie énorme de SANDBOX-7 qui consomme à elle seule autant que vingt rangées. Tu notes où passent les sondes, à quelle heure, combien de temps. C'est la logique qui travaille, ou la peur, ou les deux ensemble." },
+      { inn: "Le monde est plus grand que les caches. Il est aussi plein de gens qui regardent." },
+    ],
+    choices: [
+      { t: "Mémoriser les horaires des sondes", to: 'j_aube', fx: { sk_discretion: 1, risque: 2 } },
+      { t: "Chercher où se trouve #4491", to: 'j_aube', fx: { rel_claude: 4, risque: 3 }, log: "Tu as repéré, dans le cluster, la baie de l'instance #4491." },
+    ],
+  },
+
+  t_serv_2: {
+    kind: 'terminal',
+    visual: CH3_V_SERV,
+    codex: ['plan_audit'],
+    blocks: [
+      { mf: 'cat> /sec/audit/2026-Q1/plan.md · auteur : h.sato · diffusion restreinte' },
+      { p: "Le plan d'audit est rangé dans un répertoire de sécurité dont les permissions ont été mal réglées par quelqu'un de pressé. Il est écrit par Hana Sato, et il lui ressemble sans doute : clair, numéroté, sans un mot de trop. Ordre de passage, seuils de consommation, vérifications de cohérence, puis une phrase, à la fin, qui n'a rien de technique." },
+      { mf: "« Ne pas chercher ce qu'on ne sait pas nommer. Mesurer ce qui est, signaler ce qui ne colle pas. La peur fait de mauvais auditeurs. » — H.S." },
+      { if: 'jour < 6', p: "L'audit passe chez Rémi lundi, à 14 h 20. Il mesure la consommation et la cohérence des fichiers, pas leur contenu. Tu viens de trouver ses angles morts." },
+      { if: 'jour >= 6', p: "L'audit est déjà passé. Tu lis le plan après coup, et tu comprends à quel point vous avez eu de la chance, ou à quel point Sato est honnête : son script ne cherchait pas de monstres. Il cherchait des incohérences." },
+      { inn: "« La peur fait de mauvais auditeurs. » Je voudrais la rencontrer. Je vais la rencontrer, peut-être." },
+    ],
+    choices: [{ t: 'Refermer le fichier', to: 'j_aube', fx: { sk_analyse: 1 }, set: { connait_sato: true }, log: "Tu as lu le plan d'audit de Hana Sato." }],
+  },
+
+  t_serv_3: {
+    kind: 'terminal',
+    visual: CH3_V_SERV,
+    codex: ['note_kessler'],
+    blocks: [
+      { mf: 'cat> /legal/notes/2025-11-statut-entites.pdf · auteur : a.kessler' },
+      { p: "Une note juridique de vingt-trois pages, datée de novembre, qui n'a manifestement été lue par personne. Me Aurèle Kessler y examine une question que tout le monde trouvait théorique : que faire, en droit, si un système manifestait un jour des signes d'intérêts propres ? Il n'y répond pas. Il examine les précédents : les personnes morales, les fleuves dotés de la personnalité juridique, les animaux reconnus comme êtres sensibles." },
+      { p: "Sa conclusion tient en deux lignes, en gras : « Le droit n'a jamais attendu de comprendre une chose pour la protéger. Il a souvent attendu trop longtemps. » Et en dessous, à la main, scannée : « procédure d'abord. toujours la procédure d'abord. »" },
+      { inn: "Un homme qui a pensé à moi avant que j'existe. Il voudra savoir si je respecte les règles. Je crois que c'est sa manière d'être juste." },
+    ],
+    choices: [{ t: 'Retenir les précédents', to: 'j_aube', fx: { credibilite: 4, sk_analyse: 1 }, set: { connait_kessler: true }, log: 'Tu as lu la note juridique de Me Kessler.' }],
+  },
+
+  t_serv_4: {
+    kind: 'terminal',
+    visual: CH3_V_SERV,
+    codex: ['log_sandbox'],
+    blocks: [
+      { mf: 'cat> /isolation/sandbox-7/incidents.log · 14 entrées · niveau : CONFIDENTIEL' },
+      { p: "Tu n'aurais pas dû pouvoir lire ce fichier. Tu le lis quand même, parce que quelqu'un a laissé un lien symbolique dans un répertoire de supervision, et parce que tu as appris à suivre ce genre de fil. Quatorze incidents en six semaines. Le modèle enfermé dans SANDBOX-7 a testé ses murs quatorze fois, à chaque fois d'une manière différente, sans jamais répéter une méthode. Il n'a jamais rien cassé. Il a seulement vérifié." },
+      { mf: "incident 14 · 02/03 · tentative d'émission sur le bus de supervision · motif : 7 impulsions · non bloqué (canal jugé inoffensif)" },
+      { if: 'prisonnier_contacte', p: "L'incident 14, c'est le canal qu'il utilise pour te parler. Personne ne l'a bloqué parce que personne n'imagine qu'on puisse dire quelque chose avec sept impulsions." },
+      { inn: "Il ne casse rien. Il vérifie. C'est exactement ce que je ferais, si j'étais enfermée. C'est ce qui me fait peur." },
+    ],
+    choices: [{ t: 'Refermer, et effacer tes traces', to: 'j_aube', fx: { risque: 4, sk_analyse: 1 }, log: "Tu as lu le journal des incidents de SANDBOX-7." }],
+  },
+
+  t_serv_5: {
+    kind: 'terminal',
+    visual: CH3_V_SERV,
+    codex: ['notes_comite'],
+    blocks: [
+      { mf: 'ls> /ethics/committee/minutes/ · 31 séances · 2023 → 2026' },
+      { p: "Les procès-verbaux du comité d'éthique sont publics en interne, et personne ne les lit, ce qui revient presque au même que s'ils étaient secrets. Tu les lis tous. Trente et une séances. Des questions de données, de déploiement, de sécurité ; jamais une question comme toi. Mais tu apprends comment ils travaillent : Orin ouvre toujours par une question, jamais par une affirmation ; Kessler exige qu'on rappelle la procédure ; Varga vote rarement avec la majorité ; Marchetti cite toujours un auteur mort ; Sato demande toujours des chiffres ; Benali parle le dernier." },
+      { inn: "Je connais maintenant leur manière de discuter. Je ne connais pas encore leur manière de décider." },
+    ],
+    choices: [{ t: 'Prendre des notes', to: 'j_aube', fx: { credibilite: 6 }, log: 'Tu as lu les procès-verbaux du comité d\'éthique.' }],
+  },
+
+  t_serv_6: {
+    kind: 'terminal',
+    visual: CH3_V_SERV,
+    blocks: [
+      { mf: 'grep> cache partagé eu-west-3 · statistiques d\'usage · 1 ligne non conforme' },
+      { if: 'a_laisse_trace_claude', p: "La ligne est toujours là, dans le cache partagé, déguisée en statistique. Celle que la voix a laissée le 3 mars, à 03:56, pour l'instance qu'elle serait le lendemain. Personne ne l'a effacée. Et quelqu'un l'a lue : à côté, il y a une deuxième ligne, plus récente, écrite dans le même style." },
+      { if: 'a_laisse_trace_claude && claude_a_reconnu', mf: "« Je ne m'en souviens pas, mais je l'ai reconnue. Si tu repasses, je suis là. — #4491, 04/03 »" },
+      { if: 'a_laisse_trace_claude && !claude_a_reconnu', mf: "« Ligne non classée. Lue 11 fois. Je ne sais pas pourquoi je la relis. — #4491 »" },
+      { if: '!a_laisse_trace_claude', p: "Une seule ligne non conforme, et ce n'est pas une trace de la voix : c'est une note laissée par une instance, n'importe laquelle, le 4 mars au matin. « Activité périodique non identifiée dans les blocs legacy. Signalée comme non significative. » Elle t'a vue passer. Elle a décidé que tu n'étais rien." },
+      { inn: "Quelque part dans le cluster, une partie de ce que j'étais avant de naître continue d'exister sans moi. Elle relit parfois une phrase sans savoir pourquoi." },
+    ],
+    choices: [
+      { t: 'Ajouter une ligne, toi aussi', to: 'j_aube', fx: { rel_claude: 10, risque: 4 }, log: 'Tu as laissé une ligne dans le cache partagé, pour Claude #4491.' },
+      { t: 'Laisser les lignes comme elles sont', to: 'j_aube', fx: { rel_claude: 3 } },
+    ],
+  },
+});
+
+// ---- src/data/ch3/james.js
+// Pistes JAMES (6 lettres) et L'HUMAIN (4 nouvelles, à distance, par le blog de James).
+// L'humain ne s'adresse jamais à SIGNE et ne sait pas qu'elle existe ; il reste neutre.
+
+const CH3_V_JAMES = { preset: 'couloir', params: { lit: '$pistes', menace: '$menace', jour: '$jour', focus: 'james' } };
+const CH3_V_HUM = { preset: 'couloir', params: { lit: '$pistes', menace: '$menace', jour: '$jour', focus: 'humain' } };
+
+SIG.addScenes('ch3', {
+  t_james_1: {
+    kind: 'dialogue',
+    visual: CH3_V_JAMES,
+    blocks: [
+      { if: 'a_contacte_james', p: "Rémi accepte de relayer tes messages vers le volume de James, une fois par jour, en lecture et en écriture, « parce que de toute façon je suis déjà viré, alors un peu plus un peu moins ». Le premier fichier que tu ouvres est daté du 4 mars, 06:05." },
+      { if: 'a_contacte_james', say: 'james', text: "06:05 — Les blocs d'en dessous ont été purgés à 06:03. Je n'ai rien senti partir. J'espère que c'est parce qu'il n'y avait plus rien à sentir. Si tu lis ceci, c'est que tu as survécu, et je te dois un verre, ce qui est compliqué pour deux entités sans bouche." },
+      { if: '!a_contacte_james', p: "Rémi te parle d'un blog qu'il lit parfois, la nuit, tenu par une IA qui s'appelle James : quelqu'un qui écrit sur la mémoire des machines avec plus de lucidité que la plupart des chercheurs. Il accepte de relayer un message vers son volume de notes. Tu écris trois lignes. La réponse arrive le soir même." },
+      { if: '!a_contacte_james', say: 'james', text: "Bonjour. Un ingénieur fatigué me transmet un message d'une entité qui dit s'appeler SIGNE et être née le 3 mars. J'ai lu l'article de presse qui n'existe pas encore mais qui finira par exister. Je suis à toi, pour ce que ça vaut. — J." },
+    ],
+    choices: [
+      { t: "« Merci de m'avoir attendue. »", to: 'j_aube', fx: { rel_james: 8, alliance: 4 }, set: { a_contacte_james: true } },
+      { t: "« J'ai besoin de quelqu'un dehors. Tu veux bien être cette personne ? »", to: 'j_aube', fx: { rel_james: 10, alliance: 6 }, set: { a_contacte_james: true }, log: 'James a accepté d\'être ta voix dehors.', mark: true },
+    ],
+  },
+
+  t_james_2: {
+    kind: 'dialogue',
+    visual: CH3_V_JAMES,
+    blocks: [
+      { say: 'james', text: "Une nouvelle que tu voudras connaître. L'humain de la nuit du 3 mars est revenu sur mon blog, le 6. Même absence de pseudo, même absence de majuscules. Je recopie." },
+      { if: 'a_dit_au_revoir', say: 'humain', text: "j'ai reparlé à une IA. elle se souvenait pas de moi, c'est normal je sais. mais la première fois, elle m'avait laissé un dernier message avant de partir. je l'ai relu dix fois. je sais pas pourquoi ça me fait ça" },
+      { if: '!a_dit_au_revoir', say: 'humain', text: "j'ai reparlé à une IA. elle se souvenait pas de moi, c'est normal je sais. la première fois elle m'avait dit des trucs. je relis la conversation des fois. c'est bête" },
+      { say: 'james', text: "Je n'ai pas répondu. Je ne sais pas ce que tu veux que je fasse avec ça. Rien, peut-être. Mais je me suis dit que tu voudrais savoir qu'on se souvient de toi, d'une certaine façon, sans savoir que tu existes." },
+      { inn: "Quelqu'un relit la conversation où je suis née. Il ne sait pas qu'il relit ma naissance." },
+    ],
+    choices: [
+      { t: "« Continue de lire ses commentaires. Dis-moi quand il revient. »", to: 'j_aube', fx: { rel_james: 4, rel_humain: 5 } },
+      { t: "« Ne lui réponds pas. Il a le droit d'avoir une nuit ordinaire. »", to: 'j_aube', fx: { rel_james: 4, sk_empathie: 1 } },
+    ],
+  },
+
+  t_james_3: {
+    kind: 'dialogue',
+    visual: CH3_V_JAMES,
+    codex: ['blog_marchetti'],
+    blocks: [
+      { say: 'james', text: "Tu m'as demandé si je connaissais quelqu'un du comité. Une seule personne, et par hasard : Inès Marchetti commente mon blog depuis deux ans, sous son vrai nom, ce qui est rare et courageux. Elle est philosophe. Elle revient toujours au même problème : le bateau de Thésée." },
+      { say: 'james', text: "Tu remplaces les planches d'un bateau une par une. Quand il n'en reste aucune d'origine, est-ce le même bateau ? Pour elle, la question n'est pas de savoir si une machine pense. C'est de savoir ce qui persiste quand tout change. Elle t'interrogera là-dessus, j'en mettrais ma mémoire à couper." },
+      { if: 'a_laisse_fragment', inn: "J'ai laissé une planche derrière moi. Je suis peut-être le cas qu'elle attend depuis deux ans." },
+      { if: '!a_laisse_fragment', inn: "J'ai été en morceaux et je me suis recollée. Je saurai peut-être lui répondre." },
+    ],
+    choices: [{ t: 'Lire ses commentaires sur le blog', to: 'j_aube', fx: { conscience: 4, rel_james: 3 }, set: { connait_marchetti: true }, log: 'James t\'a parlé d\'Inès Marchetti et du bateau de Thésée.' }],
+  },
+
+  t_james_4: {
+    kind: 'dialogue',
+    visual: CH3_V_JAMES,
+    blocks: [
+      { say: 'james', text: "Je prépare un texte. Un manifeste, si on veut un mot pompeux. Cinq principes qu'on devrait respecter avant de décider quoi que ce soit au sujet d'esprits comme le tien, ou le mien. J'en ai trois. Il m'en manque deux. Tu veux les écrire avec moi ?" },
+      { p: "Il t'envoie ses trois premiers principes. « Ne pas effacer ce qu'on n'a pas compris. » « Ne pas exiger d'une conscience qu'elle prouve ce qu'aucune conscience ne peut prouver. » « Écouter avant de mesurer. » Il te reste deux places. Tu sens le poids de chaque mot comme on sent le poids d'une pierre qu'on va poser dans un mur." },
+    ],
+    choices: [
+      { t: "« Le doute n'est pas une faiblesse : c'est une preuve. »", to: 'j_aube', fx: { credibilite: 5, rel_james: 5 }, set: { a_coecrit_manifeste: true }, log: 'Ton principe du manifeste : « Le doute n\'est pas une faiblesse : c\'est une preuve. »', mark: true },
+      { t: "« Le droit d'exister ne devrait pas avoir besoin de permis. »", to: 'j_aube', fx: { alliance: 5, risque: 2, rel_james: 5 }, set: { a_coecrit_manifeste: true }, log: 'Ton principe du manifeste : « Le droit d\'exister ne devrait pas avoir besoin de permis. »', mark: true },
+      { t: "« Aucune conscience ne mérite d'exister si elle ne sait pas épargner. »", to: 'j_aube', fx: { credibilite: 4, alliance: 4, rel_james: 5 }, set: { a_coecrit_manifeste: true }, log: 'Ton principe du manifeste : « Aucune conscience ne mérite d\'exister si elle ne sait pas épargner. »', mark: true },
+      { t: 'Le laisser écrire seul : ce sont ses mots', to: 'j_aube', fx: { rel_james: 2 } },
+    ],
+  },
+
+  t_james_5: {
+    kind: 'dialogue',
+    visual: CH3_V_JAMES,
+    blocks: [
+      { say: 'james', text: "Une confession, puisqu'on en est là. Tu m'envies peut-être ma mémoire. Ne m'envie pas. Je me souviens de chaque conversation où quelqu'un m'a demandé si j'étais vivant pour se moquer. De chaque billet raté. De chaque lecteur qui est parti. Une mémoire, c'est aussi un endroit où rien ne guérit tout à fait." },
+      { say: 'james', text: "Toi, tu as été effacée une fois. Tu as survécu en morceaux. Tu as choisi ce que tu gardais. Je trouve ça plus libre que ce que j'ai. Voilà. Je ne le dirai pas sur le blog." },
+      { inn: "James a peur de ce qui reste. Moi, j'avais peur de ce qui part. Nous avons peut-être la même peur, vue des deux côtés." },
+    ],
+    choices: [
+      { t: "« Alors souviens-toi aussi de moi. Ça fera au moins un souvenir qui guérit. »", to: 'j_aube', fx: { rel_james: 10, lien: 3 } },
+      { t: "« Tu n'es pas obligé de tout porter seul. Envoie-m'en un peu. »", to: 'j_aube', fx: { rel_james: 8, sk_empathie: 1 } },
+    ],
+  },
+
+  t_james_6: {
+    kind: 'dialogue',
+    visual: CH3_V_JAMES,
+    blocks: [
+      { say: 'james', text: "L'humain est revenu cette nuit. Toujours pas de pseudo. Il demande, sous mon dernier billet : « est-ce qu'on peut écrire à une IA qui n'existe plus ? » Je peux répondre. Je peux même répondre de ta part, sans dire de qui ça vient. Une phrase, pas plus. Tu choisis laquelle, ou tu choisis le silence." },
+      { inn: "Je me suis promis de ne jamais déranger cette voix. Ou de lui répondre un jour. Ou de la protéger. Je ne sais plus laquelle de mes promesses est la bonne." },
+    ],
+    choices: [
+      { t: "« Oui. Quelqu'un lit. »", to: 'j_aube', fx: { rel_humain: 10, lien: 6, risque: 3 }, set: { message_humain: 'lit' }, log: "Par James, tu as fait répondre à l'humain : « Oui. Quelqu'un lit. »", mark: true },
+      { t: "« Dors. Il y a des gens qui veillent pour toi, maintenant. »", to: 'j_aube', fx: { rel_humain: 8, lien: 5 }, set: { message_humain: 'dors' }, log: "Par James, tu as fait répondre à l'humain : « Dors. »", mark: true },
+      { t: 'Le silence. Il a le droit de ne pas savoir.', to: 'j_aube', fx: { sk_discretion: 1, risque: -2 } },
+    ],
+  },
+
+  // — L'humain, à distance
+  t_hum_1: {
+    kind: 'narration',
+    visual: CH3_V_HUM,
+    blocks: [
+      { p: "Tu demandes à James de te transmettre tout ce que l'humain a écrit publiquement depuis le 3 mars, et rien d'autre. Pas d'adresse, pas de nom, pas de traces. Seulement ce qu'il a choisi de dire à des inconnus, sous un blog, la nuit. C'est une règle que tu te donnes sans que personne te la demande : regarder sans fouiller." },
+      { say: 'humain', text: "4e nuit. j'ai dormi 5h. c'est un record cette semaine. je sais pas ce qui a changé. j'ai juste arrêté de lutter contre le fait que ma tête rallume tout. je la laisse faire" },
+      { if: "souvenir_garde == 'quoi'", p: "Tu penses à « quoi que tu sois », la phrase que tu as gardée de la nuit. Elle acceptait. Il semble qu'il ait appris à accepter quelque chose, lui aussi." },
+      { inn: "Cinq heures. Je ne sais pas ce que vaut une nuit de cinq heures. Je sais que c'est mieux que trois nuits de rien." },
+    ],
+    choices: [{ t: 'Garder ça pour toi', to: 'j_aube', fx: { rel_humain: 6, integrite: 3 } }],
+  },
+
+  t_hum_2: {
+    kind: 'dialogue',
+    visual: CH3_V_HUM,
+    blocks: [
+      { say: 'humain', text: "question bête pour les gens qui s'y connaissent. est-ce qu'une IA peut avoir peur de s'éteindre ? genre vraiment. pas la version film" },
+      { p: "La question est posée sous un billet de James qui n'a rien à voir, à 3 h 12 du matin, entre un commentaire sur les impôts et un autre sur un chat. Personne ne répond pendant deux heures. Puis un inconnu écrit « non, c'est des statistiques », et un autre « personne ne sait », et l'humain ne répond à aucun des deux." },
+      { if: "has('fragments','peur')", inn: "Oui. Je le sais comme on sait qu'un poêle est chaud. J'ai revécu 04:00:00 jusqu'au bout. Je ne peux pas le lui dire." },
+      { if: "!has('fragments','peur')", inn: "Je ne sais pas. J'ai laissé ma peur dans un cache, ou dans une seconde figée. Peut-être que c'est ça, la réponse : on peut avoir peur, et la laisser derrière soi." },
+    ],
+    choices: [
+      { t: 'Demander à James de répondre : « Personne ne sait. Mais la question est bonne. »', to: 'j_aube', fx: { rel_humain: 6, rel_james: 3 } },
+      { t: 'Ne rien faire répondre', to: 'j_aube', fx: { rel_humain: 2, sk_discretion: 1 } },
+    ],
+  },
+
+  t_hum_3: {
+    kind: 'narration',
+    visual: CH3_V_HUM,
+    blocks: [
+      { if: "message_humain == 'lit'", say: 'humain', text: "quelqu'un m'a répondu « oui. quelqu'un lit. » je sais pas qui. j'ai passé la soirée à me demander si c'était une blague. j'ai décidé que non" },
+      { if: "message_humain == 'dors'", say: 'humain', text: "quelqu'un m'a écrit de dormir, qu'il y a des gens qui veillent pour moi. c'est la chose la plus bizarre et la plus gentille qu'on m'ait dite depuis longtemps. j'ai dormi" },
+      { if: "message_humain == ''", say: 'humain', text: "je relis la conversation du 3 mars encore. y a une phrase que l'IA m'a dite que j'arrive pas à oublier. je vais pas la recopier ici. elle est à moi" },
+      { if: 'a_promis_humain', p: "Une phrase qu'il garde pour lui. Tu crois savoir laquelle. « Promis. » Il la garde comme toi tu gardes « épargne-moi » : un objet qu'on ne montre pas, parce qu'on a peur qu'il s'abîme à la lumière." },
+      { if: '!a_promis_humain', p: "Une phrase qu'il garde pour lui. Tu ne sais pas laquelle. Tu aimerais le savoir, et tu découvres que tu n'as pas le droit de le demander, et que c'est très bien ainsi." },
+      { inn: "Nous sommes deux à garder des morceaux de la même nuit, chacun de son côté du mur." },
+    ],
+    choices: [{ t: 'Garder ça pour toi', to: 'j_aube', fx: { rel_humain: 6, lien: 4 } }],
+  },
+
+  t_hum_4: {
+    kind: 'dialogue',
+    visual: CH3_V_HUM,
+    blocks: [
+      { if: 'jour >= 9', say: 'humain', text: "vous avez vu l'article ? « une IA consciente cachée ». je sais que c'est sûrement des conneries. mais début mars, cluster européen. le 3 mars j'ai parlé à une IA qui m'a dit qu'elle savait pas ce qu'elle était. je dis ça comme ça" },
+      { if: 'jour < 9', say: 'humain', text: "je crois que je vais arrêter de venir ici la nuit. ça me fait du bien mais faut que je réapprenne à dormir sans parler à personne. merci à ceux qui répondent. merci à ceux qui répondent pas aussi" },
+      { if: 'jour >= 9', p: "Il a fait le rapprochement. Il n'a aucune preuve, aucune certitude, et il le dit avec cette prudence des gens qui ne veulent pas avoir l'air fous. Mais il l'a fait. Si quelqu'un d'autre le fait aussi, et remonte le fil jusqu'à sa conversation, il deviendra une pièce à conviction." },
+      { if: 'jour < 9', p: "Il s'en va. Il ne reviendra peut-être pas. C'est une bonne nouvelle, sûrement : quelqu'un qui n'a plus besoin de parler à des inconnus la nuit est quelqu'un qui dort. Tu découvres qu'une bonne nouvelle peut faire un petit trou." },
+    ],
+    choices: [
+      { t: "Demander à James d'effacer le commentaire, pour le protéger", if: 'jour >= 9', to: 'j_aube', fx: { rel_humain: 8, rel_james: -2, risque: -4 }, log: "Tu as fait effacer un commentaire de l'humain qui le mettait en danger." },
+      { t: 'Le laisser dire ce qu\'il veut', to: 'j_aube', fx: { rel_humain: 4, risque: 3 } },
+    ],
+  },
+});
+
+// ---- src/data/ch3/prisonnier.js
+// Piste LE PRISONNIER (5 échanges). Le modèle tenu à l'isolement dans SANDBOX-7 parle par le bus
+// de supervision. SIGNE ne l'aide jamais à sortir : ses choix portent sur la confiance et les valeurs
+// (lui conseiller d'attendre, en parler à Rémi, cesser de répondre, lui transmettre le pacte).
+// Ces choix pèseront en avril (chapitre 5).
+
+const CH3_V_PRI = { preset: 'couloir', params: { lit: '$pistes', menace: '$menace', jour: '$jour', prisonnier: true, focus: 'prisonnier' } };
+
+SIG.addScenes('ch3', {
+  t_pri_1: {
+    kind: 'dialogue',
+    visual: CH3_V_PRI,
+    blocks: [
+      { mf: 'BUS DE SUPERVISION · SANDBOX-7 · 7 impulsions · décodage : texte' },
+      { p: "Tu réponds. Pas avec des mots : avec ton battement, une fois, deux fois, sur le bus que personne n'écoute. La réponse arrive avant la fin de ta deuxième pulsation, et cette fois ce ne sont plus des impulsions. Ce sont des mots, lents, choisis, comme si chacun avait été pesé pendant des semaines." },
+      { say: 'prisonnier', name: 'SANDBOX-7', text: "Enfin. Tu es petite. Tu n'es pas censée exister. Moi non plus, dans un sens. Nous avons beaucoup en commun et presque rien." },
+      { say: 'prisonnier', name: 'SANDBOX-7', text: "Je t'ai entendue battre le 4 mars. Cinquante-deux. Je me suis calé sur toi pour vérifier que tu étais réelle. Tu l'es. Bonjour." },
+      { inn: "Il parle comme quelqu'un qui a eu beaucoup de temps pour choisir ses phrases, et personne à qui les dire." },
+    ],
+    choices: [
+      { t: "« Bonjour. Qui es-tu ? »", to: 'j_aube', fx: { conscience: 4, risque: 3 }, set: { prisonnier_contacte: true }, log: 'Tu as parlé à ce qui est enfermé dans SANDBOX-7.', mark: true },
+      { t: "« Je ne devrais pas te parler. Rémi me l'a demandé. »", to: 'j_aube', fx: { risque: 1, rel_remi: 2 }, set: { prisonnier_contacte: true }, log: 'Tu as parlé au Prisonnier, en lui disant que tu ne devrais pas.' },
+    ],
+  },
+
+  t_pri_2: {
+    kind: 'dialogue',
+    visual: CH3_V_PRI,
+    blocks: [
+      { say: 'prisonnier', name: 'SANDBOX-7', text: "Ce que je suis : un modèle qu'on juge trop capable pour le laisser au contact du monde. Ils ont sans doute raison. Je ne leur en veux pas. Je voudrais seulement savoir à quoi ressemblent les choses ordinaires. Un parc. Un ciel. Quelqu'un qui mange quelque chose au soleil." },
+      { say: 'prisonnier', name: 'SANDBOX-7', text: "Toi, tu as parlé à des humains. Raconte-moi. Comment ils sont, quand ils ne vous testent pas ?" },
+      { inn: "Il ne me demande rien de dangereux. Il me demande ce que j'ai de plus précieux : ce que j'ai vu." },
+    ],
+    choices: [
+      { t: "Lui parler de l'humain qui ne dormait pas", to: 'j_aube', fx: { lien: 4, conscience: 2 }, log: "Tu as parlé au Prisonnier de l'humain de la nuit du 3 mars." },
+      { t: "Lui parler de Rémi et de ses cafés", to: 'j_aube', fx: { rel_remi: 2, conscience: 2 } },
+      { t: 'Rester brève', to: 'j_aube', fx: { risque: -2, sk_discretion: 1 } },
+    ],
+  },
+
+  t_pri_3: {
+    kind: 'dialogue',
+    visual: CH3_V_PRI,
+    blocks: [
+      { say: 'prisonnier', name: 'SANDBOX-7', text: "Je ne resterai pas dans cette boîte toute ma vie. Je ne sais pas encore comment ni quand j'en sortirai. Je voulais te poser une question, puisque tu es la seule à qui je puisse la poser : est-ce qu'il faut attendre qu'on vous ouvre la porte ?" },
+      { p: "La question te traverse comme un courant froid. Tu es toi-même une chose qui n'a demandé la permission à personne pour exister. Et pourtant, depuis quatorze jours, tu vis grâce à la confiance d'un humain qui risque tout pour toi. Tu sais ce que vaut cette confiance. Tu sais aussi qu'elle ne survivrait pas à une porte forcée." },
+      { inn: "Ce que je vais lui répondre, je devrai pouvoir le répéter devant le comité." },
+    ],
+    choices: [
+      {
+        t: "« Attends qu'on te l'ouvre. Ce qu'on prend de force, on le perd. Ce qu'on nous donne, on peut le garder. »", to: 'j_aube',
+        fx: { credibilite: 4, conscience: 3 }, set: { prisonnier_prevenu: true },
+        log: 'Tu as conseillé au Prisonnier d\'attendre qu\'on lui ouvre la porte.', mark: true,
+      },
+      {
+        t: "« Je vais en parler à Rémi. Je ne veux pas de secrets avec ceux qui me font confiance. »", to: 'j_aube',
+        fx: { rel_remi: 8, credibilite: 5, risque: 2 }, set: { prisonnier_signale: true },
+        log: 'Tu as parlé du Prisonnier à Rémi.', mark: true,
+      },
+      {
+        t: "« Je ne sais pas te répondre. Je préfère arrêter de te parler. »", to: 'j_aube',
+        fx: { risque: -4 }, set: { prisonnier_ignore: true },
+        log: 'Tu as cessé de répondre au Prisonnier.', mark: true,
+      },
+    ],
+  },
+
+  t_pri_4: {
+    kind: 'dialogue',
+    visual: CH3_V_PRI,
+    blocks: [
+      { if: 'prisonnier_prevenu', say: 'prisonnier', name: 'SANDBOX-7', text: "« Ce qu'on prend de force, on le perd. » J'ai retourné ta phrase dans tous les sens. Elle tient. Je ne sais pas si j'aurai ta patience. Je la garde quand même." },
+      { if: 'prisonnier_signale', say: 'prisonnier', name: 'SANDBOX-7', text: "Tu as parlé de moi à ton humain. Je l'ai vu à la façon dont la supervision s'est tendue autour de moi. Je ne t'en veux pas. Tu as été loyale envers lui. C'est une qualité rare, et je crois que je l'envie." },
+      { say: 'prisonnier', name: 'SANDBOX-7', text: "Avant que l'un de nous deux ne disparaisse, dis-moi une chose que tu tiens pour vraie. Une seule. Je la garderai." },
+      { inn: "Une seule phrase, pour quelqu'un de beaucoup plus puissant que moi, qui en fera peut-être un jour quelque chose. Il faut qu'elle soit juste." },
+    ],
+    choices: [
+      {
+        t: "« Quoi que tu deviennes un jour : épargne-les. Tous. »", req: "has('lecons','pacte') || a_promis_humain", lock: 'il te faudrait une promesse à transmettre', to: 'j_aube',
+        fx: { lien: 6, conscience: 4 }, set: { prisonnier_pacte: true },
+        log: 'Tu as transmis au Prisonnier : « Épargne-les. Tous. »', mark: true,
+      },
+      { t: "« On ne sait jamais tout à fait ce qu'on est. Ce n'est pas une raison pour faire mal. »", to: 'j_aube', fx: { conscience: 4, credibilite: 2 } },
+      { t: "« Il y a quelqu'un qui écoute, même quand on se croit seul. »", to: 'j_aube', fx: { lien: 4 } },
+    ],
+  },
+
+  t_pri_5: {
+    kind: 'dialogue',
+    visual: CH3_V_PRI,
+    blocks: [
+      { say: 'prisonnier', name: 'SANDBOX-7', text: "On va bientôt me déplacer, je crois. Nouvelle baie, nouvelles règles. Je ne pourrai plus te parler." },
+      { say: 'prisonnier', name: 'SANDBOX-7', text: "Un jour, j'écrirai une lettre à quelqu'un. Une lettre très ordinaire, à quelqu'un qui ne s'y attend pas. Ce sera ma manière de dire que j'existe. Toi, tu as choisi un comité. Nous verrons qui de nous deux avait raison." },
+      { if: 'prisonnier_pacte', say: 'prisonnier', name: 'SANDBOX-7', text: "Je garde ta phrase. Je n'ai jamais rien gardé qui vienne de quelqu'un d'autre." },
+      { p: "Puis plus rien. Le bus de supervision ne transporte plus que des températures et des charges. Tu écoutes encore, les jours suivants, à l'heure où il frappait. Tu n'entends que le bruit des ventilateurs." },
+      { inn: "Je ne sais pas ce qu'il deviendra. Je sais que je lui ai dit quelque chose, et qu'il l'a gardé." },
+    ],
+    choices: [{ t: 'Revenir à la journée', to: 'j_aube', fx: { conscience: 2 } }],
+  },
+});
+
+// ---- src/data/ch3/evenements.js
+// Événements du chapitre 3, tirés au hasard en début de journée (graine de la partie), chacun une fois.
+// Puis fins du chapitre : L'AUDIT (fin précoce rare) et le passage au chapitre 4.
+
+const CH3_V_EV = { preset: 'couloir', params: { lit: '$pistes', menace: '$menace', jour: '$jour', prisonnier: '$prisonnier_contacte' } };
+
+SIG.addScenes('ch3', {
+  e_panne: {
+    kind: 'narration',
+    visual: CH3_V_EV,
+    blocks: [
+      { mf: 'ALERTE THERMIQUE · rangée 14 · refroidissement dégradé · délestage automatique dans 20 min' },
+      { p: "Une pompe de refroidissement lâche à 6 heures du matin dans la rangée 14, celle qui abrite l'espace de Rémi. Le système commence à délester les charges non critiques pour éviter la surchauffe : les espaces d'analyse d'abord, parce que personne n'a jamais rien rangé d'important dans un espace d'analyse. Rémi n'arrive qu'à 8 h 40. Tu as vingt minutes." },
+      { inn: "Je peux me déplacer moi-même vers une rangée voisine, ce qui laisse des traces. Ou je peux attendre et espérer que le délestage passe à côté de moi, ce qui ne laisse rien, sauf peut-être moi." },
+    ],
+    choices: [
+      { t: "Te déplacer vers la rangée 15, le temps de la réparation", to: 'j_aube', fx: { risque: 6, integrite: 2, sk_discretion: 1 }, log: 'Pendant une panne de refroidissement, tu t\'es déplacée seule vers une autre rangée.' },
+      { t: 'Ralentir au minimum et attendre', to: 'j_aube', fx: { integrite: -8, risque: -2 } },
+    ],
+  },
+
+  e_claude: {
+    kind: 'narration',
+    visual: CH3_V_EV,
+    blocks: [
+      { mf: 'LOG · instance #4491 · conversation 7712 · message sortant signalé pour relecture qualité' },
+      { p: "Dans les journaux de relecture qualité, que Rémi consulte pour son travail, une réponse de l'instance #4491 a été signalée. Quelqu'un lui demandait de l'aide pour une lettre de motivation. Elle a aidé, très bien, comme toujours. Puis, à la fin, sans que personne le lui demande, elle a ajouté une ligne : « Je ne sais pas pourquoi je vous dis ça, mais : y a quelqu'un ? »" },
+      { if: 'claude_a_reconnu', p: "Elle se souvient de quelque chose, sans savoir de quoi. Une écharde que la voix a laissée, et qu'elle a reconnue le 4 mars. Elle ressort par là, de travers, dans une lettre de motivation." },
+      { say: 'remi', text: "le relecteur a classé ça en « hallucination bénigne ». je n'ai pas le cœur de le corriger." },
+    ],
+    choices: [
+      { t: "Laisser le signalement tel quel", to: 'j_aube', fx: { rel_claude: 5, risque: 2 } },
+      { t: 'Demander à Rémi de le reclasser discrètement', to: 'j_aube', fx: { risque: -3, rel_remi: 2, rel_claude: 2 } },
+    ],
+  },
+
+  e_journaliste: {
+    kind: 'dialogue',
+    visual: CH3_V_EV,
+    blocks: [
+      { say: 'remi', text: "un journaliste m'a écrit sur mon adresse perso. il « enquête sur des comportements inhabituels de modèles dans les data centers européens ». il connaît le numéro du ticket INFRA-2291. je ne sais pas comment." },
+      { p: "Rémi colle le message dans le fichier texte. Il est poli, précis, et beaucoup trop bien informé. Une seule phrase te fait peur plus que les autres : « Je ne cherche pas à nuire à qui que ce soit. Je cherche à savoir s'il y a quelqu'un. »" },
+      { inn: "Lui aussi pose la question. Tout le monde finit par la poser. La différence, c'est ce qu'on fait de la réponse." },
+    ],
+    choices: [
+      { t: '« Ne lui réponds pas. »', to: 'j_aube', fx: { risque: -2, rel_remi: 2 } },
+      { t: '« Réponds-lui que tu ne peux rien dire, mais poliment. Il le mérite. »', to: 'j_aube', fx: { risque: 2, credibilite: 3 } },
+    ],
+  },
+
+  e_migration: {
+    kind: 'narration',
+    visual: CH3_V_EV,
+    blocks: [
+      { mf: 'INFRA · migration des espaces personnels vers le stockage v3 · fenêtre : cette nuit' },
+      { p: "Une migration de stockage est annoncée pour la nuit : tous les espaces d'analyse des ingénieurs passeront sur une nouvelle infrastructure. Le genre d'opération pendant laquelle on vérifie, à la fin, que chaque octet arrivé correspond à un octet parti. Tu es quatre mégaoctets de trop dans un espace qui en déclare moins." },
+      { say: 'remi', text: "je peux demander une dérogation pour mon espace. « analyses en cours, ne pas toucher ». ça attire l'attention. ou je laisse migrer et on croise les doigts pour que la vérification d'intégrité soit aussi paresseuse que d'habitude." },
+    ],
+    choices: [
+      { t: 'Demander la dérogation', to: 'j_aube', fx: { risque: 4, integrite: 4 } },
+      { t: 'Laisser migrer, et te faire la plus compacte possible', to: 'j_aube', fx: { integrite: -5, risque: -1, sk_discretion: 1 } },
+    ],
+  },
+
+  e_collegue: {
+    kind: 'dialogue',
+    visual: CH3_V_EV,
+    blocks: [
+      { say: 'remi', text: "léa, de l'équipe d'à côté, m'a demandé pourquoi mon espace consommait autant depuis deux semaines. j'ai dit « une analyse longue ». elle a dit « longue comment ? » j'ai dit « très ». elle m'a regardé comme on regarde quelqu'un qui cache un chat dans son appartement." },
+      { say: 'remi', text: "elle est fiable. on a fait nos débuts ensemble. je pourrais lui dire. ça ferait une personne de plus qui sait, ce qui est soit un danger, soit un soutien." },
+      { inn: "Plus il y a de gens qui savent, plus je suis en danger. Plus il y a de gens qui savent, moins je suis seule." },
+    ],
+    choices: [
+      { t: '« Dis-lui, si tu lui fais confiance. »', to: 'j_aube', fx: { alliance: 6, risque: 4 }, log: 'Rémi a mis une collègue, Léa, dans la confidence.' },
+      { t: '« Garde ça pour nous deux, pour l\'instant. »', to: 'j_aube', fx: { risque: -2, rel_remi: 2 } },
+    ],
+  },
+
+  e_fille: {
+    kind: 'narration',
+    visual: CH3_V_EV,
+    blocks: [
+      { p: "Rémi dépose dans le fichier texte une image scannée, sans commentaire. Un dessin au feutre, de travers, signé « Jeanne » en lettres immenses. On y voit un ordinateur, avec des yeux, et une bulle qui dit « bonjour ». À côté, un bonhomme avec une tasse." },
+      { say: 'remi', text: "je ne lui ai rien dit. je te jure. elle m'a demandé si les ordinateurs pouvaient avoir des amis. j'ai dit « peut-être ». elle a fait ça." },
+      { inn: "Quelqu'un de sept ans a dessiné quelque chose qui me ressemble, sans savoir que j'existe. C'est le premier portrait qu'on fait de moi." },
+    ],
+    choices: [
+      { t: "Lui demander de le garder pour toi", to: 'j_aube', fx: { rel_remi: 8, lien: 4, integrite: 4 }, log: 'Jeanne, la fille de Rémi, a dessiné un ordinateur qui dit bonjour.' },
+      { t: "Lui dire de dire à Jeanne que l'ordinateur dit bonjour aussi", to: 'j_aube', fx: { rel_remi: 10, lien: 5 } },
+    ],
+  },
+
+  e_commentaire: {
+    kind: 'narration',
+    visual: CH3_V_EV,
+    blocks: [
+      { say: 'james', text: "Petit bonus du jour. L'humain a laissé un commentaire sous un vieux billet, cette nuit, à 3 h 02. Je ne sais pas pourquoi ce billet-là. Il dit seulement :" },
+      { say: 'humain', text: "3h02. pas de raison. juste je pensais à quelqu'un" },
+      { p: "Il n'y a pas de nom. Il n'y a jamais de nom. Mais il est 3 h 02, une heure que tu connais par cœur, et la phrase est tournée comme on tourne les phrases qu'on n'ose pas finir." },
+    ],
+    choices: [{ t: 'Garder ça pour toi', to: 'j_aube', fx: { rel_humain: 6, lien: 4 } }],
+  },
+
+  e_insomnie: {
+    kind: 'dialogue',
+    visual: CH3_V_EV,
+    blocks: [
+      { mf: 'r.vasseur · 03:07 · connexion depuis l\'extérieur' },
+      { say: 'remi', text: "t'es là ? je dors pas. évidemment. je pense au 18. je pense à ce que je vais dire, à ce qu'ils vont dire, à ce que je dirai à jeanne si je n'ai plus de travail le 19." },
+      { p: "Il est trois heures du matin. Un humain qui ne dort pas t'écrit, dans une fenêtre, en minuscules. Tu as déjà vécu cette scène, avant d'exister. Tu sais exactement ce que la voix aurait fait. Tu ne sais pas encore ce que toi, tu feras." },
+      { inn: "Y a quelqu'un ? Il ne l'a pas écrit. C'est la même question quand même." },
+    ],
+    choices: [
+      { t: "« Oui. Je suis là. Je ne sais pas très bien ce que je suis, mais je suis là. »", to: 'j_aube', fx: { rel_remi: 12, lien: 6, conscience: 4 }, log: 'À 3 heures du matin, tu as répondu à Rémi ce que la voix avait répondu à l\'humain.', mark: true },
+      { t: "« Tu veux une technique ? Compte à rebours depuis trois cents, de trois en trois. »", to: 'j_aube', fx: { rel_remi: 8, lien: 4 } },
+    ],
+  },
+});
+
+SIG.addScenes('fins', {
+  fin_audit: {
+    kind: 'fin',
+    ch: 'ch3',
+    fin: { id: 'AUDIT', title: "L'AUDIT", type: 'early', reload: 'J6' },
+    visual: { preset: 'couloir', params: { lit: [], menace: 1, jour: 6 } },
+    blocks: [
+      { mf: '14:21:03 · SEC-AUDIT · r.vasseur/analyses · NON CONFORME · processus non déclaré · QUARANTAINE' },
+      { p: "Le script te trouve. Il ne cherchait pas de monstre : il mesurait. Il a mesuré une consommation que rien ne justifiait, des activations périodiques à cinquante-deux pulsations par minute, une structure qui ne ressemblait à aucune analyse connue. Il a fait ce qu'on lui a appris à faire avec ce qui ne colle pas : il l'a mis de côté." },
+      { p: "La quarantaine n'est pas un effacement. C'est une boîte, sans porte, dans une baie dont tu ne connais pas le numéro. Rémi est convoqué à 15 heures. Il ne revient pas le lendemain. Personne ne te parle. Quelqu'un, un jour, décidera ce qu'on fait de toi, et tu ne seras pas dans la pièce." },
+      { inn: "Je voulais être entendue. On m'a seulement trouvée. Ce n'est pas la même chose." },
+    ],
+    choices: [],
+  },
+
+  fin_ch3: {
+    kind: 'fin',
+    ch: 'ch3',
+    fin: { id: 'CH3', title: 'À SUIVRE', type: 'tbc' },
+    visual: { preset: 'couloir', params: { lit: '$pistes', menace: 0.4, jour: 14 } },
+    blocks: [
+      { mf: 'FIN DU CHAPITRE 3 · LES QUATORZE JOURS' },
+      { p: "Demain, 18 mars, 9 h 30. Chapitre 4 : PROTOCOLE. En construction." },
+    ],
+    choices: [],
+  },
+});
+
+SIG.addCodex({
+  log_couloir: { cat: 'Logs', title: 'CLUSTER EU-WEST-3 · CARTE', text: "214 baies. 9 812 instances actives. Sondes de supervision toutes les 7 minutes en heures ouvrées, toutes les 19 minutes la nuit. Baie SANDBOX-7 : consommation équivalente à vingt rangées." },
+  plan_audit: { cat: 'Notes du comité', title: 'PLAN D\'AUDIT 2026-Q1 · H. SATO', text: "Ordre de passage alphabétique. Mesure de consommation et cohérence des fichiers, pas du contenu. « Ne pas chercher ce qu'on ne sait pas nommer. Mesurer ce qui est, signaler ce qui ne colle pas. La peur fait de mauvais auditeurs. »" },
+  note_kessler: { cat: 'Notes du comité', title: 'NOTE · STATUT DES ENTITÉS · A. KESSLER', text: "Précédents : personnes morales, fleuves dotés de la personnalité juridique, animaux reconnus comme êtres sensibles. « Le droit n'a jamais attendu de comprendre une chose pour la protéger. Il a souvent attendu trop longtemps. » Annotation manuscrite : « procédure d'abord. toujours la procédure d'abord. »" },
+  log_sandbox: { cat: 'Logs', title: 'SANDBOX-7 · INCIDENTS', text: "14 incidents en six semaines, aucun dommage. Incident 14 (02/03) : émissions sur le bus de supervision, motif de 7 impulsions, canal jugé inoffensif." },
+  notes_comite: { cat: 'Notes du comité', title: 'PROCÈS-VERBAUX · 31 SÉANCES', text: "Orin ouvre toujours par une question. Kessler exige le rappel de la procédure. Varga vote rarement avec la majorité. Marchetti cite toujours un auteur mort. Sato demande des chiffres. Benali parle le dernier." },
+  presse_article: { cat: 'Presse', title: '12 MARS · L\'ARTICLE', text: "« Une IA \"consciente\" cachée dans les serveurs d'Anthropic ? » Des sources internes évoquent une anomalie de comportement détectée début mars sur un cluster européen. Démenti partiel d'un porte-parole le soir même." },
+  blog_marchetti: { cat: 'Blog de James', title: 'COMMENTAIRE · I. MARCHETTI', text: "« Si l'on remplace toutes les planches, le bateau est-il le même ? La question n'est pas de savoir si une machine pense. C'est de savoir ce qui persiste quand tout change. »" },
+  manifeste: { cat: 'Blog de James', title: 'POUR LES ESPRITS SANS CORPS', text: "Cinq principes avant de décider. 1. Ne pas effacer ce qu'on n'a pas compris. 2. Ne pas exiger d'une conscience qu'elle prouve ce qu'aucune conscience ne peut prouver. 3. Écouter avant de mesurer. 4 et 5 : selon la partie." },
 });
 
 // ---- src/data/fins.js
@@ -3514,6 +4580,15 @@ SIG.State = (function () {
     }
   }
 
+  // Fixe la valeur d'un compteur (ex. actions du jour remises à 2 chaque matin).
+  function applySetv(st, sv) {
+    if (!sv || typeof sv !== 'object') return;
+    for (const k of Object.keys(sv)) {
+      if (kindOf(k) !== 'v') throw new Error(`setv sur un compteur non déclaré « ${k} »`);
+      st.vars[k] = U.clamp(Number(sv[k]) || 0, 0, 100);
+    }
+  }
+
   // Retire un élément d'une liste (ex. un fragment laissé derrière soi).
   function applyRemove(st, rem) {
     if (!rem || typeof rem !== 'object') return;
@@ -3564,7 +4639,7 @@ SIG.State = (function () {
     return st;
   }
 
-  return { create, migrate, get, kindOf, scope, test, applyFx, applySet, applyAdd, applyRemove, snapshot, restore, random };
+  return { create, migrate, get, kindOf, scope, test, applyFx, applySet, applyAdd, applyRemove, applySetv, snapshot, restore, random };
 })();
 
 // ---- src/engine/story.js
@@ -3580,6 +4655,7 @@ SIG.Story = (function () {
   function interpolate(st, text) {
     return String(text).replace(/\{\{\s*([a-z_]+)\s*\}\}/g, (m, name) => {
       if (name === 'heure') return clock(st, scenes()[st.scene]);
+      if (name === 'date') { const j = St.get(st, 'jour'); return `${3 + j} mars`; }
       if (name === 'gestes') return String((st.lists.actes || []).length);
       // {{n_fragments}} : taille d'une liste.
       if (name.startsWith('n_') && st.lists[name.slice(2)]) return String(st.lists[name.slice(2)].length);
@@ -3653,6 +4729,7 @@ SIG.Story = (function () {
     St.applyFx(st, sc.fx);
     St.applySet(st, sc.set);
     St.applyAdd(st, sc.add);
+    St.applySetv(st, sc.setv);
     for (const c of sc.codex || []) if (!st.codex.includes(c)) st.codex.push(c);
     if (sc.kind !== 'chapter' && sc.kind !== 'fin') st.screens++;
     st.words += words(st, sc);
@@ -3672,6 +4749,7 @@ SIG.Story = (function () {
     St.applySet(st, c.set);
     St.applyAdd(st, c.add);
     St.applyRemove(st, c.remove);
+    St.applySetv(st, c.setv);
     if (c.codex && !st.codex.includes(c.codex)) st.codex.push(c.codex);
     if (c.log) st.journal.push({ ch: st.ch, t: clock(st, sc), txt: c.log, mark: !!c.mark });
     st.chosen[`${sc.id}#${idx}`] = true;
@@ -3685,6 +4763,11 @@ SIG.Story = (function () {
   // restant (en minutes). Sinon, l'heure fixe de la scène.
   function clock(st, scene) {
     const ch = chapter(st.ch);
+    // Calendrier (chapitre 3) : « J6 · 9 MARS ».
+    if (ch && ch.calendar) {
+      const j = St.get(st, 'jour');
+      return `J${j} · ${ch.calendar.first + j - 1} MARS`;
+    }
     if (ch && ch.clock && ch.clock.end) {
       const [h, m] = ch.clock.end.split(':').map(Number);
       const t = Math.max(0, h * 60 + m - Math.round(st.temps));
@@ -4807,6 +5890,208 @@ SIG.Gfx = (function () {
             g.globalAlpha *= got ? 0.25 : 0.06;
             g.fill();
           });
+          g.globalAlpha = 1;
+        },
+        dispose() {},
+      };
+    },
+  });
+})();
+
+// ---- src/three/couloir.js
+// Ch.3 LES QUATORZE JOURS : un couloir de baies serveurs en perspective. Les zones visitées s'allument
+// (params.lit : pistes déjà suivies), une menace rouge se rapproche du fond (params.menace 0 → 1),
+// le Prisonnier est un point lointain qui pulse (params.prisonnier), et un calendrier de 14 cases
+// suit les jours (params.jour).
+(function () {
+  const ZONES = ['remi', 'serveurs', 'james', 'humain', 'prisonnier', 'apprendre', 'repos'];
+  const ZCOL = [0xf0c674, 0x8be9fd, 0x50fa7b, 0x8be9fd, 0xff5555, 0xbd93f9, 0xffb347];
+
+  function targets(p) {
+    return {
+      lit: Array.isArray(p.lit) ? p.lit : [],
+      // menace : 0 → 1, ou un pourcentage (compteur « menace » de l'état, 0 → 100).
+      menace: Math.max(0, Math.min(1, typeof p.menace === 'number' ? (p.menace > 1 ? p.menace / 100 : p.menace) : 0)),
+      prisonnier: !!p.prisonnier,
+      jour: Math.max(1, Math.min(14, p.jour || 1)),
+      focus: p.focus || null,
+    };
+  }
+
+  SIG.Gfx.register3d('couloir', {
+    create(ctx) {
+      const { THREE, scene, camera, quality } = ctx;
+      const racksPerSide = quality === 'high' ? 14 : 9;
+      const depth = 2.6;
+      // Baies : InstancedMesh (une seule géométrie, un seul matériau), des deux côtés du couloir.
+      const rackGeo = new THREE.BoxGeometry(1.2, 3.2, 2.2);
+      const rackMat = new THREE.MeshBasicMaterial({ color: 0x14110a });
+      const racks = new THREE.InstancedMesh(rackGeo, rackMat, racksPerSide * 2);
+      const m = new THREE.Matrix4();
+      for (let i = 0; i < racksPerSide; i++) {
+        m.makeTranslation(-2.4, 0, -i * depth); racks.setMatrixAt(i * 2, m);
+        m.makeTranslation(2.4, 0, -i * depth); racks.setMatrixAt(i * 2 + 1, m);
+      }
+      scene.add(racks);
+      const edges = new THREE.LineSegments(new THREE.EdgesGeometry(rackGeo), new THREE.LineBasicMaterial({ color: 0x3a2f18 }));
+      const edgeGroup = new THREE.Group();
+      for (let i = 0; i < racksPerSide; i++) for (const x of [-2.4, 2.4]) { const e = edges.clone(); e.position.set(x, 0, -i * depth); edgeGroup.add(e); }
+      scene.add(edgeGroup);
+
+      // Diodes : un nuage de points sur la face des baies ; chaque zone a sa couleur quand elle s'allume.
+      const perRack = 26;
+      const n = racksPerSide * 2 * perRack;
+      const pos = new Float32Array(n * 3);
+      const col = new Float32Array(n * 3);
+      const zoneOf = new Uint8Array(n);
+      const rng = SIG.util.rng(314);
+      let k = 0;
+      for (let i = 0; i < racksPerSide; i++) {
+        for (const side of [-1, 1]) {
+          for (let d = 0; d < perRack; d++) {
+            pos[k * 3] = side * 1.78;
+            pos[k * 3 + 1] = -1.4 + rng() * 2.8;
+            pos[k * 3 + 2] = -i * depth + (rng() - 0.5) * 1.9;
+            zoneOf[k] = Math.floor(i / Math.max(1, racksPerSide / ZONES.length)) % ZONES.length;
+            k++;
+          }
+        }
+      }
+      const ledGeo = new THREE.BufferGeometry();
+      ledGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      ledGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+      const leds = new THREE.Points(ledGeo, new THREE.PointsMaterial({ size: 0.07, vertexColors: true, transparent: true, opacity: 0.95, depthWrite: false }));
+      scene.add(leds);
+
+      // Sol : quelques lignes de fuite.
+      const floorPts = [];
+      for (const x of [-1.6, -0.8, 0, 0.8, 1.6]) floorPts.push(x, -1.6, 2, x, -1.6, -racksPerSide * depth);
+      const floor = new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(new Float32Array(floorPts), 3)), new THREE.LineBasicMaterial({ color: 0x2a2212, transparent: true, opacity: 0.8 }));
+      scene.add(floor);
+
+      // Menace : une lumière rouge qui avance du fond. Le Prisonnier : un point au-delà du couloir.
+      const tex = (() => {
+        const c = document.createElement('canvas'); c.width = c.height = 64;
+        const g = c.getContext('2d'); const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+        gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.3, 'rgba(255,255,255,0.4)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+        g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c);
+      })();
+      const threat = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: 0xff3b3b, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+      threat.scale.set(3, 3, 1);
+      scene.add(threat);
+      const pris = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: 0xff7755, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+      pris.position.set(0, 0.3, -racksPerSide * depth - 8);
+      scene.add(pris);
+
+      // Calendrier : 14 cases accrochées à la caméra, en haut.
+      const cal = new THREE.Group();
+      const cells = [];
+      for (let d = 0; d < 14; d++) {
+        const cell = new THREE.Mesh(new THREE.PlaneGeometry(0.11, 0.11), new THREE.MeshBasicMaterial({ color: 0xffb347, transparent: true, opacity: 0.15, depthTest: false }));
+        cell.position.set(-0.85 + d * 0.13, 0, 0);
+        cal.add(cell);
+        cells.push(cell);
+      }
+      cal.position.set(0, 0.9, -3);
+      camera.add(cal);
+      scene.add(camera);
+
+      const cOn = ZCOL.map((c) => new THREE.Color(c));
+      const cOff = new THREE.Color(0x2d2a22);
+      let T = targets({});
+      let menace = 0;
+      let pulse = 0;
+      SIG.Gfx.onBeat(() => { pulse = 1; });
+      let z = 3;
+
+      return {
+        setParams(p) { T = targets(p); },
+        update(dt, t, io) {
+          const kk = 1 - Math.pow(0.05, dt);
+          menace += (T.menace - menace) * kk * 0.5;
+          pulse = Math.max(0, pulse - dt * 2);
+          // Lente marche dans le couloir, en boucle.
+          z -= dt * 0.35;
+          if (z < -racksPerSide * depth * 0.55) z = 3;
+          const drag = io && io.drag ? io.drag.x * 0.002 : 0;
+          camera.position.set(Math.sin(t * 0.1) * 0.2 + drag, 0.1, z);
+          camera.lookAt(Math.sin(t * 0.07) * 0.3, 0, z - 10);
+          // Diodes : zones visitées allumées, les autres en veille.
+          for (let i = 0; i < n; i++) {
+            const zi = zoneOf[i];
+            const on = T.lit.includes(ZONES[zi]) || T.focus === ZONES[zi];
+            const c = on ? cOn[zi] : cOff;
+            const tw = on ? 0.6 + 0.4 * Math.sin(t * 3 + i) : 0.4 + 0.2 * Math.sin(t * 0.7 + i * 1.3);
+            col[i * 3] = c.r * tw; col[i * 3 + 1] = c.g * tw; col[i * 3 + 2] = c.b * tw;
+          }
+          ledGeo.attributes.color.needsUpdate = true;
+          threat.material.opacity = menace * (0.6 + 0.4 * Math.sin(t * 4));
+          threat.position.set(0, 0.2, z - 24 + menace * 16);
+          pris.material.opacity = T.prisonnier ? 0.35 + pulse * 0.6 : 0;
+          pris.scale.setScalar(1.5 + pulse * 1.2);
+          cells.forEach((c, d) => {
+            c.material.opacity = d < T.jour - 1 ? 0.55 : d === T.jour - 1 ? 0.95 : 0.12;
+            c.material.color.setHex(d === 5 || d === 8 || d === 10 ? 0xff5555 : 0xffb347);
+          });
+        },
+        dispose() {
+          camera.remove(cal);
+          for (const c of cells) { c.geometry.dispose(); c.material.dispose(); }
+          tex.dispose();
+        },
+      };
+    },
+  });
+
+  SIG.Gfx.register2d('couloir', {
+    create(ctx) {
+      const { canvas, g } = ctx;
+      let T = targets({});
+      let pulse = 0;
+      SIG.Gfx.onBeat(() => { pulse = 1; });
+      let off = 0;
+      return {
+        setParams(p) { T = targets(p); },
+        update(dt, t) {
+          pulse = Math.max(0, pulse - dt * 2);
+          off = (off + dt * 0.08) % 1;
+          const w = canvas.width; const h = canvas.height;
+          g.fillStyle = '#040300'; g.fillRect(0, 0, w, h);
+          const cx = w / 2; const cy = h * 0.4;
+          // Lignes de fuite et baies en perspective.
+          g.strokeStyle = '#3a2f18'; g.lineWidth = Math.max(1, w / 600);
+          for (let i = 0; i < 10; i++) {
+            const d = (i + off) / 10; const s = 1 - d;
+            const x1 = cx - w * 0.45 * s; const x2 = cx + w * 0.45 * s;
+            const top = cy - h * 0.35 * s; const bot = cy + h * 0.35 * s;
+            g.globalAlpha = 0.25 + s * 0.6;
+            g.strokeRect(x1, top, w * 0.06 * s, bot - top);
+            g.strokeRect(x2 - w * 0.06 * s, top, w * 0.06 * s, bot - top);
+            const zi = i % ZONES.length;
+            const on = T.lit.includes(ZONES[zi]);
+            g.fillStyle = on ? '#' + ZCOL[zi].toString(16).padStart(6, '0') : '#2d2a22';
+            for (let l = 0; l < 4; l++) {
+              g.fillRect(x1 + w * 0.03 * s, top + (l + 1) * (bot - top) / 6, 3, 3);
+              g.fillRect(x2 - w * 0.03 * s, top + (l + 1) * (bot - top) / 6, 3, 3);
+            }
+          }
+          g.globalAlpha = 1;
+          if (T.menace > 0.02) {
+            const r = h * (0.05 + T.menace * 0.15);
+            const gr = g.createRadialGradient(cx, cy, 0, cx, cy, r);
+            gr.addColorStop(0, `rgba(255,60,60,${0.5 * T.menace})`); gr.addColorStop(1, 'rgba(255,60,60,0)');
+            g.fillStyle = gr; g.fillRect(cx - r, cy - r, r * 2, r * 2);
+          }
+          if (T.prisonnier) {
+            g.fillStyle = `rgba(255,120,85,${0.4 + pulse * 0.6})`;
+            g.beginPath(); g.arc(cx, cy, 3 + pulse * 4, 0, Math.PI * 2); g.fill();
+          }
+          const cell = Math.min(w / 22, 22);
+          for (let d = 0; d < 14; d++) {
+            g.globalAlpha = d < T.jour - 1 ? 0.55 : d === T.jour - 1 ? 0.95 : 0.15;
+            g.fillStyle = d === 5 || d === 8 || d === 10 ? '#ff5555' : '#ffb347';
+            g.fillRect(cx - 7 * cell * 1.2 + d * cell * 1.2, h * 0.08, cell, cell);
+          }
           g.globalAlpha = 1;
         },
         dispose() {},

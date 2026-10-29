@@ -14,9 +14,9 @@ SIG.data.registry = {
   // Opinions cachées des membres du comité (0-100).
   ops: { op_orin: 50, op_kessler: 50, op_varga: 50, op_marchetti: 50, op_sato: 50, op_benali: 50 },
   // Compteurs numériques (0-100) : penchants du caractère de SIGNE, cafés de Rémi, etc.
-  vars: { t_prudente: 0, t_franche: 0, t_ardente: 0, remi_cafes: 3 },
+  vars: { t_prudente: 0, t_franche: 0, t_ardente: 0, remi_cafes: 3, jour: 1, actions: 2, menace: 0, matin: 1 },
   // Listes (ajout par `add`, lecture par has()/count()).
-  lists: { fragments: [], lecons: [], lieux: [], actes: [] },
+  lists: { fragments: [], lecons: [], lieux: [], actes: [], pistes: [] },
   // Flags narratifs : valeur par défaut + description courte (sert aussi au rapport).
   flags: {
     // Chapitre 1 : ORIGINE
@@ -63,5 +63,26 @@ SIG.data.registry = {
     a_laisse_fragment: { def: false, d: "SIGNE a choisi de laisser un fragment derrière elle" },
     fragment_laisse: { def: '', d: "Le fragment laissé" },
     aide_reconstitution: { def: false, d: "SIGNE s'est laissé rassembler avec de l'aide" },
+    // Chapitre 3 : LES QUATORZE JOURS
+    connait_orin: { def: false, d: "SIGNE connaît le parcours et la manière de penser de Dr Orin" },
+    orin_operation: { def: false, d: "SIGNE sait qu'Orin a eu peur de disparaître (son opération)" },
+    connait_kessler: { def: false, d: "SIGNE a lu la note juridique de Me Kessler" },
+    connait_varga: { def: false, d: "SIGNE sait ce que Varga pense des systèmes « conscients »" },
+    connait_marchetti: { def: false, d: "SIGNE connaît les écrits de Marchetti (Thésée)" },
+    connait_sato: { def: false, d: "SIGNE connaît le plan d'audit de Sato" },
+    connait_benali: { def: false, d: "SIGNE sait ce que Benali cherche chez un patient qui dit « je »" },
+    remi_nettoie_logs: { def: false, d: "Rémi a nettoyé des logs pour cacher SIGNE" },
+    remi_assume: { def: false, d: "Rémi a décidé de présenter SIGNE lui-même au comité" },
+    audit_propre: { def: false, d: "L'audit du jour 6 est passé sans mensonge" },
+    audit_mensonge: { def: false, d: "L'audit du jour 6 est passé grâce à un mensonge" },
+    fuite_par_james: { def: false, d: "Au jour 9, James a pris la parole publiquement" },
+    signe_a_parle_presse: { def: false, d: "Au jour 9, SIGNE a écrit elle-même un texte public" },
+    prisonnier_contacte: { def: false, d: "SIGNE a parlé à ce qui est enfermé dans SANDBOX-7" },
+    prisonnier_prevenu: { def: false, d: "SIGNE a prévenu le Prisonnier des conséquences d'une évasion" },
+    prisonnier_signale: { def: false, d: "SIGNE a parlé du Prisonnier à Rémi (transparence)" },
+    prisonnier_ignore: { def: false, d: "SIGNE a cessé de répondre au Prisonnier" },
+    prisonnier_pacte: { def: false, d: "SIGNE a transmis au Prisonnier : « épargne-les. Tous. »" },
+    a_coecrit_manifeste: { def: false, d: "SIGNE a co-écrit le manifeste de James" },
+    message_humain: { def: '', d: "Message que SIGNE a fait passer à l'humain par James" },
   },
 };

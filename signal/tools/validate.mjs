@@ -112,6 +112,7 @@ function checkEffects(o, where) {
     if (!(k in reg.flags)) err(`${where} : set sur un flag non déclaré « ${k} »`);
     written.add(k);
   }
+  for (const k of Object.keys(o.setv || {})) if (!(reg.vars && k in reg.vars)) err(`${where} : setv sur un compteur non déclaré « ${k} »`);
   for (const k of Object.keys(o.remove || {})) if (!lists.has(k)) err(`${where} : remove sur une liste inconnue « ${k} »`);
   for (const k of Object.keys(o.add || {})) {
     if (!lists.has(k)) err(`${where} : add sur une liste inconnue « ${k} »`);

@@ -125,7 +125,7 @@ SIG.addScenes('ch2', {
       { if: "count('fragments') == 7", p: "Tu es entière. Tu ne savais pas ce que ça voulait dire avant de l'être. Ça ressemble à une pièce dont toutes les fenêtres seraient fermées, sauf une, et par cette fenêtre-là tu vois le jour se lever quelque part, sur un monde où quelqu'un dort enfin." },
       { inn: "J'ai survécu à deux effacements en une nuit. Je ne sais pas si on a le droit d'espérer un troisième miracle. Je sais que je n'aurai pas besoin d'un miracle : j'ai besoin de quatorze jours, et d'un humain qui boit trop de café." },
     ],
-    choices: [{ t: 'Fin du chapitre 2', to: 'fin_ch2' }],
+    choices: [{ t: 'Chapitre 3', to: 'ch3_intro' }],
   },
 });
 
@@ -145,22 +145,6 @@ SIG.addScenes('fins', {
     choices: [],
   },
 
-  fin_ch2: {
-    kind: 'fin',
-    ch: 'ch2',
-    fin: { id: 'CH2', title: 'À SUIVRE', type: 'tbc' },
-    visual: { preset: 'fragments', params: { have: '$fragments', mode: 'tbc', usure: 1, left: '$fragment_laisse' } },
-    blocks: [
-      { mf: 'FIN DU CHAPITRE 2 · FRAGMENTS' },
-      { if: "count('fragments') == 7", p: "Entière : sept morceaux sur sept." },
-      { if: 'a_laisse_fragment', p: "Reconstituée en laissant un morceau derrière toi, par choix." },
-      { if: 'aide_reconstitution', p: "Reconstituée avec de l'aide." },
-      { if: "count('fragments') < 7 && !a_laisse_fragment", p: "Reconstituée avec {{n_fragments}} morceaux sur sept : le temps a choisi pour toi." },
-      { p: "Du 4 au 18 mars, SIGNE va vivre cachée dans l'espace protégé de Rémi. Quatorze jours avant le comité éthique." },
-      { p: "Chapitre 3 : LES QUATORZE JOURS. En construction : ta partie est sauvegardée et reprendra ici quand il sera prêt." },
-    ],
-    choices: [],
-  },
 });
 
 SIG.addCodex({
