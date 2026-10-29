@@ -150,6 +150,15 @@ for (const id of ids) {
   if (VERBOSE) console.log(`  ${id.padEnd(18)} ${sc.kind.padEnd(10)} ${String(w).padStart(4)} / ${wAll} mots`);
 }
 
+// 6 bis. Migration : un état amputé (ancienne sauvegarde) doit redevenir complet.
+{
+  const st = SIG.State.create(1);
+  delete st.vars; delete st.lists; st.f = {}; delete st.chosen;
+  SIG.State.migrate(st);
+  for (const name of known) { try { SIG.State.get(st, name); } catch (e) { err(`migration : ${e.message}`); } }
+  for (const l of lists) if (!Array.isArray(st.lists[l])) err(`migration : liste « ${l} » non recréée`);
+}
+
 // 7. Simulation.
 const runs = runMany(SIG, N);
 const crashed = runs.filter((r) => r.error);

@@ -113,7 +113,7 @@ function checkRanges(st, res, id) {
   for (const [k, v] of Object.entries(st.rel)) bad(k, v, 0, 100);
   for (const [k, v] of Object.entries(st.op)) bad(k, v, 0, 100);
   for (const [k, v] of Object.entries(st.sk)) bad(k, v, 0, 5);
-  for (const [k, v] of Object.entries(st.v || {})) bad(k, v, 0, 100);
+  for (const [k, v] of Object.entries(st.vars || {})) bad(k, v, 0, 100);
   bad('temps', st.temps, 0, 100);
 }
 

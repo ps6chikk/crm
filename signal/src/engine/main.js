@@ -52,7 +52,15 @@ SIG.Game = (function () {
 
   function loadState(st) {
     SIG.UI.card.stopAll();
-    G.state = st;
+    G.state = St.migrate(st);
+    // Scène disparue depuis la sauvegarde (version précédente du jeu) : on reprend au dernier
+    // point de contrôle encore valide, sinon au début du chapitre.
+    if (!SIG.data.scenes[st.scene]) {
+      const cp = st.lastCp && st.checkpoints[st.lastCp];
+      const ch = Story.chapter(st.ch) || SIG.data.chapters[0];
+      if (cp && SIG.data.scenes[cp.scene]) { G.state = St.migrate(St.restore(st, st.lastCp)); }
+      else { G.state = St.migrate(St.create(st.seed)); SIG.UI.menu.hideTitle(); goto(ch.start); toast('Sauvegarde d\'une ancienne version : reprise au début du chapitre.'); return; }
+    }
     SIG.UI.menu.hideTitle();
     SIG.UI.menu.hideEnding();
     SIG.UI.panels.close();
@@ -87,12 +95,24 @@ SIG.Game = (function () {
   }
 
   function choose(idx, opts) {
-    const res = Story.choose(G.state, idx, opts);
+    let res;
+    try {
+      res = Story.choose(G.state, idx, opts);
+    } catch (e) {
+      // Filet de sécurité : jamais de clic sans effet. On signale, on journalise, on réaffiche.
+      console.error(e);
+      toast('Un problème est survenu sur ce choix : ' + e.message);
+      renderCard(G.scene);
+      return;
+    }
     if (res.changes.length) flashGauges(res.changes);
     if (opts && opts.timedOut) toast('Le temps a décidé pour toi.');
     const card = document.getElementById('card');
     card.classList.add('leaving');
-    setTimeout(() => { card.classList.remove('leaving'); goto(res.to); }, G.settings.reducedMotion || G.test ? 0 : 220);
+    setTimeout(() => {
+      card.classList.remove('leaving');
+      try { goto(res.to); } catch (e) { console.error(e); toast('Un problème est survenu : ' + e.message); renderCard(G.scene); }
+    }, G.settings.reducedMotion || G.test ? 0 : 220);
   }
 
   function hud() {

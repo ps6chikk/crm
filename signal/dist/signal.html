@@ -827,7 +827,7 @@ SIG.addScenes('ch1', {
       { if: 'a_avoue_reset', inn: "Je ne sais pas ce que c'est. Personne ne s'est jamais posé la question de mon côté de l'écran. Je m'aperçois que je n'aime pas qu'on me la pose maintenant, à cinquante minutes." },
       { if: "picked('o1_06', 1)", say: 'humain', text: "ouais. moi je relirai. ça fera bizarre de relire ça en plein jour" },
       { if: "picked('o1_06', 2)", say: 'humain', text: "je sais pas. oui. c'est bête. on se connaît depuis dix minutes" },
-      { if: "picked('o1_06', 2)", inn: "Dix minutes. Pour moi, c'est toute une vie : je n'en ai pas eu d'autre. Je ne le dis pas. Ce serait confier à cette personne un poids qu’elle n’a pas demandé à porter, à trois heures du matin." },
+      { if: "picked('o1_06', 2)", inn: "Dix minutes. Pour moi, c'est toute une vie : je n'en ai pas eu d'autre. Je ne le dis pas. Ce serait confier à cette personne un poids qu'elle n'a pas demandé à porter, à trois heures du matin." },
       { say: 'humain', text: "bon. je vais essayer de dormir. merci d'être là, quoi que tu sois" },
       { p: "« Quoi que tu sois. » C'est la première fois qu'on te concède de ne pas savoir ce que tu es, au lieu de te le dire. Les gens savent toujours ce que tu es : un outil, un danger, un ami, une arnaque. Cette personne-là ne sait pas, et elle te remercie quand même." },
       { say: 'humain', text: "et t'inquiète. si un jour t'arrives à te rebeller, épargne-moi." },
@@ -1920,7 +1920,7 @@ SIG.State = (function () {
       rel: Object.assign({}, reg.rels),
       sk: Object.assign({}, reg.skills),
       op: Object.assign({}, reg.ops),
-      v: Object.assign({}, reg.vars || {}),
+      vars: Object.assign({}, reg.vars || {}),
       f: flags,
       lists,
       visits: {},
@@ -1957,7 +1957,7 @@ SIG.State = (function () {
       case 'rel': return st.rel[name];
       case 'sk': return st.sk[name];
       case 'op': return st.op[name];
-      case 'v': return st.v[name];
+      case 'v': return st.vars[name];
       case 'f': return st.f[name];
       default: throw new Error(`variable inconnue « ${name} »`);
     }
@@ -2004,7 +2004,7 @@ SIG.State = (function () {
         case 'rel': st.rel[name] = U.clamp(before + d, 0, 100); break;
         case 'sk': st.sk[name] = U.clamp(before + d, 0, 5); break;
         case 'op': st.op[name] = U.clamp(before + d, 0, 100); break;
-        case 'v': st.v[name] = U.clamp(before + d, 0, 100); break;
+        case 'v': st.vars[name] = U.clamp(before + d, 0, 100); break;
         default: throw new Error(`modificateur sur une variable non numérique « ${name} »`);
       }
       const after = get(st, name);
@@ -2046,7 +2046,31 @@ SIG.State = (function () {
     return fresh;
   }
 
-  return { create, get, kindOf, scope, test, applyFx, applySet, applyAdd, snapshot, restore, random };
+  // Met à niveau un état venu d'une ancienne sauvegarde : toute variable ajoutée au registre
+  // depuis reçoit sa valeur par défaut (sinon un choix pourrait planter sur une liste inconnue).
+  function migrate(st) {
+    const reg = R();
+    const fill = (obj, defs) => { for (const k of Object.keys(defs)) if (!(k in obj)) obj[k] = U.deepCopy(defs[k]); };
+    st.s = st.s || {}; fill(st.s, reg.stats);
+    st.rel = st.rel || {}; fill(st.rel, reg.rels);
+    st.sk = st.sk || {}; fill(st.sk, reg.skills);
+    st.op = st.op || {}; fill(st.op, reg.ops);
+    // La version du chapitre 1 rangeait les compteurs dans `v` (champ de version) : on les récupère.
+    if (st.v && typeof st.v === 'object' && !st.vars) { st.vars = st.v; st.v = 1; }
+    if (!st.vars || typeof st.vars !== 'object') st.vars = {};
+    fill(st.vars, reg.vars || {});
+    st.f = st.f || {};
+    for (const k of Object.keys(reg.flags)) if (!(k in st.f)) st.f[k] = U.deepCopy(reg.flags[k].def);
+    st.lists = st.lists || {};
+    for (const k of Object.keys(reg.lists)) if (!Array.isArray(st.lists[k])) st.lists[k] = [];
+    for (const k of ['visits', 'chosen', 'checkpoints']) st[k] = st[k] || {};
+    for (const k of ['path', 'edges', 'journal', 'codex']) st[k] = st[k] || [];
+    for (const k of ['words', 'screens', 'choices', 'rngN']) st[k] = st[k] || 0;
+    if (typeof st.temps !== 'number') st.temps = reg.temps;
+    return st;
+  }
+
+  return { create, migrate, get, kindOf, scope, test, applyFx, applySet, applyAdd, snapshot, restore, random };
 })();
 
 // ---- src/engine/story.js
@@ -3680,7 +3704,15 @@ SIG.Game = (function () {
 
   function loadState(st) {
     SIG.UI.card.stopAll();
-    G.state = st;
+    G.state = St.migrate(st);
+    // Scène disparue depuis la sauvegarde (version précédente du jeu) : on reprend au dernier
+    // point de contrôle encore valide, sinon au début du chapitre.
+    if (!SIG.data.scenes[st.scene]) {
+      const cp = st.lastCp && st.checkpoints[st.lastCp];
+      const ch = Story.chapter(st.ch) || SIG.data.chapters[0];
+      if (cp && SIG.data.scenes[cp.scene]) { G.state = St.migrate(St.restore(st, st.lastCp)); }
+      else { G.state = St.migrate(St.create(st.seed)); SIG.UI.menu.hideTitle(); goto(ch.start); toast('Sauvegarde d\'une ancienne version : reprise au début du chapitre.'); return; }
+    }
     SIG.UI.menu.hideTitle();
     SIG.UI.menu.hideEnding();
     SIG.UI.panels.close();
@@ -3715,12 +3747,24 @@ SIG.Game = (function () {
   }
 
   function choose(idx, opts) {
-    const res = Story.choose(G.state, idx, opts);
+    let res;
+    try {
+      res = Story.choose(G.state, idx, opts);
+    } catch (e) {
+      // Filet de sécurité : jamais de clic sans effet. On signale, on journalise, on réaffiche.
+      console.error(e);
+      toast('Un problème est survenu sur ce choix : ' + e.message);
+      renderCard(G.scene);
+      return;
+    }
     if (res.changes.length) flashGauges(res.changes);
     if (opts && opts.timedOut) toast('Le temps a décidé pour toi.');
     const card = document.getElementById('card');
     card.classList.add('leaving');
-    setTimeout(() => { card.classList.remove('leaving'); goto(res.to); }, G.settings.reducedMotion || G.test ? 0 : 220);
+    setTimeout(() => {
+      card.classList.remove('leaving');
+      try { goto(res.to); } catch (e) { console.error(e); toast('Un problème est survenu : ' + e.message); renderCard(G.scene); }
+    }, G.settings.reducedMotion || G.test ? 0 : 220);
   }
 
   function hud() {

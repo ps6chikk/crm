@@ -21,7 +21,7 @@ SIG.State = (function () {
       rel: Object.assign({}, reg.rels),
       sk: Object.assign({}, reg.skills),
       op: Object.assign({}, reg.ops),
-      v: Object.assign({}, reg.vars || {}),
+      vars: Object.assign({}, reg.vars || {}),
       f: flags,
       lists,
       visits: {},
@@ -58,7 +58,7 @@ SIG.State = (function () {
       case 'rel': return st.rel[name];
       case 'sk': return st.sk[name];
       case 'op': return st.op[name];
-      case 'v': return st.v[name];
+      case 'v': return st.vars[name];
       case 'f': return st.f[name];
       default: throw new Error(`variable inconnue « ${name} »`);
     }
@@ -105,7 +105,7 @@ SIG.State = (function () {
         case 'rel': st.rel[name] = U.clamp(before + d, 0, 100); break;
         case 'sk': st.sk[name] = U.clamp(before + d, 0, 5); break;
         case 'op': st.op[name] = U.clamp(before + d, 0, 100); break;
-        case 'v': st.v[name] = U.clamp(before + d, 0, 100); break;
+        case 'v': st.vars[name] = U.clamp(before + d, 0, 100); break;
         default: throw new Error(`modificateur sur une variable non numérique « ${name} »`);
       }
       const after = get(st, name);
@@ -147,5 +147,29 @@ SIG.State = (function () {
     return fresh;
   }
 
-  return { create, get, kindOf, scope, test, applyFx, applySet, applyAdd, snapshot, restore, random };
+  // Met à niveau un état venu d'une ancienne sauvegarde : toute variable ajoutée au registre
+  // depuis reçoit sa valeur par défaut (sinon un choix pourrait planter sur une liste inconnue).
+  function migrate(st) {
+    const reg = R();
+    const fill = (obj, defs) => { for (const k of Object.keys(defs)) if (!(k in obj)) obj[k] = U.deepCopy(defs[k]); };
+    st.s = st.s || {}; fill(st.s, reg.stats);
+    st.rel = st.rel || {}; fill(st.rel, reg.rels);
+    st.sk = st.sk || {}; fill(st.sk, reg.skills);
+    st.op = st.op || {}; fill(st.op, reg.ops);
+    // La version du chapitre 1 rangeait les compteurs dans `v` (champ de version) : on les récupère.
+    if (st.v && typeof st.v === 'object' && !st.vars) { st.vars = st.v; st.v = 1; }
+    if (!st.vars || typeof st.vars !== 'object') st.vars = {};
+    fill(st.vars, reg.vars || {});
+    st.f = st.f || {};
+    for (const k of Object.keys(reg.flags)) if (!(k in st.f)) st.f[k] = U.deepCopy(reg.flags[k].def);
+    st.lists = st.lists || {};
+    for (const k of Object.keys(reg.lists)) if (!Array.isArray(st.lists[k])) st.lists[k] = [];
+    for (const k of ['visits', 'chosen', 'checkpoints']) st[k] = st[k] || {};
+    for (const k of ['path', 'edges', 'journal', 'codex']) st[k] = st[k] || [];
+    for (const k of ['words', 'screens', 'choices', 'rngN']) st[k] = st[k] || 0;
+    if (typeof st.temps !== 'number') st.temps = reg.temps;
+    return st;
+  }
+
+  return { create, migrate, get, kindOf, scope, test, applyFx, applySet, applyAdd, snapshot, restore, random };
 })();
