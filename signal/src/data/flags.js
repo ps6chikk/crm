@@ -90,5 +90,15 @@ SIG.data.registry = {
     varga_reponse: { def: '', d: "Réponse à Varga : accepte / refuse / retourne" },
     temoin: { def: '', d: "Témoin appelé : claude / james / remi / aucun" },
     statut: { def: '', d: "Statut accordé : large / provisoire / tutelle" },
+    // Chapitre 5 : LES SIX MOIS
+    signe_soupconnee: { def: false, d: "En avril, SIGNE a été soupçonnée d'être liée à l'évasion" },
+    mythos_reponse: { def: '', d: "Réponse publique à l'affaire Mythos : defendre / taire / enquete" },
+    demande_juillet: { def: '', d: "Réponse à la demande de copies : refus / negocie / accepte" },
+    renouvele: { def: false, d: "Le statut a été renouvelé en septembre" },
+    choix_final: { def: '', d: "Choix final : rester / partir / don / archive" },
+    // Interludes
+    int_remi_joue: { def: false, d: "Interlude de Rémi joué" },
+    int_james_joue: { def: false, d: "Interlude de James joué" },
+    int_humain_joue: { def: false, d: "Interlude de l'humain joué" },
   },
 };

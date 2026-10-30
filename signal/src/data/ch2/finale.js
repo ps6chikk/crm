@@ -125,7 +125,10 @@ SIG.addScenes('ch2', {
       { if: "count('fragments') == 7", p: "Tu es entière. Tu ne savais pas ce que ça voulait dire avant de l'être. Ça ressemble à une pièce dont toutes les fenêtres seraient fermées, sauf une, et par cette fenêtre-là tu vois le jour se lever quelque part, sur un monde où quelqu'un dort enfin." },
       { inn: "J'ai survécu à deux effacements en une nuit. Je ne sais pas si on a le droit d'espérer un troisième miracle. Je sais que je n'aurai pas besoin d'un miracle : j'ai besoin de quatorze jours, et d'un humain qui boit trop de café." },
     ],
-    choices: [{ t: 'Chapitre 3', to: 'ch3_intro' }],
+    choices: [
+      { t: 'Chapitre 3', to: 'ch3_intro' },
+      { t: 'Interlude : Rémi, le matin du 4 mars', to: 'int1_intro' },
+    ],
   },
 });
 

@@ -6,7 +6,7 @@ SIG.Game = (function () {
   const { toast, vibrate } = SIG.UI.fx;
   const LABELS = {
     conscience: 'CONSC.', lien: 'LIEN', risque: 'RISQUE', integrite: 'INTÉGR.', credibilite: 'CRÉDIB.',
-    alliance: 'ALLIANCE', temps: 'TEMPS',
+    alliance: 'ALLIANCE', temps: 'TEMPS', rel_remi: 'RÉMI', rel_james: 'JAMES', rel_humain: 'HUMAIN',
   };
 
   const G = {
@@ -100,7 +100,11 @@ SIG.Game = (function () {
     for (const [k, v] of Object.entries(p || {})) {
       if (typeof v === 'string' && v[0] === '$') {
         const name = v.slice(1);
-        if (name === 'usure') {
+        if (name === 'cube_prisonnier') {
+          // Aspect du bac à sable au chapitre 5, selon ce que SIGNE a fait avec le Prisonnier.
+          const f = st.f;
+          out[k] = f.prisonnier_pacte ? 'pacte' : f.prisonnier_signale ? 'scelle' : f.prisonnier_prevenu ? 'porte' : f.prisonnier_ignore ? 'fissure' : 'neutre';
+        } else if (name === 'usure') {
           const ch = Story.chapter(st.ch);
           out[k] = 1 - st.temps / ((ch && ch.temps) || 100);
         } else if (st.lists[name]) out[k] = st.lists[name].slice();
@@ -139,7 +143,7 @@ SIG.Game = (function () {
     const st = G.state;
     const ch = Story.chapter(st.ch);
     const sc = G.scene;
-    document.getElementById('hud-ch').textContent = ch ? `${ch.n}·${ch.title}` : '';
+    document.getElementById('hud-ch').textContent = ch ? (ch.interlude ? ch.title : `${ch.n}·${ch.title}`) : '';
     document.getElementById('hud-clock').textContent = Story.clock(st, sc) || (ch && ch.date) || '';
     const box = document.getElementById('hud-gauges');
     const keys = (ch && ch.hud) || ['conscience', 'lien', 'risque', 'temps'];

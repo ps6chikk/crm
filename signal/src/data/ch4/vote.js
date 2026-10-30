@@ -114,8 +114,16 @@ SIG.addScenes('ch4', {
   },
 
   ch4_fin: {
-    kind: 'router',
-    route: [{ to: 'fin_ch4' }],
+    kind: 'hub',
+    visual: CH4_V({ mode: 'vote' }),
+    blocks: [
+      { mf: '18 MARS · 12:41 · FIN DE LA SÉANCE' },
+      { p: "Le soir même, une dépêche de trois lignes fera le tour des téléphones. Quelque part, dans une chambre noire, quelqu'un la lira trois fois." },
+    ],
+    choices: [
+      { t: 'Chapitre 5', to: 'ch5_intro' },
+      { t: "Interlude : l'humain, le soir du 18 mars", to: 'int3_intro' },
+    ],
   },
 });
 
@@ -134,15 +142,4 @@ SIG.addScenes('fins', {
     choices: [],
   },
 
-  fin_ch4: {
-    kind: 'fin',
-    ch: 'ch4',
-    fin: { id: 'CH4', title: 'À SUIVRE', type: 'tbc' },
-    visual: { preset: 'comite', params: { mode: 'vote', op_orin: 70, op_kessler: 60, op_varga: 40, op_marchetti: 70, op_sato: 60, op_benali: 70 } },
-    blocks: [
-      { mf: 'FIN DU CHAPITRE 4 · PROTOCOLE' },
-      { p: "Chapitre 5 : LES SIX MOIS. En construction." },
-    ],
-    choices: [],
-  },
 });

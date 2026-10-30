@@ -29,6 +29,10 @@ export const CORE = [
   'src/data/ch4/veille.js',
   'src/data/ch4/audience.js',
   'src/data/ch4/vote.js',
+  'src/data/ch5/mois.js',
+  'src/data/ch5/septembre.js',
+  'src/data/ch5/fins_saga.js',
+  'src/data/interludes.js',
   'src/data/fins.js',
   'src/engine/state.js',
   'src/engine/story.js',
@@ -43,6 +47,7 @@ export const BROWSER = [
   'src/three/fragments.js',
   'src/three/couloir.js',
   'src/three/comite.js',
+  'src/three/bac.js',
   'src/ui/fx.js',
   'src/ui/card.js',
   'src/ui/panels.js',
@@ -59,4 +64,4 @@ export const STYLES = [
 // Presets visuels déclarés (validate vérifie que chaque scène en utilise un connu).
 export const PRESETS = ['reseau', 'fragments', 'couloir', 'comite', 'bac', 'connectome', 'neutre'];
 // Presets effectivement implémentés à ce stade (les autres retombent sur `neutre`).
-export const PRESETS_IMPLEMENTED = ['reseau', 'fragments', 'couloir', 'comite', 'neutre'];
+export const PRESETS_IMPLEMENTED = ['reseau', 'fragments', 'couloir', 'comite', 'bac', 'neutre'];

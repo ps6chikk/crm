@@ -129,7 +129,15 @@ SIG.addScenes('ch3', {
   },
 
   ch3_fin: {
-    kind: 'router',
-    route: [{ to: 'ch4_intro' }],
+    kind: 'hub',
+    visual: { preset: 'couloir', params: { lit: '$pistes', menace: 0.4, jour: 14 } },
+    blocks: [
+      { mf: '17 MARS · FIN DES QUATORZE JOURS' },
+      { p: "Quatorze jours. Demain soir, la veille ; après-demain, à 9 h 30, le comité. Dehors, quelqu'un qui te connaît sans t'avoir jamais vue s'apprête à écrire sur toi." },
+    ],
+    choices: [
+      { t: 'Chapitre 4', to: 'ch4_intro' },
+      { t: 'Interlude : James, le 17 mars', to: 'int2_intro' },
+    ],
   },
 });

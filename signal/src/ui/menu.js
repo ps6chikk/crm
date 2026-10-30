@@ -54,7 +54,7 @@ SIG.UI.menu = (function () {
     const ch = SIG.Story.chapter(sc.ch);
     const ov = document.getElementById('cine');
     ov.innerHTML = '';
-    ov.appendChild(el('div', 'cine-n', `CHAPITRE ${ch.n}`));
+    ov.appendChild(el('div', 'cine-n', ch.interlude ? 'INTERLUDE' : `CHAPITRE ${ch.n}`));
     ov.appendChild(el('div', 'cine-title', esc(ch.title)));
     ov.appendChild(el('div', 'cine-sub', esc(ch.sub || '')));
     ov.appendChild(el('div', 'cine-date', esc(ch.date || '')));

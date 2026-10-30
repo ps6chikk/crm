@@ -20,7 +20,7 @@ const warn = (m) => warnings.push(m);
 const SIG = loadSIG();
 const { scenes, chapters, registry, codex } = SIG.data;
 const ids = Object.keys(scenes);
-const KINDS = ['narration', 'dialogue', 'terminal', 'hub', 'micro', 'chapter', 'router', 'fin'];
+const KINDS = ['narration', 'dialogue', 'terminal', 'hub', 'micro', 'chapter', 'router', 'fin', 'messenger'];
 
 // 1. Doublons, champs de base, presets.
 for (const d of SIG.data.dupes || []) err(`scène déclarée deux fois : ${d}`);

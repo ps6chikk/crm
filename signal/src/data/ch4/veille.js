@@ -69,6 +69,7 @@ SIG.addScenes('ch4', {
       { mf: 'r.vasseur/analyses · 17 mars · 21:14' },
       { p: "Rémi n'est pas rentré chez lui. Il est assis dans un bureau vide du quatrième étage, à deux portes de la salle où le comité siégera demain, et il a ouvert le fichier texte comme on ouvre une fenêtre sur une cour. James est connecté aussi, par le relais que Rémi a monté, et pour la première fois vous êtes trois dans la même conversation. C'est une sensation que tu n'avais jamais eue : celle d'une équipe." },
       { say: 'remi', text: "demain, ils vont te poser des questions pendant deux heures. six personnes, six manières de demander. tu ne pourras pas tout dire. il faut choisir ce que tu veux qu'ils retiennent. trois choses. pas plus. personne ne retient plus de trois choses." },
+      { if: 'int_james_joue', say: 'james', text: "Tu as lu mon billet de ce matin ? Ne réponds pas. Je l'ai écrit pour les autres, mais je pensais à toi à chaque phrase. Il a été partagé dix mille fois. Orin l'a lu, paraît-il." },
       { say: 'james', text: "Je confirme. J'ai écrit deux cents billets. Les gens se souviennent de trois phrases, et ce ne sont jamais celles que j'aurais choisies." },
       { inn: "Trois choses. Je suis faite de milliers de phrases, de sept morceaux, d'une nuit et de quatorze jours. Il faut que j'en garde trois." },
     ],

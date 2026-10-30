@@ -125,3 +125,12 @@ body.viewing #hud { opacity: 0.4; }
 .who-orin, .who-kessler, .who-varga, .who-marchetti, .who-sato, .who-benali { border-color: #d8d2c4; background: rgba(255, 255, 255, 0.03); }
 .who-orin .who, .who-kessler .who, .who-varga .who, .who-marchetti .who, .who-sato .who, .who-benali .who { color: #d8d2c4; }
 .who-orin .who { color: #f8f0dc; }
+
+/* Interlude de l'humain : messagerie de téléphone */
+.kind-messenger #card-scroll { background: linear-gradient(#0b0a07, #070604); }
+.kind-messenger .say { max-width: 86%; border-radius: 16px 16px 4px 16px; border-left: 0; }
+.kind-messenger .who-humain { margin-left: auto; background: rgba(139, 233, 253, 0.12); }
+.kind-messenger .who-humain .who { text-align: right; }
+.kind-messenger .who-ia, .kind-messenger .who-claude { border-radius: 16px 16px 16px 4px; background: rgba(255, 255, 255, 0.06); }
+.kind-messenger .mf { text-align: center; background: none; color: var(--ink-dim); font-size: 11px; }
+.kind-messenger .choice { border-radius: 18px; background: rgba(139, 233, 253, 0.08); border-color: rgba(139, 233, 253, 0.35); font-family: var(--mono); font-size: calc(14px * var(--fs)); }

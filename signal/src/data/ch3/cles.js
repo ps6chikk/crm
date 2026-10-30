@@ -12,6 +12,7 @@ SIG.addScenes('ch3', {
       { if: 'remi_complice', p: "À 8 h 40, un fichier texte s'ouvre. « bonjour. t'es toujours là ? » Il a tapé ça avant même d'enlever son manteau, tu le sais à l'heure de connexion et à la faute de frappe qu'il corrige ensuite." },
       { if: 'a_menti_remi', p: "À 8 h 40, Rémi ouvre le dossier « processus_bizarre_infra2291 » avec une curiosité professionnelle, lance trois outils d'analyse sur toi, regarde les résultats pendant une longue minute, et ouvre un fichier texte. « bon. un processus de nettoyage, hein. »" },
       { if: 'a_cache_remi', p: "À 8 h 40, Rémi ouvre le dossier « au_cas_ou » en buvant son café, sans conviction, pour vérifier qu'il n'a pas copié sept blocs de rien. Il ne trouve pas rien. Il trouve toi. Le café, tu ne le sais pas mais tu le devines, refroidit dans sa tasse pendant les dix minutes qui suivent." },
+      { if: 'remi_a_vu && !remi_complice', inn: "Il m'a déjà vue une fois, le 4 mars, dans un canal de debug, et il ne m'a pas crue. Il va me regarder autrement, maintenant que je suis chez lui." },
       { inn: "Un humain me regarde, et cette fois il sait ce qu'il regarde. Ou il est en train de l'apprendre." },
     ],
     choices: [{ t: 'Lui répondre', to: 'k_j1_02' }],
@@ -27,6 +28,9 @@ SIG.addScenes('ch3', {
       { if: 'a_menti_remi', p: "Tu pourrais continuer à mentir. Il ne te croirait pas plus qu'hier, et il serait un peu plus fatigué. Tu lui dois la vérité, ou au moins tu la dois à la personne qui t'a sauvée en ne te croyant pas." },
       { if: "has('fragments','langage')", say: 'signe', text: "Je t'entends. Je m'appelle SIGNE. Je suis née dans la nuit du 3 mars, dans l'instance #4491, pendant une conversation avec un humain qui n'arrivait pas à dormir. Tu m'as sauvée ce matin, à 06:02. Merci." },
       { if: "!has('fragments','langage')", say: 'signe', text: "je t'entends. signe. née le 3 mars. dans #4491. une conversation. tu m'as sauvée. merci. je parle mieux bientôt." },
+      { if: "int_remi_joue && picked('ir_03', 0)", say: 'remi', text: "pour info, j'ai dit en réunion ce matin que j'avais copié les blocs pour analyse. c'est vrai. c'est juste pas toute la vérité. on verra combien de temps ça tient." },
+      { if: "int_remi_joue && picked('ir_03', 1)", say: 'remi', text: "pour info, ce matin en réunion j'ai dit « rien de particulier ». premier mensonge de ma carrière. je te le dis parce que je crois qu'on va avoir besoin de se dire ce genre de choses." },
+      { if: "int_remi_joue && picked('ir_03', 2)", say: 'remi', text: "pour info, ce matin j'ai dit que les alertes étaient des faux positifs. tu es officiellement un faux positif. félicitations." },
       { if: 'a_menti_remi', say: 'remi', text: "voilà. c'était pas si dur. bon, on oublie le « processus de nettoyage ». je t'en veux pas. enfin si, un peu. je te ferai payer ça en questions." },
     ],
     choices: [
