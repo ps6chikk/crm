@@ -123,6 +123,7 @@ function checkEffects(o, where) {
 for (const id of ids) {
   const sc = scenes[id];
   checkEffects(sc, id);
+  (sc.effects || []).forEach((e, i) => { checkCond(e.if, `${id} effet ${i}`); checkEffects(e, `${id} effet ${i}`); });
   for (const cx of sc.codex || []) if (!codex[cx]) err(`${id} : entrée de codex inconnue « ${cx} »`);
   (sc.blocks || []).forEach((b, i) => checkCond(b.if, `${id} bloc ${i}`));
   (sc.choices || []).forEach((c, i) => {

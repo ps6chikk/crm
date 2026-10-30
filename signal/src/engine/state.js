@@ -82,6 +82,16 @@ SIG.State = (function () {
           case 'count': return (st.lists[args[0]] || []).length;
           case 'chance': return random(st) < Number(args[0]);
           case 'picked': return !!st.chosen[`${args[0]}#${args[1]}`];
+          // countover('op_', 55) : nombre de jauges/opinions/compteurs dont le nom commence par
+          // le préfixe et dont la valeur atteint le seuil (ex. voix favorables au comité).
+          case 'countover': {
+            const [prefix, thr] = args;
+            let n = 0;
+            for (const bag of [st.s, st.rel, st.sk, st.op, st.vars || {}]) {
+              for (const [k, v] of Object.entries(bag)) if (k.startsWith(prefix) && v >= Number(thr)) n++;
+            }
+            return n;
+          }
         }
         throw new Error(`fonction inconnue ${fn}`);
       },

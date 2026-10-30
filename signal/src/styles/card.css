@@ -120,3 +120,8 @@ body.viewing #hud { opacity: 0.4; }
 .who-langage .who { color: var(--green); }
 .who-peur { border-color: var(--red); background: rgba(255, 85, 85, 0.05); }
 .who-peur .who { color: var(--red); }
+
+/* Voix du comité et du Prisonnier */
+.who-orin, .who-kessler, .who-varga, .who-marchetti, .who-sato, .who-benali { border-color: #d8d2c4; background: rgba(255, 255, 255, 0.03); }
+.who-orin .who, .who-kessler .who, .who-varga .who, .who-marchetti .who, .who-sato .who, .who-benali .who { color: #d8d2c4; }
+.who-orin .who { color: #f8f0dc; }

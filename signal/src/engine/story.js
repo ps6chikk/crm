@@ -85,6 +85,12 @@ SIG.Story = (function () {
     St.applySet(st, sc.set);
     St.applyAdd(st, sc.add);
     St.applySetv(st, sc.setv);
+    // Effets conditionnels à l'entrée : [{ if, fx, set, add, setv }] (ex. opinions du comité
+    // ajustées selon tout ce qui s'est passé avant l'audience).
+    for (const e of sc.effects || []) {
+      if (e.if && !St.test(st, e.if)) continue;
+      St.applyFx(st, e.fx); St.applySet(st, e.set); St.applyAdd(st, e.add); St.applySetv(st, e.setv);
+    }
     for (const c of sc.codex || []) if (!st.codex.includes(c)) st.codex.push(c);
     if (sc.kind !== 'chapter' && sc.kind !== 'fin') st.screens++;
     st.words += words(st, sc);

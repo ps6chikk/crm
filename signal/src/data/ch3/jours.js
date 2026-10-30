@@ -130,6 +130,6 @@ SIG.addScenes('ch3', {
 
   ch3_fin: {
     kind: 'router',
-    route: [{ to: 'fin_ch3' }],
+    route: [{ to: 'ch4_intro' }],
   },
 });

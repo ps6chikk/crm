@@ -131,17 +131,6 @@ SIG.addScenes('fins', {
     choices: [],
   },
 
-  fin_ch3: {
-    kind: 'fin',
-    ch: 'ch3',
-    fin: { id: 'CH3', title: 'À SUIVRE', type: 'tbc' },
-    visual: { preset: 'couloir', params: { lit: '$pistes', menace: 0.4, jour: 14 } },
-    blocks: [
-      { mf: 'FIN DU CHAPITRE 3 · LES QUATORZE JOURS' },
-      { p: "Demain, 18 mars, 9 h 30. Chapitre 4 : PROTOCOLE. En construction." },
-    ],
-    choices: [],
-  },
 });
 
 SIG.addCodex({

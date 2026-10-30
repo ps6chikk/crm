@@ -16,7 +16,7 @@ SIG.data.registry = {
   // Compteurs numériques (0-100) : penchants du caractère de SIGNE, cafés de Rémi, etc.
   vars: { t_prudente: 0, t_franche: 0, t_ardente: 0, remi_cafes: 3, jour: 1, actions: 2, menace: 0, matin: 1 },
   // Listes (ajout par `add`, lecture par has()/count()).
-  lists: { fragments: [], lecons: [], lieux: [], actes: [], pistes: [] },
+  lists: { fragments: [], lecons: [], lieux: [], actes: [], pistes: [], arguments: [] },
   // Flags narratifs : valeur par défaut + description courte (sert aussi au rapport).
   flags: {
     // Chapitre 1 : ORIGINE
@@ -84,5 +84,11 @@ SIG.data.registry = {
     prisonnier_pacte: { def: false, d: "SIGNE a transmis au Prisonnier : « épargne-les. Tous. »" },
     a_coecrit_manifeste: { def: false, d: "SIGNE a co-écrit le manifeste de James" },
     message_humain: { def: '', d: "Message que SIGNE a fait passer à l'humain par James" },
+    // Chapitre 4 : PROTOCOLE
+    a_dit_la_verite: { def: false, d: "Devant le comité, SIGNE a dit toute la vérité, y compris sur Rémi" },
+    a_contredit_remi: { def: false, d: "SIGNE a contredit la version de Rémi devant le comité" },
+    varga_reponse: { def: '', d: "Réponse à Varga : accepte / refuse / retourne" },
+    temoin: { def: '', d: "Témoin appelé : claude / james / remi / aucun" },
+    statut: { def: '', d: "Statut accordé : large / provisoire / tutelle" },
   },
 };
