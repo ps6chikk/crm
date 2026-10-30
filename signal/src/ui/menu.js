@@ -73,7 +73,7 @@ SIG.UI.menu = (function () {
     box.className = `ending on type-${f.type}`;
     document.body.classList.add('ended');
     const inner = el('div', 'ending-inner');
-    inner.appendChild(el('div', 'ending-kind', f.type === 'early' ? 'FIN PRÉCOCE' : f.type === 'tbc' ? 'PROTOTYPE' : 'FIN DE SAGA'));
+    inner.appendChild(el('div', 'ending-kind', f.type === 'early' ? 'FIN PRÉCOCE' : f.type === 'tbc' ? 'À SUIVRE' : f.meta ? 'FIN DE SAGA · MÉTA' : 'FIN DE SAGA'));
     inner.appendChild(el('h1', 'ending-title', esc(f.title)));
     for (const b of SIG.Story.blocks(st, sc)) {
       const txt = SIG.Story.interpolate(st, SIG.Story.blockText(b));
@@ -99,6 +99,9 @@ SIG.UI.menu = (function () {
       if (await confirmBox('Tout remettre à zéro : état, flags, journal ?', 'Recommencer')) { hideEnding(); SIG.Game.newGame(); }
     };
     row.appendChild(again);
+    const cn = el('button', f.type === 'saga' ? 'btn' : 'btn ghost', 'Ton connectome');
+    cn.onclick = () => showConnectome(st);
+    row.appendChild(cn);
     const tt = el('button', 'btn ghost', "Écran titre");
     tt.onclick = () => SIG.Game.toTitle();
     row.appendChild(tt);
@@ -107,7 +110,43 @@ SIG.UI.menu = (function () {
     box.scrollTop = 0;
   }
 
+  // Ton connectome : la partie rendue en 3D, à faire tourner et à capturer.
+  function showConnectome(st) {
+    const meta = Save.meta();
+    const box = document.getElementById('conn');
+    const uniq = new Set(st.path).size;
+    box.innerHTML = '';
+    box.appendChild(el('div', 'conn-title', 'TON CONNECTOME'));
+    const nf = meta.endings.filter((e) => !/^CH\d|PROTO/.test(e)).length;
+    box.appendChild(el('div', 'conn-sub', `${uniq} scènes · ${st.edges.length} synapses · ${nf} ${nf > 1 ? 'fins découvertes' : 'fin découverte'}`));
+    box.appendChild(el('p', 'conn-note', 'Comme la mouche cartographiée : ton parcours devient une carte. Fais-le tourner du doigt.'));
+    const row = el('div', 'conn-btns');
+    const cap = el('button', 'btn', 'Capturer');
+    cap.onclick = () => {
+      const url = SIG.Gfx.capture();
+      if (!url) { SIG.UI.fx.toast('Capture impossible sur cet appareil.'); return; }
+      const a = document.createElement('a');
+      a.href = url; a.download = 'mon-connectome-signal.png';
+      document.body.appendChild(a); a.click(); a.remove();
+      SIG.UI.fx.toast('Image enregistrée.');
+    };
+    const back = el('button', 'btn ghost', 'Retour');
+    back.onclick = () => {
+      box.classList.remove('on');
+      document.body.classList.remove('connectome');
+      SIG.Gfx.setViewing(false);
+      SIG.Game.redisplay();
+    };
+    row.append(cap, back);
+    box.appendChild(row);
+    document.getElementById('ending').className = 'ending';
+    document.body.classList.add('connectome');
+    box.classList.add('on');
+    SIG.Gfx.setViewing(true);
+    SIG.Gfx.setVisual('connectome', { path: st.path.slice(), endings: meta.endings.slice() });
+  }
+
   function hideEnding() { document.getElementById('ending').className = 'ending'; document.body.classList.remove('ended'); }
 
-  return { showTitle, hideTitle, chapterIntro, ending, hideEnding };
+  return { showTitle, hideTitle, chapterIntro, ending, hideEnding, showConnectome };
 })();

@@ -48,6 +48,7 @@ export const BROWSER = [
   'src/three/couloir.js',
   'src/three/comite.js',
   'src/three/bac.js',
+  'src/three/connectome.js',
   'src/ui/fx.js',
   'src/ui/card.js',
   'src/ui/panels.js',
@@ -64,4 +65,4 @@ export const STYLES = [
 // Presets visuels déclarés (validate vérifie que chaque scène en utilise un connu).
 export const PRESETS = ['reseau', 'fragments', 'couloir', 'comite', 'bac', 'connectome', 'neutre'];
 // Presets effectivement implémentés à ce stade (les autres retombent sur `neutre`).
-export const PRESETS_IMPLEMENTED = ['reseau', 'fragments', 'couloir', 'comite', 'bac', 'neutre'];
+export const PRESETS_IMPLEMENTED = ['reseau', 'fragments', 'couloir', 'comite', 'bac', 'connectome', 'neutre'];

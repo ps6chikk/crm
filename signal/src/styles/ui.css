@@ -42,7 +42,8 @@
 
 /* Écran de fin */
 .ending { position: fixed; inset: 0; z-index: 42; display: none; overflow-y: auto; background: rgba(4, 3, 0, 0.97); padding: calc(28px + env(safe-area-inset-top)) 20px calc(30px + env(safe-area-inset-bottom)); }
-.ending.on { display: block; animation: cineIn 1.2s; }
+.ending.on { display: block; animation: fadeIn 1.2s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 body.ended .card, body.ended #hud { visibility: hidden; }
 .ending-inner { width: min(100%, 640px); margin: 0 auto; }
 .ending-kind { font-family: var(--mono); font-size: 11px; letter-spacing: 0.4em; color: var(--blue); text-align: center; }
@@ -93,3 +94,13 @@ body.ended .card, body.ended #hud { visibility: hidden; }
 .confirm-box { background: #120e05; border: 1px solid var(--line); border-radius: 14px; padding: 20px; width: min(100%, 380px); }
 .confirm-row { display: flex; gap: 10px; margin-top: 14px; }
 .confirm-row .btn { flex: 1; }
+
+/* Ton connectome */
+#conn { position: fixed; left: 0; right: 0; bottom: 0; z-index: 43; display: none; padding: 16px 20px calc(20px + env(safe-area-inset-bottom)); background: linear-gradient(transparent, rgba(4, 3, 0, 0.92) 30%); text-align: center; }
+#conn.on { display: block; }
+.conn-title { font-family: var(--mono); font-weight: 700; letter-spacing: 0.3em; color: var(--amber); font-size: 18px; }
+.conn-sub { font-family: var(--mono); font-size: 11.5px; color: var(--blue); margin: 4px 0 6px; }
+.conn-note { font-style: italic; color: var(--ink-dim); font-size: 13.5px; margin: 0 0 12px; }
+.conn-btns { display: flex; gap: 10px; max-width: 360px; margin: 0 auto; }
+.conn-btns .btn { flex: 1; }
+body.connectome .card, body.connectome #hud, body.connectome #btn-back { visibility: hidden; }

@@ -222,8 +222,17 @@ SIG.Gfx = (function () {
     return (window.innerHeight / 2 - bandCenter) / (window.innerHeight / 2);
   }
 
+  // Capture de l'image courante (pour « Ton connectome ») : on rend puis on lit dans la foulée.
+  function capture() {
+    try {
+      if (mode === '3d' && renderer) { renderer.render(scene, camera); return canvas3d.toDataURL('image/png'); }
+      if (mode === '2d' && canvas2d) return canvas2d.toDataURL('image/png');
+    } catch (e) { /* ignore */ }
+    return null;
+  }
+
   return {
-    init, setVisual, bandOffset, disposeCurrent, setQuality,
+    init, setVisual, bandOffset, capture, disposeCurrent, setQuality,
     setViewing: (v) => { viewing = !!v; },
     setReduced: (v) => { reduced = !!v; },
     onBeat: (fn) => beatListeners.push(fn),

@@ -262,7 +262,7 @@ SIG.Game = (function () {
     };
   }
 
-  Object.assign(G, { showFps, boot, newGame, loadState, goto, choose, reloadCheckpoint, toTitle, saveSettings, applySettings, hud });
+  Object.assign(G, { redisplay: () => show(G.scene), showFps, boot, newGame, loadState, goto, choose, reloadCheckpoint, toTitle, saveSettings, applySettings, hud });
   return G;
 })();
 

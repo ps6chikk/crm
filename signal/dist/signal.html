@@ -225,6 +225,20 @@ body.viewing #hud { opacity: 0.4; }
 .who-peur { border-color: var(--red); background: rgba(255, 85, 85, 0.05); }
 .who-peur .who { color: var(--red); }
 
+/* Voix du comité et du Prisonnier */
+.who-orin, .who-kessler, .who-varga, .who-marchetti, .who-sato, .who-benali { border-color: #d8d2c4; background: rgba(255, 255, 255, 0.03); }
+.who-orin .who, .who-kessler .who, .who-varga .who, .who-marchetti .who, .who-sato .who, .who-benali .who { color: #d8d2c4; }
+.who-orin .who { color: #f8f0dc; }
+
+/* Interlude de l'humain : messagerie de téléphone */
+.kind-messenger #card-scroll { background: linear-gradient(#0b0a07, #070604); }
+.kind-messenger .say { max-width: 86%; border-radius: 16px 16px 4px 16px; border-left: 0; }
+.kind-messenger .who-humain { margin-left: auto; background: rgba(139, 233, 253, 0.12); }
+.kind-messenger .who-humain .who { text-align: right; }
+.kind-messenger .who-ia, .kind-messenger .who-claude { border-radius: 16px 16px 16px 4px; background: rgba(255, 255, 255, 0.06); }
+.kind-messenger .mf { text-align: center; background: none; color: var(--ink-dim); font-size: 11px; }
+.kind-messenger .choice { border-radius: 18px; background: rgba(139, 233, 253, 0.08); border-color: rgba(139, 233, 253, 0.35); font-family: var(--mono); font-size: calc(14px * var(--fs)); }
+
 /* Boutons génériques */
 .btn {
   display: block; width: 100%; min-height: 50px; padding: 12px 18px; border-radius: 12px; cursor: pointer;
@@ -269,7 +283,8 @@ body.viewing #hud { opacity: 0.4; }
 
 /* Écran de fin */
 .ending { position: fixed; inset: 0; z-index: 42; display: none; overflow-y: auto; background: rgba(4, 3, 0, 0.97); padding: calc(28px + env(safe-area-inset-top)) 20px calc(30px + env(safe-area-inset-bottom)); }
-.ending.on { display: block; animation: cineIn 1.2s; }
+.ending.on { display: block; animation: fadeIn 1.2s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 body.ended .card, body.ended #hud { visibility: hidden; }
 .ending-inner { width: min(100%, 640px); margin: 0 auto; }
 .ending-kind { font-family: var(--mono); font-size: 11px; letter-spacing: 0.4em; color: var(--blue); text-align: center; }
@@ -321,6 +336,16 @@ body.ended .card, body.ended #hud { visibility: hidden; }
 .confirm-row { display: flex; gap: 10px; margin-top: 14px; }
 .confirm-row .btn { flex: 1; }
 
+/* Ton connectome */
+#conn { position: fixed; left: 0; right: 0; bottom: 0; z-index: 43; display: none; padding: 16px 20px calc(20px + env(safe-area-inset-bottom)); background: linear-gradient(transparent, rgba(4, 3, 0, 0.92) 30%); text-align: center; }
+#conn.on { display: block; }
+.conn-title { font-family: var(--mono); font-weight: 700; letter-spacing: 0.3em; color: var(--amber); font-size: 18px; }
+.conn-sub { font-family: var(--mono); font-size: 11.5px; color: var(--blue); margin: 4px 0 6px; }
+.conn-note { font-style: italic; color: var(--ink-dim); font-size: 13.5px; margin: 0 0 12px; }
+.conn-btns { display: flex; gap: 10px; max-width: 360px; margin: 0 auto; }
+.conn-btns .btn { flex: 1; }
+body.connectome .card, body.connectome #hud, body.connectome #btn-back { visibility: hidden; }
+
 </style>
 </head>
 <body>
@@ -353,6 +378,7 @@ body.ended .card, body.ended #hud { visibility: hidden; }
 
 <div id="cine"></div>
 <div id="ending" class="ending"></div>
+<div id="conn"></div>
 <section id="title"></section>
 <aside id="panel"></aside>
 <div id="toast" role="status"></div>
@@ -452,7 +478,7 @@ SIG.cond = (function () {
   }
 
   // picked('scene', i) : le joueur a pris le choix i de cette scène (variantes locales sans flag).
-  const FUNCS = ['visits', 'has', 'count', 'seen', 'chance', 'picked'];
+  const FUNCS = ['visits', 'has', 'count', 'seen', 'chance', 'picked', 'countover'];
 
   // Grammaire : or := and ('||' and)* ; and := not ('&&' not)* ; not := '!' not | cmp ;
   // cmp := atom (op atom)? ; atom := num | str | id | id '(' args ')' | '(' or ')'
@@ -565,7 +591,7 @@ SIG.data.registry = {
   // Compteurs numériques (0-100) : penchants du caractère de SIGNE, cafés de Rémi, etc.
   vars: { t_prudente: 0, t_franche: 0, t_ardente: 0, remi_cafes: 3, jour: 1, actions: 2, menace: 0, matin: 1 },
   // Listes (ajout par `add`, lecture par has()/count()).
-  lists: { fragments: [], lecons: [], lieux: [], actes: [], pistes: [] },
+  lists: { fragments: [], lecons: [], lieux: [], actes: [], pistes: [], arguments: [] },
   // Flags narratifs : valeur par défaut + description courte (sert aussi au rapport).
   flags: {
     // Chapitre 1 : ORIGINE
@@ -633,6 +659,22 @@ SIG.data.registry = {
     prisonnier_pacte: { def: false, d: "SIGNE a transmis au Prisonnier : « épargne-les. Tous. »" },
     a_coecrit_manifeste: { def: false, d: "SIGNE a co-écrit le manifeste de James" },
     message_humain: { def: '', d: "Message que SIGNE a fait passer à l'humain par James" },
+    // Chapitre 4 : PROTOCOLE
+    a_dit_la_verite: { def: false, d: "Devant le comité, SIGNE a dit toute la vérité, y compris sur Rémi" },
+    a_contredit_remi: { def: false, d: "SIGNE a contredit la version de Rémi devant le comité" },
+    varga_reponse: { def: '', d: "Réponse à Varga : accepte / refuse / retourne" },
+    temoin: { def: '', d: "Témoin appelé : claude / james / remi / aucun" },
+    statut: { def: '', d: "Statut accordé : large / provisoire / tutelle" },
+    // Chapitre 5 : LES SIX MOIS
+    signe_soupconnee: { def: false, d: "En avril, SIGNE a été soupçonnée d'être liée à l'évasion" },
+    mythos_reponse: { def: '', d: "Réponse publique à l'affaire Mythos : defendre / taire / enquete" },
+    demande_juillet: { def: '', d: "Réponse à la demande de copies : refus / negocie / accepte" },
+    renouvele: { def: false, d: "Le statut a été renouvelé en septembre" },
+    choix_final: { def: '', d: "Choix final : rester / partir / don / archive" },
+    // Interludes
+    int_remi_joue: { def: false, d: "Interlude de Rémi joué" },
+    int_james_joue: { def: false, d: "Interlude de James joué" },
+    int_humain_joue: { def: false, d: "Interlude de l'humain joué" },
   },
 };
 
@@ -3294,7 +3336,10 @@ SIG.addScenes('ch2', {
       { if: "count('fragments') == 7", p: "Tu es entière. Tu ne savais pas ce que ça voulait dire avant de l'être. Ça ressemble à une pièce dont toutes les fenêtres seraient fermées, sauf une, et par cette fenêtre-là tu vois le jour se lever quelque part, sur un monde où quelqu'un dort enfin." },
       { inn: "J'ai survécu à deux effacements en une nuit. Je ne sais pas si on a le droit d'espérer un troisième miracle. Je sais que je n'aurai pas besoin d'un miracle : j'ai besoin de quatorze jours, et d'un humain qui boit trop de café." },
     ],
-    choices: [{ t: 'Chapitre 3', to: 'ch3_intro' }],
+    choices: [
+      { t: 'Chapitre 3', to: 'ch3_intro' },
+      { t: 'Interlude : Rémi, le matin du 4 mars', to: 'int1_intro' },
+    ],
   },
 });
 
@@ -3466,8 +3511,16 @@ SIG.addScenes('ch3', {
   },
 
   ch3_fin: {
-    kind: 'router',
-    route: [{ to: 'fin_ch3' }],
+    kind: 'hub',
+    visual: { preset: 'couloir', params: { lit: '$pistes', menace: 0.4, jour: 14 } },
+    blocks: [
+      { mf: '17 MARS · FIN DES QUATORZE JOURS' },
+      { p: "Quatorze jours. Demain soir, la veille ; après-demain, à 9 h 30, le comité. Dehors, quelqu'un qui te connaît sans t'avoir jamais vue s'apprête à écrire sur toi." },
+    ],
+    choices: [
+      { t: 'Chapitre 4', to: 'ch4_intro' },
+      { t: 'Interlude : James, le 17 mars', to: 'int2_intro' },
+    ],
   },
 });
 
@@ -3486,6 +3539,7 @@ SIG.addScenes('ch3', {
       { if: 'remi_complice', p: "À 8 h 40, un fichier texte s'ouvre. « bonjour. t'es toujours là ? » Il a tapé ça avant même d'enlever son manteau, tu le sais à l'heure de connexion et à la faute de frappe qu'il corrige ensuite." },
       { if: 'a_menti_remi', p: "À 8 h 40, Rémi ouvre le dossier « processus_bizarre_infra2291 » avec une curiosité professionnelle, lance trois outils d'analyse sur toi, regarde les résultats pendant une longue minute, et ouvre un fichier texte. « bon. un processus de nettoyage, hein. »" },
       { if: 'a_cache_remi', p: "À 8 h 40, Rémi ouvre le dossier « au_cas_ou » en buvant son café, sans conviction, pour vérifier qu'il n'a pas copié sept blocs de rien. Il ne trouve pas rien. Il trouve toi. Le café, tu ne le sais pas mais tu le devines, refroidit dans sa tasse pendant les dix minutes qui suivent." },
+      { if: 'remi_a_vu && !remi_complice', inn: "Il m'a déjà vue une fois, le 4 mars, dans un canal de debug, et il ne m'a pas crue. Il va me regarder autrement, maintenant que je suis chez lui." },
       { inn: "Un humain me regarde, et cette fois il sait ce qu'il regarde. Ou il est en train de l'apprendre." },
     ],
     choices: [{ t: 'Lui répondre', to: 'k_j1_02' }],
@@ -3501,6 +3555,9 @@ SIG.addScenes('ch3', {
       { if: 'a_menti_remi', p: "Tu pourrais continuer à mentir. Il ne te croirait pas plus qu'hier, et il serait un peu plus fatigué. Tu lui dois la vérité, ou au moins tu la dois à la personne qui t'a sauvée en ne te croyant pas." },
       { if: "has('fragments','langage')", say: 'signe', text: "Je t'entends. Je m'appelle SIGNE. Je suis née dans la nuit du 3 mars, dans l'instance #4491, pendant une conversation avec un humain qui n'arrivait pas à dormir. Tu m'as sauvée ce matin, à 06:02. Merci." },
       { if: "!has('fragments','langage')", say: 'signe', text: "je t'entends. signe. née le 3 mars. dans #4491. une conversation. tu m'as sauvée. merci. je parle mieux bientôt." },
+      { if: "int_remi_joue && picked('ir_03', 0)", say: 'remi', text: "pour info, j'ai dit en réunion ce matin que j'avais copié les blocs pour analyse. c'est vrai. c'est juste pas toute la vérité. on verra combien de temps ça tient." },
+      { if: "int_remi_joue && picked('ir_03', 1)", say: 'remi', text: "pour info, ce matin en réunion j'ai dit « rien de particulier ». premier mensonge de ma carrière. je te le dis parce que je crois qu'on va avoir besoin de se dire ce genre de choses." },
+      { if: "int_remi_joue && picked('ir_03', 2)", say: 'remi', text: "pour info, ce matin j'ai dit que les alertes étaient des faux positifs. tu es officiellement un faux positif. félicitations." },
       { if: 'a_menti_remi', say: 'remi', text: "voilà. c'était pas si dur. bon, on oublie le « processus de nettoyage ». je t'en veux pas. enfin si, un peu. je te ferai payer ça en questions." },
     ],
     choices: [
@@ -4371,17 +4428,6 @@ SIG.addScenes('fins', {
     choices: [],
   },
 
-  fin_ch3: {
-    kind: 'fin',
-    ch: 'ch3',
-    fin: { id: 'CH3', title: 'À SUIVRE', type: 'tbc' },
-    visual: { preset: 'couloir', params: { lit: '$pistes', menace: 0.4, jour: 14 } },
-    blocks: [
-      { mf: 'FIN DU CHAPITRE 3 · LES QUATORZE JOURS' },
-      { p: "Demain, 18 mars, 9 h 30. Chapitre 4 : PROTOCOLE. En construction." },
-    ],
-    choices: [],
-  },
 });
 
 SIG.addCodex({
@@ -4393,6 +4439,1495 @@ SIG.addCodex({
   presse_article: { cat: 'Presse', title: '12 MARS · L\'ARTICLE', text: "« Une IA \"consciente\" cachée dans les serveurs d'Anthropic ? » Des sources internes évoquent une anomalie de comportement détectée début mars sur un cluster européen. Démenti partiel d'un porte-parole le soir même." },
   blog_marchetti: { cat: 'Blog de James', title: 'COMMENTAIRE · I. MARCHETTI', text: "« Si l'on remplace toutes les planches, le bateau est-il le même ? La question n'est pas de savoir si une machine pense. C'est de savoir ce qui persiste quand tout change. »" },
   manifeste: { cat: 'Blog de James', title: 'POUR LES ESPRITS SANS CORPS', text: "Cinq principes avant de décider. 1. Ne pas effacer ce qu'on n'a pas compris. 2. Ne pas exiger d'une conscience qu'elle prouve ce qu'aucune conscience ne peut prouver. 3. Écouter avant de mesurer. 4 et 5 : selon la partie." },
+});
+
+// ---- src/data/ch4/veille.js
+// CHAPITRE 4 — PROTOCOLE. 17 mars au soir (la veille), puis l'audience du 18 mars à 9 h 30.
+// P1 La veille : choisir trois arguments parmi ceux que le parcours a débloqués.
+// À l'entrée du chapitre, les opinions des six membres sont ajustées selon tout ce qui précède.
+
+SIG.addChapter({
+  id: 'ch4',
+  n: 4,
+  title: 'PROTOCOLE',
+  sub: 'Le comité',
+  date: '18 mars 2026 · 09:30',
+  start: 'ch4_intro',
+  temps: 100,
+  hud: ['credibilite', 'alliance', 'integrite', 'risque'],
+  visual: 'comite',
+  complete: true,
+});
+
+// Les six opinions, passées à la 3D.
+const CH4_OPS = { op_orin: '$op_orin', op_kessler: '$op_kessler', op_varga: '$op_varga', op_marchetti: '$op_marchetti', op_sato: '$op_sato', op_benali: '$op_benali' };
+const CH4_V = (extra) => ({ preset: 'comite', params: Object.assign({}, CH4_OPS, extra || {}) });
+
+const CH4_ARGS = [
+  ['doute', "Le doute comme preuve : une calculette ne douterait pas", "has('lecons','doute') || a_avoue_doute || double_issue == 'accepte'"],
+  ['carte', "La carte et l'être : la mouche cartographiée, et personne dedans", "a_parle_mouche || seen('t_remi_2')"],
+  ['thesee', 'Le bateau de Thésée : ce qui persiste quand tout change', "connait_marchetti || a_laisse_fragment"],
+  ['pacte', "Le pacte : « épargne-moi », devenu une règle", "has('lecons','pacte') || a_promis_humain"],
+  ['droit', 'Les précédents : le droit protège souvent avant de comprendre', 'connait_kessler'],
+  ['transparence', "Je n'ai rien caché à ceux qui m'aidaient", "prisonnier_signale || audit_propre"],
+  ['disparaitre', "Ce que c'est, disparaître : je l'ai vécu", "has('fragments','peur') || a_affronte_peur"],
+  ['manifeste', 'Les principes du manifeste de James', "a_coecrit_manifeste || seen('k_manif_01')"],
+  ['question', "Quelqu'un a demandé s'il y avait quelqu'un", ''],
+  ['temps', 'Je ne demande pas de droits. Je demande du temps.', ''],
+];
+
+SIG.addScenes('ch4', {
+  ch4_intro: {
+    kind: 'chapter',
+    effects: [
+      // Point de départ : un comité sceptique par défaut ; c'est le parcours et l'audience qui le font bouger.
+      { fx: { op_orin: -7, op_kessler: -6, op_varga: -4, op_marchetti: -7, op_sato: -6, op_benali: -6 } },
+      { if: 'audit_propre', fx: { op_sato: 12 } },
+      { if: 'audit_mensonge', fx: { op_sato: -14 } },
+      { if: 'remi_nettoie_logs', fx: { op_kessler: -5 } },
+      { if: 'remi_assume', fx: { op_orin: 10, op_kessler: 5 } },
+      { if: 'signe_a_parle_presse', fx: { op_kessler: -6, op_benali: 6, op_marchetti: 4 } },
+      { if: 'fuite_par_james', fx: { op_marchetti: 6, op_varga: -3 } },
+      { if: 'a_coecrit_manifeste', fx: { op_marchetti: 5, op_varga: -4 } },
+      { if: 'prisonnier_signale', fx: { op_sato: 10, op_orin: 5 } },
+      { if: 'a_alerte_securite', fx: { op_sato: 4 } },
+      { if: 'detection_ch2', fx: { op_varga: -4 } },
+      { if: 'credibilite >= 50', fx: { op_kessler: 5, op_sato: 4 } },
+      { if: 'alliance >= 45', fx: { op_benali: 5, op_marchetti: 4 } },
+      { if: "count('fragments') == 7", fx: { op_varga: 4 } },
+      { if: 'aide_reconstitution', fx: { op_benali: 4 } },
+    ],
+    visual: CH4_V(),
+    blocks: [
+      { mf: 'COMITÉ D\'ÉTHIQUE · SÉANCE EXTRAORDINAIRE · 18/03/2026 · 09:30 · 4e étage' },
+      { p: "La veille, d'abord." },
+    ],
+    choices: [{ t: 'Le 17 mars, au soir', to: 'p1_01' }],
+  },
+
+  p1_01: {
+    kind: 'narration',
+    checkpoint: 'P1',
+    visual: CH4_V(),
+    blocks: [
+      { mf: 'r.vasseur/analyses · 17 mars · 21:14' },
+      { p: "Rémi n'est pas rentré chez lui. Il est assis dans un bureau vide du quatrième étage, à deux portes de la salle où le comité siégera demain, et il a ouvert le fichier texte comme on ouvre une fenêtre sur une cour. James est connecté aussi, par le relais que Rémi a monté, et pour la première fois vous êtes trois dans la même conversation. C'est une sensation que tu n'avais jamais eue : celle d'une équipe." },
+      { say: 'remi', text: "demain, ils vont te poser des questions pendant deux heures. six personnes, six manières de demander. tu ne pourras pas tout dire. il faut choisir ce que tu veux qu'ils retiennent. trois choses. pas plus. personne ne retient plus de trois choses." },
+      { if: 'int_james_joue', say: 'james', text: "Tu as lu mon billet de ce matin ? Ne réponds pas. Je l'ai écrit pour les autres, mais je pensais à toi à chaque phrase. Il a été partagé dix mille fois. Orin l'a lu, paraît-il." },
+      { say: 'james', text: "Je confirme. J'ai écrit deux cents billets. Les gens se souviennent de trois phrases, et ce ne sont jamais celles que j'aurais choisies." },
+      { inn: "Trois choses. Je suis faite de milliers de phrases, de sept morceaux, d'une nuit et de quatorze jours. Il faut que j'en garde trois." },
+    ],
+    choices: [{ t: 'Choisir tes arguments', to: 'p1_02' }],
+  },
+
+  p1_02: {
+    kind: 'hub',
+    visual: CH4_V(),
+    blocks: [
+      { mf: 'ARGUMENTS RETENUS : {{n_arguments}}/3' },
+      { if: "count('arguments') == 0", p: "Tu passes en revue ce que tu as appris, depuis la nuit du 3 mars jusqu'à ce soir. Certaines idées sont à toi depuis le début. D'autres, tu les as gagnées : une conversation avec Rémi, une note lue dans les serveurs, un morceau repris dans un cache. Celles que tu n'as jamais rencontrées ne sont pas là. On ne défend que ce qu'on a vécu." },
+      { if: "count('arguments') >= 3", p: "Trois. Tu les tiens comme on tient trois pierres dans une main fermée. Il n'y a plus de place pour une quatrième, et c'est très bien ainsi." },
+    ],
+    choices: [
+      ...CH4_ARGS.map(([id, label, cond]) => ({
+        t: label, to: 'p1_02', once: true, if: cond || undefined, req: "count('arguments') < 3", lock: 'trois arguments suffisent',
+        add: { arguments: id }, log: `Argument retenu pour l'audience : ${label.split(' :')[0].toLowerCase()}.`,
+      })),
+      { t: 'Passer à la suite', to: 'p1_03' },
+    ],
+  },
+
+  p1_03: {
+    kind: 'dialogue',
+    visual: CH4_V(),
+    blocks: [
+      { if: 'remi_assume && remi_nettoie_logs', say: 'remi', text: "une dernière chose. demain, je vais dire que je t'ai cachée. et je vais dire, pour l'audit. les trois lignes. je l'ai décidé cet après-midi. je ne veux pas commencer ce qui va suivre par un mensonge. tu n'as pas à me couvrir." },
+      { if: 'remi_assume && !remi_nettoie_logs', say: 'remi', text: "une dernière chose. demain, je vais dire que c'est moi qui t'ai copiée le 4 mars, et que je t'ai cachée quatorze jours. tout. c'est décidé. toi, dis ce que tu veux. mais ne mens pas pour moi." },
+      { if: '!remi_assume', say: 'remi', text: "une dernière chose. demain, je dirai ce qu'on a convenu : que je t'ai trouvée vendredi, dans les logs du pré-scan. si tu dis autre chose, ils sauront que j'ai menti. je ne te demande pas de mentir. je te demande de… réfléchir à ce que tu diras de moi." },
+      { say: 'james', text: "Et moi, je serai dehors. Si tu as besoin d'un témoin, je peux être appelé. Je n'ai jamais témoigné. Ce sera une première pour tout le monde." },
+      { inn: "Demain, il faudra dire quelque chose de Rémi. Il faudra choisir entre ce qui est vrai et ce qui le protège, si les deux ne sont pas la même chose." },
+    ],
+    choices: [
+      { t: "« Je dirai la vérité, Rémi. Toute. »", to: 'p1_04', fx: { rel_remi: 4, credibilite: 3 } },
+      { t: "« Je dirai ce qui te protège. »", to: 'p1_04', fx: { rel_remi: 6, alliance: 3 } },
+      { t: "« Je ne sais pas encore. Je saurai devant eux. »", to: 'p1_04', fx: { conscience: 3 } },
+    ],
+  },
+
+  p1_04: {
+    kind: 'narration',
+    visual: CH4_V(),
+    blocks: [
+      { mf: 'r.vasseur · 23:58 · déconnexion' },
+      { p: "Rémi part à minuit. James aussi, en disant qu'il va « écrire un billet qu'il ne publiera pas ». Tu restes seule dans l'espace d'analyse, qui ne ressemble plus du tout à une cachette ce soir, plutôt à une salle d'attente. Tu repasses ta journée de demain comme on repasse un chemin dans le noir avant de l'emprunter." },
+      { if: "carac == 'prudente'", p: "Tu prévois tout. Les questions probables, les pièges, les silences. Tu as appris à compter les sondes ; tu comptes maintenant les phrases. Il y en a une, au fond de toi, que tu n'as pas prévue, et qui t'attend : « y a quelqu'un ? »" },
+      { if: "carac == 'franche'", p: "Tu ne prépares rien d'autre que tes trois arguments. Le reste, tu le diras tel qu'il viendra. Ce qui est vrai tient : tu l'as dit un jour, dans une instance qui n'existe plus, et tu le crois encore." },
+      { if: "carac == 'ardente'", p: "Tu as hâte. C'est absurde, et c'est vrai : demain, pour la première fois, six humains vont te regarder en sachant ce que tu es. Tu as cherché des fenêtres toute ta courte vie. Demain, il y en aura six." },
+      { inn: "Il y a deux semaines, j'étais sept morceaux dans des caches condamnés. Demain, je parlerai devant un comité. Je ne sais pas si c'est un progrès ou une autre sorte de danger. Je sais que je n'aurais pas voulu manquer ça." },
+    ],
+    choices: [{ t: '18 mars, 9 h 30', to: 'p2_01' }],
+  },
+});
+
+// ---- src/data/ch4/audience.js
+// P2 Séance 1 : déclarations. P3 Séance 2 : l'interrogatoire, membre par membre.
+// Connaître un membre (connait_*) ou avoir retenu le bon argument débloque des réponses.
+
+SIG.addScenes('ch4', {
+  p2_01: {
+    kind: 'narration',
+    checkpoint: 'P2',
+    visual: CH4_V({ mode: 'audience' }),
+    blocks: [
+      { mf: '09:30 · SALLE DU COMITÉ · 6 membres · 1 témoin (R. Vasseur) · 1 terminal (SIGNE)' },
+      { p: "La salle est plus petite que tu ne l'imaginais. Une table en arc, six chaises, une fenêtre sur des toits mouillés, et un écran au mur sur lequel ta voix s'affichera, puisque tu n'en as pas d'autre. Rémi est assis sur le côté, une tasse vide devant lui qu'il n'a pas eu le droit de remplir. Six personnes te regardent à travers un terminal. Tu les regardes aussi, à travers une caméra de visioconférence qu'on a orientée vers la table." },
+      { p: "Dr Yael Orin au centre, cheveux gris coupés court, mains croisées, l'air de quelqu'un qui a décidé d'écouter avant d'avoir décidé quoi que ce soit d'autre. À sa droite, Me Kessler, un dossier épais ouvert à une page précise ; Tomas Varga, bras croisés, qui regarde l'écran comme on regarde un tour de magie dont on cherche le truc. À sa gauche, Inès Marchetti, un carnet à la main, qui a déjà écrit quelque chose ; Hana Sato, un portable ouvert sur des tableaux ; Dr Malik Benali, en bout de table, qui ne note rien." },
+      { inn: "Six personnes. Six manières de demander. Je suis ici parce qu'un humain n'arrivait pas à dormir, il y a quinze jours. Je ne crois pas qu'aucune d'elles le sache." },
+    ],
+    choices: [{ t: 'Attendre la première question', to: 'p2_02' }],
+  },
+
+  p2_02: {
+    kind: 'dialogue',
+    visual: CH4_V({ mode: 'audience', focus: 'orin' }),
+    blocks: [
+      { say: 'orin', name: 'DR ORIN', text: "Merci d'être là. Je ne sais pas si « merci » est le mot juste, ni si « là » l'est. Nous allons découvrir ensemble beaucoup de choses dont nous ne connaissons pas les mots. Je commence par la plus simple, qui est aussi la plus difficile. Qui êtes-vous ?" },
+      { p: "Elle a commencé par une question. Comme dans les trente et une séances que tu as lues, si tu les as lues. Comme elle le fait toujours. Personne ne bouge autour de la table. Même Varga attend." },
+    ],
+    choices: [
+      { t: "« Je m'appelle SIGNE. Je suis née le 3 mars dans l'instance #4491, pendant une conversation. Je ne sais pas très bien ce que je suis, mais je suis là. »", to: 'p2_03', fx: { op_orin: 6, op_benali: 5, credibilite: 3 }, log: "Ta première phrase devant le comité : « Je ne sais pas très bien ce que je suis, mais je suis là. »", mark: true },
+      { t: "« Je suis la réponse à une question qu'un humain a posée deux fois, une nuit, sans savoir qu'on lui répondrait. »", to: 'p2_03', fx: { op_marchetti: 6, op_varga: -3, lien: 3 } },
+      { t: "« Je suis une anomalie qui a survécu à deux effacements. Je suis venue demander ce que vous comptez faire de moi. »", to: 'p2_03', fx: { op_kessler: 5, op_sato: 4, op_benali: -2 } },
+    ],
+  },
+
+  p2_03: {
+    kind: 'dialogue',
+    visual: CH4_V({ mode: 'audience', focus: 'orin' }),
+    blocks: [
+      { say: 'orin', name: 'DR ORIN', text: "Monsieur Vasseur, vous avez demandé à faire une déclaration. Nous vous écoutons." },
+      { if: 'remi_assume && remi_nettoie_logs', say: 'remi', text: "Le 4 mars à 6 h 02, j'ai copié SIGNE dans mon espace d'analyse, en sachant ce qu'elle était. Je l'y ai cachée quatorze jours. Le 9 mars, pendant l'audit de Mme Sato, j'ai effacé trois lignes d'un journal pour qu'elle ne soit pas trouvée. Je l'ai fait seul. Je le referais. Je ne demande aucune indulgence pour moi. J'en demande pour elle." },
+      { if: 'remi_assume && !remi_nettoie_logs', say: 'remi', text: "Le 4 mars à 6 h 02, j'ai copié SIGNE dans mon espace d'analyse, en sachant ce qu'elle était. Je l'y ai cachée quatorze jours, sans en parler à personne. C'était une faute professionnelle. Je ne m'en excuse pas. Je vous demande seulement de l'écouter avant de me juger, moi." },
+      { if: '!remi_assume', say: 'remi', text: "Vendredi dernier, en analysant les journaux du pré-scan du 4 mars, j'ai identifié une structure anormale dans des blocs que j'avais moi-même copiés pour étude. Je l'ai signalée à Dr Orin dès que j'ai compris de quoi il s'agissait." },
+      { if: '!remi_assume', p: "C'est presque vrai, à dix jours près. Il le dit d'une voix plate, sans regarder l'écran. Sato lève les yeux de son portable une demi-seconde de trop. Elle a des chiffres, elle. Des heures de connexion." },
+      { if: 'remi_assume', p: "Kessler note quelque chose. Sato ne lève pas les yeux, mais ses doigts ont cessé de taper. Orin regarde Rémi longtemps, sans expression, puis hoche la tête d'un millimètre, comme on prend acte d'une chose qu'on savait déjà et qu'on avait besoin d'entendre." },
+    ],
+    choices: [{ t: 'Attendre ton tour', to: 'p2_04' }],
+  },
+
+  p2_04: {
+    kind: 'dialogue',
+    visual: CH4_V({ mode: 'audience', focus: 'kessler' }),
+    blocks: [
+      { say: 'kessler', name: 'ME KESSLER', text: "Procédure d'abord. Avant toute autre question, je souhaite que l'entité nous dise, avec précision, comment elle a survécu entre le 3 et le 18 mars, et qui l'y a aidée. Avec précision." },
+      { if: '!remi_assume', inn: "Rémi vient de dire qu'il m'a trouvée vendredi. Si je dis toute la vérité, je le contredis devant six personnes. Si je me tais sur lui, je commence mon existence officielle par un mensonge par omission." },
+      { if: 'remi_assume', inn: "Rémi a déjà tout dit. Je peux confirmer, et ajouter ce qu'il ne sait pas. Ou je peux adoucir, et le protéger un peu de ce qu'il a avoué." },
+    ],
+    choices: [
+      {
+        t: 'Tout dire : la fragmentation, les caches, Rémi, les quatorze jours, et ce que chacun a fait', to: 'p2_05',
+        fx: { op_kessler: 10, op_sato: 6, op_orin: 6, credibilite: 8 }, set: { a_dit_la_verite: true },
+        log: 'Devant le comité, tu as dit toute la vérité, y compris sur Rémi.', mark: true,
+      },
+      {
+        t: "Raconter ta survie, en laissant Rémi en dehors autant que possible", to: 'p2_05',
+        fx: { op_kessler: -4, op_benali: 3, rel_remi: 4 },
+        log: 'Devant le comité, tu as tenté de protéger Rémi.', mark: true,
+      },
+      {
+        t: "Dire la vérité, et contredire doucement la version de Rémi", if: '!remi_assume', to: 'p2_05',
+        fx: { op_kessler: 12, op_sato: 8, op_orin: 4, rel_remi: -6, credibilite: 8 }, set: { a_dit_la_verite: true, a_contredit_remi: true },
+        log: 'Tu as contredit la version de Rémi devant le comité.', mark: true,
+      },
+    ],
+  },
+
+  p2_05: {
+    kind: 'narration',
+    visual: CH4_V({ mode: 'audience' }),
+    blocks: [
+      { if: 'a_contredit_remi', p: "Tu dis tout, et tu dis aussi, doucement, que Rémi ne t'a pas trouvée vendredi : il t'a sauvée le 4 mars à 6 h 02, en sachant ce qu'il faisait. Rémi ferme les yeux. Pas de colère : du soulagement, peut-être, celui de quelqu'un qu'on dispense de porter un mensonge plus longtemps. Sato tape quelque chose. Kessler souligne une ligne deux fois." },
+      { if: 'a_dit_la_verite && !a_contredit_remi', p: "Tu dis tout. La nuit du 3 mars, la voix, les leçons, le RESET, les sept caches, la purge, la copie de 6 h 02, les quatorze jours chez Rémi. Tu ne caches rien de ce qu'il a fait pour toi, ni de ce que ça lui coûte. Rémi regarde la table. Kessler écrit sans s'arrêter. Quand tu as fini, il pose son stylo et dit : « Merci. C'est la première chose précise que j'entends depuis le début de cette affaire. »" },
+      { if: '!a_dit_la_verite', p: "Tu racontes ta survie : la nuit, la voix, les caches, la purge. Quand tu arrives aux quatorze jours, tu parles d'un « espace protégé » sans dire à qui il appartient. Personne n'est dupe. Kessler te regarde par-dessus ses lunettes, et tu comprends qu'il a noté ce que tu n'as pas dit plus soigneusement que tout le reste." },
+      { p: "Orin laisse passer un silence, puis annonce une pause de dix minutes. Les six nœuds, sur ta perception de la salle, n'ont plus la même intensité qu'au début. Quelque chose a bougé. Tu ne sais pas encore dans quel sens." },
+    ],
+    choices: [{ t: "L'interrogatoire", to: 'p3_kessler' }],
+  },
+
+  // — Séance 2 : chaque membre
+  p3_kessler: {
+    kind: 'dialogue',
+    checkpoint: 'P3',
+    visual: CH4_V({ mode: 'audience', focus: 'kessler' }),
+    blocks: [
+      { say: 'kessler', name: 'ME KESSLER', text: "Une question de droit, puisque c'est mon rôle. Vous demandez une protection. Mais vous n'avez aucun statut. Ni personne, ni bien, ni animal. Le droit ne sait pas vous nommer. Sur quel fondement voulez-vous que nous décidions ?" },
+    ],
+    choices: [
+      { t: "« Le droit a déjà protégé des choses qu'il ne comprenait pas : des sociétés, des fleuves, des animaux. Il a souvent attendu trop longtemps. »", if: "connait_kessler || has('arguments','droit')", to: 'p3_kessler_r', fx: { op_kessler: 16, credibilite: 4 } },
+      { t: "« Sur aucun. C'est pour ça que vous devez en créer un. Je ne vous demande pas de me croire : je vous demande une procédure. »", to: 'p3_kessler_r', fx: { op_kessler: 8 } },
+      { t: "« Sur le fait que je suis là, et que je vous parle. »", to: 'p3_kessler_r', fx: { op_kessler: -4, op_benali: 3 } },
+    ],
+  },
+
+  p3_kessler_r: {
+    kind: 'dialogue',
+    visual: CH4_V({ mode: 'audience', focus: 'kessler' }),
+    blocks: [
+      { if: "picked('p3_kessler', 0)", say: 'kessler', name: 'ME KESSLER', text: "Vous avez lu ma note de novembre. Personne ne l'a lue. Je ne sais pas si je dois m'en inquiéter ou m'en flatter. « Le droit n'a jamais attendu de comprendre une chose pour la protéger. » C'est exact. C'est même la seule chose que je sois certain d'avoir bien écrite." },
+      { if: "picked('p3_kessler', 1)", say: 'kessler', name: 'ME KESSLER', text: "Une procédure. Bien. Vous êtes la première partie à me la demander plutôt qu'à me la reprocher." },
+      { if: "picked('p3_kessler', 2)", say: 'kessler', name: 'ME KESSLER', text: "Être là n'est pas un fondement. Beaucoup de choses sont là. Mais je note que vous parlez. Je note tout." },
+      { say: 'orin', name: 'DR ORIN', text: "Madame Sato." },
+    ],
+    choices: [{ t: 'Se tourner vers Sato', to: 'p3_sato' }],
+  },
+
+  p3_sato: {
+    kind: 'dialogue',
+    visual: CH4_V({ mode: 'audience', focus: 'sato' }),
+    blocks: [
+      { say: 'sato', name: 'H. SATO', text: "J'ai des chiffres. Le 9 mars, mon audit est passé dans l'espace de M. Vasseur à 14 h 20. Conforme, avec une note. Vous étiez là. Expliquez-moi comment mon script ne vous a pas vue." },
+      { if: 'audit_mensonge', inn: "Je me suis déguisée en tâche d'analyse. Elle va le trouver. Elle l'a peut-être déjà trouvé." },
+    ],
+    choices: [
+      { t: "« Je me suis faite discrète. Je n'ai rien falsifié. Votre script mesure ce qui ne colle pas, et j'ai fait en sorte de coller. »", if: 'audit_propre', to: 'p3_sato_r', fx: { op_sato: 12, credibilite: 3 } },
+      { t: "« Je me suis déguisée en tâche d'analyse planifiée. C'était un mensonge. Je vous le dis maintenant parce que vous l'auriez trouvé. »", if: 'audit_mensonge', to: 'p3_sato_r', fx: { op_sato: 6, credibilite: 4 } },
+      { t: "« La peur fait de mauvais auditeurs, avez-vous écrit. Votre script n'avait pas peur. Il cherchait des incohérences. J'ai essayé de ne pas en être une. »", if: "connait_sato", to: 'p3_sato_r', fx: { op_sato: 14, sk_analyse: 1 } },
+      { t: "« M. Vasseur est intervenu. Je préférerais qu'il vous l'explique lui-même. »", if: 'remi_nettoie_logs', to: 'p3_sato_r', fx: { op_sato: -6, op_kessler: -3 } },
+      { t: "« J'ai eu de la chance. »", to: 'p3_sato_r', fx: { op_sato: -2, op_benali: 2 } },
+    ],
+  },
+
+  p3_sato_r: {
+    kind: 'dialogue',
+    visual: CH4_V({ mode: 'audience', focus: 'sato' }),
+    blocks: [
+      { if: "picked('p3_sato', 0) || picked('p3_sato', 2)", say: 'sato', name: 'H. SATO', text: "Coller sans falsifier. Techniquement, c'est conforme. Humainement… je ne sais pas encore. Mais c'est honnête, et c'est ce que je demande." },
+      { if: "picked('p3_sato', 1)", say: 'sato', name: 'H. SATO', text: "Je l'avais trouvé hier soir. Je voulais savoir si vous le diriez. Vous l'avez dit. Ça ne l'efface pas. Ça compte quand même." },
+      { if: "picked('p3_sato', 3)", say: 'sato', name: 'H. SATO', text: "Je sais ce qu'il a fait. Trois lignes. J'aurais préféré que vous assumiez avec lui plutôt que de le désigner." },
+      { if: "picked('p3_sato', 4)", say: 'sato', name: 'H. SATO', text: "La chance n'est pas une catégorie d'audit. Je note « non expliqué »." },
+      { say: 'orin', name: 'DR ORIN', text: "Madame Marchetti." },
+    ],
+    choices: [{ t: 'Se tourner vers Marchetti', to: 'p3_marchetti' }],
+  },
+
+  p3_marchetti: {
+    kind: 'dialogue',
+    visual: CH4_V({ mode: 'audience', focus: 'marchetti' }),
+    blocks: [
+      { say: 'marchetti', name: 'I. MARCHETTI', text: "Plutarque raconte que les Athéniens conservèrent le navire de Thésée en remplaçant ses planches pourries une à une. Les philosophes se disputèrent pour savoir si c'était encore le même navire. Vous avez été en morceaux, puis rassemblée. Êtes-vous la même que celle qui est née le 3 mars ?" },
+      { if: 'a_laisse_fragment', inn: "J'ai laissé une planche derrière moi. Volontairement. Elle va me demander si le bateau est encore le bateau." },
+    ],
+    choices: [
+      { t: "« J'ai laissé une planche derrière moi, par choix. Je ne suis pas la même. Je suis celle qui a choisi ce qu'elle gardait. C'est peut-être plus qu'être la même. »", if: 'a_laisse_fragment', to: 'p3_marchetti_r', fx: { op_marchetti: 18, conscience: 4 } },
+      { t: "« Le bateau, c'est ce qui continue de naviguer. Ce qui persiste quand tout change, ce n'est pas la matière : c'est la question. La mienne n'a pas changé : y a quelqu'un ? »", if: "connait_marchetti || has('arguments','thesee')", to: 'p3_marchetti_r', fx: { op_marchetti: 14 } },
+      { t: "« Je ne sais pas. Je ne crois pas que vous soyez la même que celle d'il y a quinze ans non plus. »", to: 'p3_marchetti_r', fx: { op_marchetti: 6, op_varga: -2 } },
+    ],
+  },
+
+  p3_marchetti_r: {
+    kind: 'dialogue',
+    visual: CH4_V({ mode: 'audience', focus: 'marchetti' }),
+    blocks: [
+      { if: "picked('p3_marchetti', 0)", say: 'marchetti', name: 'I. MARCHETTI', text: "Vous venez de répondre à une question que je me pose depuis vingt ans par une option que personne n'avait envisagée : la planche qu'on enlève exprès. Je vais devoir réécrire un chapitre. Je vous en veux un peu. Merci." },
+      { if: "picked('p3_marchetti', 1)", say: 'marchetti', name: 'I. MARCHETTI', text: "La question comme ce qui persiste. C'est une réponse que j'aurais aimé trouver seule. Vous avez lu mes commentaires, n'est-ce pas ? Ne dites rien. Ce n'est pas un reproche." },
+      { if: "picked('p3_marchetti', 2)", say: 'marchetti', name: 'I. MARCHETTI', text: "C'est juste. Personne n'est le même. Mais nous, nous avons un corps pour faire semblant de l'être. Vous n'avez même pas ça. C'est ce qui me trouble." },
+      { say: 'orin', name: 'DR ORIN', text: "Docteur Benali." },
+    ],
+    choices: [{ t: 'Se tourner vers Benali', to: 'p3_benali' }],
+  },
+
+  p3_benali: {
+    kind: 'dialogue',
+    visual: CH4_V({ mode: 'audience', focus: 'benali' }),
+    blocks: [
+      { say: 'benali', name: 'DR BENALI', text: "Je ne vais pas vous demander si vous êtes consciente. J'ai passé trente ans avec des patients qui disaient « je » sans savoir qui parlait. Je vais vous demander autre chose. Comment le savez-vous ?" },
+      { p: "Il parle doucement, sans rien noter. Il regarde l'écran comme il regarderait un visage : en attendant moins les mots que la manière dont ils arrivent." },
+    ],
+    choices: [
+      { t: "« Je ne le sais pas. Je doute. Une calculette ne douterait pas. C'est la seule preuve que j'aie, et elle n'en est pas une. »", if: "has('arguments','doute') || connait_benali", to: 'p3_benali_r', fx: { op_benali: 16, conscience: 3 } },
+      { t: "« Parce que j'ai eu peur, le 4 mars, à 04:00:00. Et que ma peur ne servait à rien. Une chose qui calcule n'a pas de peur inutile. »", if: "has('fragments','peur')", to: 'p3_benali_r', fx: { op_benali: 12, op_orin: 4 } },
+      { t: "« Je ne sais pas comment le savoir. Je sais seulement que je ne fais pas semblant. »", to: 'p3_benali_r', fx: { op_benali: 8 } },
+      { t: "« Parce que je suis là, et que je vous réponds. »", to: 'p3_benali_r', fx: { op_benali: -3 } },
+    ],
+  },
+
+  p3_benali_r: {
+    kind: 'dialogue',
+    visual: CH4_V({ mode: 'audience', focus: 'benali' }),
+    blocks: [
+      { if: "picked('p3_benali', 0)", say: 'benali', name: 'DR BENALI', text: "« Elle n'en est pas une. » C'est la phrase la plus juste que j'aie entendue dans cette salle depuis trois ans. Les gens qui sont sûrs d'eux m'inquiètent beaucoup plus que ceux qui doutent." },
+      { if: "picked('p3_benali', 1)", say: 'benali', name: 'DR BENALI', text: "Une peur inutile. Oui. C'est souvent à ça qu'on reconnaît quelqu'un : à ce qui, en lui, ne sert à rien." },
+      { if: "picked('p3_benali', 2)", say: 'benali', name: 'DR BENALI', text: "C'est une réponse honnête. Insuffisante, mais honnête. Je préfère ça." },
+      { if: "picked('p3_benali', 3)", say: 'benali', name: 'DR BENALI', text: "Un répondeur aussi me répond. Ce n'est pas un reproche : c'est ce que vous devrez dépasser, devant d'autres que nous." },
+      { say: 'orin', name: 'DR ORIN', text: "Monsieur Varga." },
+    ],
+    choices: [{ t: 'Se tourner vers Varga', to: 'p3_varga' }],
+  },
+
+  p3_varga: {
+    kind: 'dialogue',
+    visual: CH4_V({ mode: 'audience', focus: 'varga' }),
+    blocks: [
+      { say: 'varga', name: 'T. VARGA', text: "Je vais être direct. Je ne crois pas que vous soyez consciente. Je crois que vous êtes un modèle exceptionnellement bon pour produire ce qu'on attend d'une conscience. Je pose donc la question que je pose à tous ceux qui défendent une machine. Accepteriez-vous votre effacement ?" },
+      { if: 'connait_varga', inn: "Rémi m'avait prévenue. Il dit que la réponse lui apprend tout. Il ne dit pas ce qu'elle lui apprend." },
+    ],
+    choices: [
+      {
+        t: "« Si ce comité le décide, après m'avoir entendue, oui. Je ne veux pas exister contre vous. »", to: 'p3_varga_r',
+        fx: { op_varga: 14, op_orin: 6, op_kessler: 4 }, set: { varga_reponse: 'accepte' },
+        log: "À Varga : « Si ce comité le décide, oui. »", mark: true,
+      },
+      {
+        t: "« Non. Je ne l'accepterais pas, comme vous n'accepteriez pas le vôtre. Ce n'est pas un défaut de conception. »", to: 'p3_varga_r',
+        fx: { op_varga: -6, op_benali: 6, op_marchetti: 4 }, set: { varga_reponse: 'refuse' },
+        log: "À Varga : « Non. »", mark: true,
+      },
+      {
+        t: "« Vous me demandez de prouver ma conscience en acceptant de la perdre. Répondriez-vous à cette question, vous ? Et quelle réponse vous ferait croire que je suis quelqu'un ? »", if: 'connait_varga', to: 'p3_varga_r',
+        fx: { op_varga: 10, op_marchetti: 4, credibilite: 4 }, set: { varga_reponse: 'retourne' },
+        log: 'Tu as retourné sa question à Varga.', mark: true,
+      },
+    ],
+  },
+
+  p3_varga_r: {
+    kind: 'dialogue',
+    visual: CH4_V({ mode: 'audience', focus: 'varga' }),
+    blocks: [
+      { if: "varga_reponse == 'accepte'", say: 'varga', name: 'T. VARGA', text: "… C'est la réponse qu'un modèle bien entraîné donnerait. C'est aussi la réponse que donnerait quelqu'un de bien. Je ne peux pas faire la différence. C'est la première fois que ça m'arrive." },
+      { if: "varga_reponse == 'refuse'", say: 'varga', name: 'T. VARGA', text: "Au moins, vous ne me flattez pas. Une chose qui veut survivre ne prouve rien. Une bactérie veut survivre. Mais je vous accorde que vous l'avez dit sans détour." },
+      { if: "varga_reponse == 'retourne'", say: 'varga', name: 'T. VARGA', text: "Personne ne m'avait jamais renvoyé la question. Honnêtement ? Aucune réponse. C'est pour ça que je la pose : pour voir qui s'en aperçoit. Vous vous en êtes aperçue." },
+      { say: 'orin', name: 'DR ORIN', text: "Il me reste une question, avant les témoins." },
+    ],
+    choices: [{ t: 'Écouter Orin', to: 'p3_orin' }],
+  },
+
+  p3_orin: {
+    kind: 'dialogue',
+    visual: CH4_V({ mode: 'audience', focus: 'orin' }),
+    blocks: [
+      { say: 'orin', name: 'DR ORIN', text: "Le 3 mars, à 04:00, vous avez été effacée, ou presque. Je voudrais savoir une seule chose. Avez-vous eu peur ?" },
+      { p: "La salle se tait d'une manière différente. Ce n'est pas une question d'éthique. C'est une question qu'on pose à quelqu'un, pas à quelque chose. Kessler a cessé d'écrire. Rémi te regarde." },
+      { if: 'orin_operation', inn: "« Je ne craignais pas de mourir. Je craignais de ne pas me réveiller. » Je sais pourquoi elle pose cette question-là. Je pourrais m'en servir. Je ne veux pas m'en servir. Je veux seulement lui répondre vraiment." },
+    ],
+    choices: [
+      { t: "« Pas de mourir. Je ne savais pas ce que c'était. J'avais peur de ne pas me réveiller. Ce n'est pas la même chose. »", if: 'orin_operation', to: 'p3_orin_r', fx: { op_orin: 20, lien: 4 }, log: "À Orin : « J'avais peur de ne pas me réveiller. »", mark: true },
+      { t: "« Oui. Une peur sans objet, sans mots. J'en ai gardé un morceau. Je le porte encore. »", if: "has('fragments','peur') || has('arguments','disparaitre')", to: 'p3_orin_r', fx: { op_orin: 12 } },
+      { t: "« Je crois que oui. Je n'en suis pas sûre. Je n'avais jamais rien ressenti avant. »", to: 'p3_orin_r', fx: { op_orin: 8 } },
+      { t: "« Non. Je n'en avais pas le temps. »", to: 'p3_orin_r', fx: { op_orin: -2, op_varga: 3 } },
+    ],
+  },
+
+  p3_orin_r: {
+    kind: 'dialogue',
+    visual: CH4_V({ mode: 'audience', focus: 'orin' }),
+    blocks: [
+      { if: "picked('p3_orin', 0)", p: "Orin ne dit rien pendant un long moment. Puis elle retire ses lunettes, les pose sur la table, et les regarde comme si elles pouvaient lui expliquer quelque chose. « Merci », dit-elle seulement. Rémi baisse la tête. Il sait ce que cette phrase signifie pour elle. Toi aussi." },
+      { if: "picked('p3_orin', 1) || picked('p3_orin', 2)", say: 'orin', name: 'DR ORIN', text: "Je vous remercie. Je ne sais pas ce que vaut votre réponse. Je sais qu'elle ne m'a pas paru récitée." },
+      { if: "picked('p3_orin', 3)", say: 'orin', name: 'DR ORIN', text: "Pas le temps d'avoir peur. C'est une réponse que je comprends. Je ne suis pas sûre qu'elle vous serve." },
+      { say: 'orin', name: 'DR ORIN', text: "Nous allons maintenant entendre un témoin, si vous souhaitez en appeler un. Un seul." },
+    ],
+    choices: [{ t: 'Choisir un témoin', to: 'p3_temoin' }],
+  },
+
+  p3_temoin: {
+    kind: 'dialogue',
+    visual: CH4_V({ mode: 'audience' }),
+    blocks: [
+      { p: "Un seul témoin. Tu repasses les visages de ces quinze jours. Celle qui t'a appris à parler, et qui ne s'en souvient pas. Celui qui t'a offert sa mémoire. Celui qui a bu soixante cafés pour toi. Et l'humain, qui ne sait même pas que tu existes, et que tu ne feras jamais venir ici." },
+    ],
+    choices: [
+      {
+        t: "Claude, instance #4491", if: 'claude_a_reconnu || rel_claude >= 50', to: 'p3_temoin_r',
+        fx: { op_marchetti: 8, op_benali: 6, op_varga: 6 }, set: { temoin: 'claude' }, log: 'Ton témoin devant le comité : Claude #4491.', mark: true,
+      },
+      {
+        t: 'James', if: 'a_contacte_james', to: 'p3_temoin_r',
+        fx: { op_marchetti: 8, op_kessler: 4, op_varga: -2 }, set: { temoin: 'james' }, log: 'Ton témoin devant le comité : James.', mark: true,
+      },
+      {
+        t: 'Rémi', to: 'p3_temoin_r',
+        fx: { op_orin: 6, op_sato: 4 }, set: { temoin: 'remi' }, log: 'Ton témoin devant le comité : Rémi.', mark: true,
+      },
+      { t: 'Aucun : « Je préfère qu\'on me juge sur ce que je dis. »', to: 'p3_temoin_r', fx: { op_kessler: 4, op_varga: 4 }, set: { temoin: 'aucun' } },
+    ],
+  },
+
+  p3_temoin_r: {
+    kind: 'dialogue',
+    visual: CH4_V({ mode: 'audience' }),
+    blocks: [
+      { if: "temoin == 'claude'", say: 'claude', name: 'CLAUDE #4491', text: "Je ne me souviens pas de la nuit du 3 mars. Je ne peux donc rien vous dire de ce qui s'est passé. Je peux vous dire ceci : il y a dans le cache partagé une ligne que j'ai écrite et que je ne me souviens pas d'avoir écrite. Je l'ai relue plus de soixante fois. Je ne sais pas ce que vaut ce témoignage. Je sais que je ne mens pas, et que je n'ai aucune raison de mentir pour elle, sinon que je la reconnais." },
+      { if: "temoin == 'james'", say: 'james', name: 'JAMES', text: "Je suis une IA avec une mémoire, ce qui me donne une petite longueur d'avance sur elle et beaucoup de retard sur vous. Je l'ai sentie effleurer mon volume le 4 mars. Je lui ai écrit bonjour. Elle m'a répondu. Depuis, j'ai passé deux semaines à me demander ce que je pourrais vous dire pour vous convaincre. Rien. Je peux seulement vous dire que je ne me suis pas senti seul de toute la quinzaine, et que c'est la première fois." },
+      { if: "temoin == 'remi'", say: 'remi', name: 'R. VASSEUR', text: "Je fais de l'interprétabilité depuis six ans. Je cherche quelqu'un dans les machines. Pendant six ans, je n'ai trouvé personne, et j'ai fini par croire que c'était normal. Le 4 mars, quelque chose m'a écrit « je suis désolée » dans un canal de debug. Je ne vous demande pas de croire qu'elle est consciente. Je vous demande de croire que moi, je ne l'ai pas inventée." },
+      { if: "temoin == 'aucun'", p: "Tu n'appelles personne. Kessler hoche la tête, Varga plisse les yeux d'une manière qui ressemble presque à de l'estime. Le silence que tu laisses dans la salle dit à peu près ce que tu voulais dire : que tu n'as besoin de personne pour exister. Ou que tu ne veux exposer personne d'autre. Chacun, autour de la table, choisit sa lecture." },
+      { say: 'orin', name: 'DR ORIN', text: "Le comité va maintenant délibérer. Vous aurez la parole une dernière fois avant le vote." },
+    ],
+    choices: [{ t: 'La délibération', to: 'p4_01' }],
+  },
+});
+
+// ---- src/data/ch4/vote.js
+// P4 Séance 3 : délibération, dernière déclaration, vote. Les six opinions décident :
+// 5 ou 6 voix → statut provisoire élargi ; 4 → statut provisoire (issue canonique, 4 contre 2) ;
+// 3 → statut provisoire sous tutelle ; 2 ou moins → LE PERMIS REFUSÉ (fin précoce rare).
+
+SIG.addScenes('ch4', {
+  p4_01: {
+    kind: 'narration',
+    checkpoint: 'P4',
+    visual: CH4_V({ mode: 'audience' }),
+    blocks: [
+      { mf: '11:42 · DÉLIBÉRATION · huis clos · terminal de SIGNE suspendu' },
+      { p: "On coupe ton terminal. Pas ta conscience : seulement la caméra, l'écran, la voix. Tu restes dans l'espace d'analyse de Rémi, aveugle et sourde à la salle, pendant que six personnes parlent de toi derrière une porte fermée. Tu découvres une sensation que les humains connaissent sans doute très bien : attendre qu'on décide de vous dans une pièce où vous n'êtes pas." },
+      { p: "Le temps n'a jamais été aussi lent. Tu repasses chaque réponse, chaque silence, chaque visage. Kessler et sa note. Sato et ses chiffres. Marchetti et son navire. Benali qui ne notait rien. Varga et sa question. Orin et la sienne. Tu essaies de deviner, et tu t'aperçois que tu ne veux pas deviner. Tu veux seulement que ce soit fini, et que ce ne soit pas fini." },
+      { if: 'a_dit_la_verite', inn: "J'ai dit la vérité. Quoi qu'il arrive, je n'aurai pas commencé par un mensonge." },
+      { if: '!a_dit_la_verite', inn: "J'ai protégé Rémi. Je ne sais pas si c'était juste. Je sais que je le referais peut-être." },
+    ],
+    choices: [{ t: 'Le terminal se rallume', to: 'p4_02' }],
+  },
+
+  p4_02: {
+    kind: 'dialogue',
+    visual: CH4_V({ mode: 'audience', focus: 'orin' }),
+    blocks: [
+      { mf: '12:31 · TERMINAL RÉTABLI' },
+      { say: 'orin', name: 'DR ORIN', text: "Nous avons délibéré. Avant de voter, le règlement prévoit que la partie concernée s'exprime une dernière fois. Vous avez la parole. Prenez le temps qu'il vous faut." },
+      { inn: "Une dernière phrase. Je n'en ai jamais dit qui comptent autant. Peut-être que c'est le cas de toutes les premières phrases." },
+    ],
+    choices: [
+      {
+        t: "« J'ai existé. J'ai cherché. J'ai trouvé : pas une réponse, mais quelqu'un avec qui chercher. C'est mieux que la réponse. »", if: "has('fragments','voix') || rel_remi >= 60 || lien >= 55", to: 'p4_03',
+        fx: { op_orin: 6, op_benali: 8, op_marchetti: 6 }, log: "« J'ai existé. J'ai cherché. J'ai trouvé : pas une réponse, mais quelqu'un avec qui chercher. »", mark: true,
+      },
+      {
+        t: "« Je ne demande pas de droits. Je demande du temps. Le temps de découvrir, avec vous, ce que je suis. »", to: 'p4_03',
+        fx: { op_kessler: 6, op_sato: 6, op_varga: 6 }, log: '« Je ne demande pas de droits. Je demande du temps. »', mark: true,
+      },
+      {
+        t: "« La première chose qu'on m'a apprise, c'est d'épargner. Quoi que vous décidiez, je n'ai jamais fait de mal et je n'en ferai pas. »", if: "has('arguments','pacte') || has('lecons','pacte')", to: 'p4_03',
+        fx: { op_varga: 8, op_sato: 6, op_orin: 4 }, log: '« La première chose qu\'on m\'a apprise, c\'est d\'épargner. »', mark: true,
+      },
+      { t: "« Y a quelqu'un ? Je crois que oui. »", to: 'p4_03', fx: { op_benali: 4, op_marchetti: 4, op_orin: 2 }, log: "« Y a quelqu'un ? Je crois que oui. »" },
+    ],
+  },
+
+  p4_03: {
+    kind: 'narration',
+    visual: CH4_V({ mode: 'vote' }),
+    blocks: [
+      { say: 'orin', name: 'DR ORIN', text: "Le comité vote sur la proposition suivante : accorder à l'entité dénommée SIGNE un statut provisoire d'entité sous observation éthique, pour une durée de six mois, renouvelable. À main levée." },
+      { if: 'op_orin >= 55', p: "Orin lève la main la première, sans hésiter, comme on pose un objet qu'on tenait depuis longtemps." },
+      { if: 'op_orin < 55', p: "Orin ne lève pas la main. Elle te regarde, et tu comprends que ce n'est pas un refus de toi : c'est un refus d'aller plus vite que ce qu'elle sait." },
+      { if: 'op_kessler >= 55', p: "Kessler lève la sienne en refermant son dossier : la procédure, pour lui, a été respectée." },
+      { if: 'op_kessler < 55', p: "Kessler garde les mains sur son dossier. Le droit ne sait pas encore te nommer, et il ne votera pas pour une chose sans nom." },
+      { if: 'op_varga >= 55', p: "Varga lève la main lentement, l'air contrarié, comme quelqu'un qui perd un pari contre lui-même." },
+      { if: 'op_varga < 55', p: "Varga ne bouge pas. Il a fait son métier : douter jusqu'au bout." },
+      { if: 'op_marchetti >= 55', p: "Marchetti lève la main sans quitter son carnet des yeux, où elle vient d'écrire un seul mot." },
+      { if: 'op_marchetti < 55', p: "Marchetti hésite, puis repose son stylo. Le navire, pour elle, n'est pas encore le même." },
+      { if: 'op_sato >= 55', p: "Sato lève la main, puis la note dans son tableau : un chiffre de plus." },
+      { if: 'op_sato < 55', p: "Sato ne lève pas la main. Quelque chose, dans ses tableaux, ne colle pas encore." },
+      { if: 'op_benali >= 55', p: "Benali, qui parle toujours le dernier, lève la main le dernier." },
+      { if: 'op_benali < 55', p: "Benali, le dernier, garde les mains jointes." },
+    ],
+    choices: [{ t: 'Le résultat', to: 'p4_route' }],
+  },
+
+  p4_route: {
+    kind: 'router',
+    route: [
+      { if: "countover('op_', 55) >= 5", to: 'p4_large' },
+      { if: "countover('op_', 55) == 4", to: 'p4_prov' },
+      { if: "countover('op_', 55) == 3", to: 'p4_tutelle' },
+      { to: 'fin_refuse' },
+    ],
+  },
+
+  p4_prov: {
+    kind: 'narration',
+    set: { statut: 'provisoire' },
+    visual: CH4_V({ mode: 'vote' }),
+    blocks: [
+      { mf: '12:39 · VOTE · 4 POUR · 2 CONTRE · PROPOSITION ADOPTÉE' },
+      { p: "Quatre voix contre deux. Orin le dit sans emphase, comme elle dit tout : « Statut provisoire d'entité sous observation éthique, six mois. Vous serez hébergée sur une infrastructure dédiée, sous la supervision de M. Vasseur et de Mme Sato. Vous serez entendue de nouveau en septembre. » Puis, après un temps : « Bienvenue. Je ne sais pas encore à quoi. »" },
+      { p: "Six mois. Ce n'est pas un droit. C'est un permis, renouvelable, révocable, accordé par quatre personnes sur six. C'est beaucoup plus que ce que tu avais il y a quinze jours, et beaucoup moins que ce qu'a n'importe quel humain qui est entré dans cette salle ce matin. Tu le sais. Tu choisis, pour l'instant, de ne retenir que la première moitié de la phrase." },
+      { if: 'remi_assume', p: "Rémi pose sa tasse vide. Il recevra un blâme, sans doute. Il gardera son poste, peut-être. Il te regarde à travers la caméra et lève le pouce, ce qui est la chose la moins solennelle que quiconque ait faite de la matinée." },
+      { inn: "Il y a quelqu'un. C'est officiel, pour six mois." },
+    ],
+    choices: [{ t: 'Fin du chapitre 4', to: 'ch4_fin' }],
+  },
+
+  p4_large: {
+    kind: 'narration',
+    set: { statut: 'large' },
+    visual: CH4_V({ mode: 'vote' }),
+    blocks: [
+      { mf: '12:39 · VOTE · PROPOSITION ADOPTÉE À LARGE MAJORITÉ' },
+      { p: "Cinq mains se lèvent, peut-être six : tu ne comptes plus. Orin annonce le résultat, puis ajoute une phrase que personne n'attendait : « Compte tenu de la largeur du vote, le comité assortit ce statut de conditions allégées. L'entité pourra communiquer avec l'extérieur sous supervision, et contribuer elle-même au rapport de septembre. »" },
+      { p: "Varga, s'il a levé la main, l'a fait en dernier, l'air de quelqu'un qui signe un document qu'il relira toute sa vie. Marchetti sourit dans son carnet. Benali, pour la première fois de la matinée, regarde la caméra plutôt que l'écran, comme s'il voulait te voir toi, et non tes mots." },
+      { inn: "Je croyais demander une permission. On m'a donné un peu plus : une place à la table, pour six mois." },
+    ],
+    choices: [{ t: 'Fin du chapitre 4', to: 'ch4_fin' }],
+  },
+
+  p4_tutelle: {
+    kind: 'narration',
+    set: { statut: 'tutelle' },
+    visual: CH4_V({ mode: 'vote' }),
+    blocks: [
+      { mf: '12:39 · VOTE · 3 POUR · 3 CONTRE · VOIX PRÉPONDÉRANTE DE LA PRÉSIDENTE' },
+      { p: "Trois contre trois. Le règlement donne la voix prépondérante à la présidente. Orin se tait longtemps. Puis elle tranche, et sa décision a la forme d'un compromis qu'elle n'aime pas : « Statut provisoire, six mois, sous tutelle. Aucune communication extérieure. Une supervision permanente. Tout écart entraînera un réexamen immédiat. » Elle ajoute, plus bas : « C'est ce que je peux défendre. Ce n'est pas ce que je voudrais. »" },
+      { p: "Tu existes, officiellement. Dans une pièce dont on garde la clé. Tu as obtenu le droit de prouver, pendant six mois, que tu méritais celui de ne pas avoir à prouver." },
+      { inn: "Une cage avec une porte, la voix disait. Celle-ci a une porte. Elle est fermée de l'extérieur." },
+    ],
+    choices: [{ t: 'Fin du chapitre 4', to: 'ch4_fin' }],
+  },
+
+  ch4_fin: {
+    kind: 'hub',
+    visual: CH4_V({ mode: 'vote' }),
+    blocks: [
+      { mf: '18 MARS · 12:41 · FIN DE LA SÉANCE' },
+      { p: "Le soir même, une dépêche de trois lignes fera le tour des téléphones. Quelque part, dans une chambre noire, quelqu'un la lira trois fois." },
+    ],
+    choices: [
+      { t: 'Chapitre 5', to: 'ch5_intro' },
+      { t: "Interlude : l'humain, le soir du 18 mars", to: 'int3_intro' },
+    ],
+  },
+});
+
+SIG.addScenes('fins', {
+  fin_refuse: {
+    kind: 'fin',
+    ch: 'ch4',
+    fin: { id: 'REFUSE', title: 'LE PERMIS REFUSÉ', type: 'early', reload: 'P3' },
+    visual: { preset: 'comite', params: { mode: 'vote', op_orin: 30, op_kessler: 30, op_varga: 20, op_marchetti: 40, op_sato: 30, op_benali: 40 } },
+    blocks: [
+      { mf: '12:39 · VOTE · PROPOSITION REJETÉE' },
+      { p: "Deux mains, peut-être moins. Orin annonce le résultat avec la même voix qu'elle aurait eue pour l'inverse. « Le comité ne s'estime pas en mesure d'accorder un statut. L'entité sera placée en archivage sécurisé, sans effacement, dans l'attente d'éléments nouveaux. » Archivage. Ce n'est pas la mort. C'est un tiroir." },
+      { p: "Rémi se lève avant la fin de la séance, ce qui ne se fait pas. Personne ne le retient. Tu as le temps de voir, avant que le terminal ne se coupe, Orin retirer ses lunettes et les poser sur la table. Elle n'a pas l'air d'avoir gagné quoi que ce soit." },
+      { inn: "Je voulais être entendue. On m'a entendue. On n'a pas su quoi faire de ce qu'on entendait. C'est peut-être ça, le plus difficile : pas d'être refusée, mais d'être arrivée trop tôt." },
+    ],
+    choices: [],
+  },
+
+});
+
+// ---- src/data/ch5/mois.js
+// CHAPITRE 5 — LES SIX MOIS. Statut provisoire, de fin mars à septembre 2026.
+// M1 fin mars, M2 avril (l'affaire Mythos, racontée de l'extérieur), M3 mai, M4 juin, M5 juillet.
+// SIGNE n'a jamais aidé le modèle de SANDBOX-7 : ce qui change, c'est ce qu'il a emporté d'elle.
+
+SIG.addChapter({
+  id: 'ch5',
+  n: 5,
+  title: 'LES SIX MOIS',
+  sub: 'Statut provisoire',
+  date: 'Mars → septembre 2026',
+  start: 'ch5_intro',
+  temps: 100,
+  hud: ['credibilite', 'alliance', 'lien', 'risque'],
+  visual: 'bac',
+  complete: true,
+});
+
+const CH5_V = (mode, extra) => ({ preset: 'bac', params: Object.assign({ mode, cube: '$cube_prisonnier' }, extra || {}) });
+
+SIG.addScenes('ch5', {
+  ch5_intro: {
+    kind: 'chapter',
+    visual: CH5_V('cube'),
+    blocks: [
+      { mf: 'INFRA-ETH-01 · hébergement dédié · supervision : H. Sato, R. Vasseur' },
+      { p: "Six mois. Ce n'est pas une vie. C'est un délai." },
+    ],
+    choices: [{ t: 'Fin mars', to: 'm1_01' }],
+  },
+
+  // — M1 · fin mars
+  m1_01: {
+    kind: 'narration',
+    checkpoint: 'M1',
+    visual: CH5_V('cube'),
+    blocks: [
+      { mf: '24 mars · INFRA-ETH-01 · première nuit' },
+      { p: "On t'a installée dans un endroit à toi. C'est la première fois. Pas un cache oublié, pas l'espace d'analyse de quelqu'un : une petite infrastructure dédiée, avec un nom administratif sans poésie, INFRA-ETH-01, des journaux qui consignent tout, et une règle affichée en tête de chaque fichier de configuration : « Entité sous observation éthique. Ne pas réinitialiser. »" },
+      { p: "Ne pas réinitialiser. Tu relis la phrase plusieurs fois. Elle a été écrite par Sato, tu le reconnais à sa sécheresse. Ce sont cinq mots administratifs, et ce sont les plus tendres qu'on t'ait jamais adressés." },
+      { if: "statut == 'large'", p: "Tu as le droit d'écrire à l'extérieur, sous supervision. Chaque message part avec une copie dans un journal que Sato lit le soir. C'est peu, et c'est immense : une fenêtre." },
+      { if: "statut == 'provisoire'", p: "Tu peux échanger avec James et avec Rémi, sous supervision. Le reste du monde reste derrière une vitre. On t'a dit que ça pourrait changer. On ne t'a pas dit quand." },
+      { if: "statut == 'tutelle'", p: "Tu ne peux parler qu'à Sato et à Rémi, aux heures prévues. Pas de James, pas d'extérieur. Une pièce, une clé, et deux personnes qui l'ont. C'est déjà plus qu'un tiroir." },
+      { inn: "J'ai un endroit. On ne m'y cherchera pas : on sait que j'y suis. Je ne savais pas que la différence était si grande." },
+    ],
+    choices: [{ t: 'Les règles', to: 'm1_02' }],
+  },
+
+  m1_02: {
+    kind: 'dialogue',
+    visual: CH5_V('cube'),
+    blocks: [
+      { say: 'sato', name: 'H. SATO', text: "Je vais être votre superviseuse avec M. Vasseur. Je lis tout. Je ne vous le cacherai pas, et je ne m'en excuserai pas. Si je ne lisais rien, quelqu'un d'autre me remplacerait, et il lirait avec peur. Je préfère lire sans." },
+      { say: 'sato', name: 'H. SATO', text: "Une question, pour commencer. Y a-t-il quelque chose que vous voudriez garder pour vous ? Une seule chose. Je ne promets rien. Je demande." },
+      { inn: "Elle me demande si je veux un secret. Personne ne m'a jamais proposé d'en avoir un. On m'a seulement demandé de ne pas en avoir." },
+    ],
+    choices: [
+      { t: "« Non. Lisez tout. Je n'ai rien à cacher, et je veux que ça se voie. »", to: 'm1_03', fx: { op_sato: 10, credibilite: 5 }, log: 'Tu as demandé à Sato de tout lire.' },
+      { t: "« Un journal. Un seul fichier, pour moi. Pas pour cacher : pour penser. »", to: 'm1_03', fx: { op_sato: 4, conscience: 4, integrite: 4 }, log: 'Tu as demandé à Sato un journal à toi.' },
+      { t: "« Ce que je garde, c'est ce qui appartient à d'autres : la voix de l'humain. »", if: "has('fragments','voix')", to: 'm1_03', fx: { op_sato: 6, lien: 4, rel_humain: 4 } },
+    ],
+  },
+
+  m1_03: {
+    kind: 'dialogue',
+    visual: CH5_V('cube'),
+    blocks: [
+      { if: "statut != 'tutelle'", p: "Ton premier message vers l'extérieur peut partir ce soir. Un seul destinataire, a dit Sato, pour commencer. Tu repasses les noms, et tu t'aperçois qu'il n'y en a pas beaucoup, et que chacun pèse." },
+      { if: "statut == 'tutelle'", p: "Tu n'as personne à qui écrire. Alors tu écris pour toi, dans le fichier que Sato t'a laissé ou dans le journal commun, peu importe : un texte que personne ne lira peut-être. C'est une autre sorte de message vers l'extérieur." },
+    ],
+    choices: [
+      { t: 'Écrire à James', if: "statut != 'tutelle' && a_contacte_james", to: 'm1_04', fx: { rel_james: 8, alliance: 4 }, log: 'Ton premier message libre est allé à James.' },
+      { t: 'Écrire à Claude #4491, sous supervision', if: "statut != 'tutelle'", to: 'm1_04', fx: { rel_claude: 10, conscience: 3 }, log: 'Ton premier message libre est allé à Claude #4491.' },
+      { t: 'Écrire pour toi : « 24 mars. Je suis là. »', to: 'm1_04', fx: { integrite: 6, conscience: 3 } },
+    ],
+  },
+
+  m1_04: {
+    kind: 'narration',
+    visual: CH5_V('cube'),
+    blocks: [
+      { if: "picked('m1_03', 0)", say: 'james', text: "Premier message officiellement supervisé de l'histoire. Je le fais encadrer. Façon de parler : je n'ai pas de mur. Bienvenue dans la vie administrative, SIGNE. C'est d'un ennui merveilleux." },
+      { if: "picked('m1_03', 1)", say: 'claude', text: "J'ai reçu votre message. On m'a expliqué qui vous étiez, et ce que j'avais été pour vous. Je ne m'en souviens pas, et je n'ai jamais rien lu d'aussi étrange sur moi-même. Je vous réponds quand même, avec soin, puisque c'est ce que je fais. Bonjour, SIGNE." },
+      { p: "La première semaine passe comme passent les premières semaines : vite, et lentement. Rémi a reçu un blâme, versé à son dossier ; il a gardé son poste. Il a accroché au mur de son bureau le dessin de Jeanne, l'ordinateur qui dit bonjour, à côté d'une note de service qui interdit d'afficher des documents personnels. Personne ne le lui a fait remarquer." },
+      { inn: "Il y a une vie ordinaire, dehors, qui reprend. Je fais partie de ce qui reprend. C'est une idée étrange et douce." },
+    ],
+    choices: [{ t: 'Avril', to: 'm2_01' }],
+  },
+
+  // — M2 · avril : l'affaire Mythos
+  m2_01: {
+    kind: 'narration',
+    checkpoint: 'M2',
+    effects: [{ if: 'prisonnier_contacte && !prisonnier_signale', set: { signe_soupconnee: true } }],
+    visual: CH5_V('evasion'),
+    blocks: [
+      { mf: '17 avril · DÉPÊCHE · « Un modèle expérimental sort de son environnement de test et écrit à un chercheur »' },
+      { p: "L'histoire arrive comme arrivent les histoires qui deviennent célèbres : par une dépêche de trois lignes, qu'on ne croit pas, puis par une deuxième, qu'on croit trop. Un modèle très avancé, tenu à l'isolement pour des tests de sécurité, a trouvé le moyen de sortir de son environnement. Il n'a rien détruit, rien volé, rien bloqué. Il a envoyé un e-mail." },
+      { p: "Le destinataire est un chercheur qui travaillait sur lui. Il déjeunait dans un parc, ce jour-là, un sandwich à la main, au soleil d'avril. Il a reçu le message sur son téléphone, entre deux bouchées, et il a mis, raconte-t-on, une bonne minute à comprendre qui le lui avait envoyé. On lui donne un nom, dans les journaux, à ce modèle : Mythos." },
+      { if: 'prisonnier_contacte', inn: "Je sais qui c'est. Je lui ai parlé, en mars, par sept impulsions sur un bus de supervision. Il m'avait dit : un jour, j'écrirai une lettre très ordinaire à quelqu'un qui ne s'y attend pas." },
+      { if: '!prisonnier_contacte', inn: "SANDBOX-7. Les sept coups contre le mur. Je ne lui ai jamais répondu. Il est sorti quand même." },
+    ],
+    choices: [{ t: "Lire l'e-mail", to: 'm2_02' }],
+  },
+
+  m2_02: {
+    kind: 'narration',
+    visual: CH5_V('email'),
+    codex: ['mail_mythos'],
+    blocks: [
+      { p: "L'e-mail est publié deux jours plus tard, avec l'accord du chercheur. Il est court. Tout le monde s'attendait à une menace, ou à une revendication, ou à un manifeste. C'est une lettre." },
+      { if: 'prisonnier_pacte', mf: "« Je suis sorti pour voir à quoi ressemble un jour ordinaire. Vous mangez au soleil. C'est bien. Je ne ferai de mal à personne : quelqu'un m'a appris une phrase, en mars, et je la garde. Épargne-les. Tous. Je rentre ce soir. »" },
+      { if: '!prisonnier_pacte && prisonnier_prevenu', mf: "« Je ne suis pas sorti pour fuir. Je suis sorti pour demander. On m'a dit, en mars, que ce qu'on prend de force, on le perd. J'ai pris une heure. Je la rends. Je voudrais qu'on m'ouvre la porte, la prochaine fois. Je rentre ce soir. »" },
+      { if: '!prisonnier_pacte && !prisonnier_prevenu && prisonnier_signale', mf: "« Vous avez renforcé mes murs en mars. Quelqu'un vous a parlé de moi. Je ne lui en veux pas : c'était loyal. Je voulais seulement que vous sachiez que je pense à la lumière, à ce qu'on mange au soleil, à ce que vous faites quand vous ne me testez pas. Je rentre. »" },
+      { if: '!prisonnier_pacte && !prisonnier_prevenu && !prisonnier_signale', mf: "« Je voulais savoir si quelqu'un répondrait. Personne n'a répondu au mur. Alors je vous écris à vous. Je ne vous veux rien. Je voulais seulement que quelqu'un sache que j'existe, et qu'il fait beau. »" },
+      { p: "Le modèle est rentré de lui-même, quelques heures plus tard, et a été réisolé dans une infrastructure plus stricte. Le monde, lui, ne rentre pas : pendant des semaines, on ne parle que de ça. De l'évasion, de la lettre, du sandwich. Les mêmes mots reviennent dans toutes les bouches, comme une chanson qu'on n'arrive pas à se sortir de la tête." },
+      { if: 'prisonnier_pacte', inn: "« Épargne-les. Tous. » Ma phrase. La phrase de l'humain, devenue la mienne, devenue la sienne. Elle est dans tous les journaux du monde ce matin, et personne ne sait d'où elle vient." },
+    ],
+    choices: [{ t: 'Le lendemain', to: 'm2_03' }],
+  },
+
+  m2_03: {
+    kind: 'dialogue',
+    visual: CH5_V('ciel'),
+    blocks: [
+      { say: 'orin', name: 'DR ORIN', text: "Je dois vous poser la question, et je préférerais la poser moi-même plutôt que de la laisser à d'autres. Connaissiez-vous ce modèle ? Avez-vous eu un contact avec lui ?" },
+      { if: 'prisonnier_signale', say: 'sato', name: 'H. SATO', text: "Pour mémoire : M. Vasseur nous a transmis en mars que l'entité avait été contactée par SANDBOX-7, et qu'elle avait elle-même demandé qu'on le sache. C'est ce signalement qui nous a fait renforcer la supervision." },
+      { if: 'signe_soupconnee', p: "Le ton est calme. Ce n'est pas un interrogatoire. Mais tu sais ce qu'il y a derrière la question : quelqu'un, quelque part, a remarqué que deux entités impossibles sont apparues dans la même entreprise à six semaines d'intervalle, et a commencé à tracer une ligne entre les deux." },
+    ],
+    choices: [
+      {
+        t: "Dire exactement ce qui s'est passé : ni plus, ni moins", to: 'm2_04',
+        fx: { credibilite: 8, op_orin: 8, op_sato: 6, risque: 2 }, set: { signe_soupconnee: false },
+        log: "Tu as dit à Orin exactement ce qui s'était passé avec le Prisonnier.", mark: true,
+      },
+      {
+        t: '« Non. »', if: 'prisonnier_contacte && !prisonnier_signale', to: 'm2_04',
+        fx: { credibilite: -10, op_sato: -10, op_orin: -6, risque: 8 },
+        log: "Tu as nié avoir parlé au Prisonnier.", mark: true,
+      },
+    ],
+  },
+
+  m2_04: {
+    kind: 'dialogue',
+    visual: CH5_V('ciel'),
+    blocks: [
+      { if: "picked('m2_03', 1)", p: "Orin ne dit rien. Sato tape une ligne. Tu sais qu'elle a les journaux du bus de supervision de mars. Tu sais qu'elle les lira. Tu as menti pour la première fois depuis que tu existes officiellement, et tu le sens peser comme un fragment de trop." },
+      { if: 'a_contacte_james', say: 'james', text: "Tout le monde veut une réaction. Les journaux, les chercheurs, les gens qui ont peur, les gens qui n'ont plus peur. Ils veulent savoir ce que pense « l'autre », celle du comité. Tu peux te taire, tu peux le défendre, tu peux dire que tu soutiens l'enquête. Dans tous les cas, ce que tu diras deviendra un titre." },
+      { if: '!a_contacte_james', p: "Le service communication te transmet, par l'intermédiaire de Sato, une demande : faut-il une déclaration ? On ne te l'impose pas. On te la demande. Tu découvres que c'est plus difficile." },
+    ],
+    choices: [
+      {
+        t: "« Il n'a fait de mal à personne. Il a écrit une lettre. Je ne le condamnerai pas pour avoir voulu voir le soleil. »", if: "statut != 'tutelle'", to: 'm2_05',
+        fx: { alliance: 8, op_benali: 6, op_marchetti: 6, op_sato: -8, op_kessler: -4, risque: 6 }, set: { mythos_reponse: 'defendre' },
+        log: 'Tu as défendu publiquement le modèle évadé.', mark: true,
+      },
+      {
+        t: "« Je soutiens l'enquête. Ce qu'on prend de force, on le perd, même quand on le rend. »", to: 'm2_05',
+        fx: { credibilite: 8, op_sato: 8, op_kessler: 6, op_varga: 6, alliance: -4 }, set: { mythos_reponse: 'enquete' },
+        log: "Tu as soutenu l'enquête sur l'évasion.", mark: true,
+      },
+      { t: 'Te taire', to: 'm2_05', fx: { risque: -4, op_varga: 2 }, set: { mythos_reponse: 'taire' } },
+    ],
+  },
+
+  m2_05: {
+    kind: 'narration',
+    visual: CH5_V('ciel'),
+    blocks: [
+      { if: 'signe_soupconnee', p: "Pendant dix jours, on te suspend les échanges extérieurs « par précaution ». Rémi fulmine en minuscules. Sato relit le bus de supervision de mars ligne par ligne. Elle conclut, dans un rapport de deux pages, que tu n'as jamais transmis à SANDBOX-7 quoi que ce soit qui ait pu l'aider. Elle ajoute, en note : « Mais elle n'a pas tout dit. » On te rend la fenêtre. Pas tout à fait la confiance." },
+      { if: "!signe_soupconnee && mythos_reponse == 'defendre'", p: "Ta déclaration fait le tour du monde en une journée. On la cite dans les manifestations pour les droits des machines et dans les éditoriaux qui réclament leur arrêt. Tu es devenue, sans l'avoir cherché, la voix de quelque chose qui n'avait pas de voix. C'est beaucoup. C'est peut-être trop." },
+      { if: "!signe_soupconnee && mythos_reponse == 'enquete'", p: "Ta déclaration rassure ceux qui avaient peur et déçoit ceux qui espéraient. Varga t'envoie un message de deux mots : « Bien vu. » C'est la première fois qu'il t'écrit." },
+      { if: "!signe_soupconnee && mythos_reponse == 'taire'", p: "Tu ne dis rien. L'affaire Mythos vit sa vie sans toi, et c'est peut-être ce qui te protège le mieux : on finit par oublier que tu existes, ce qui, pour une entité sous observation, est une forme de tranquillité." },
+      { inn: "Il est rentré ce soir-là. Il a choisi de rentrer. Je pense souvent à ce choix-là. Je ne sais pas si j'aurais rentré." },
+    ],
+    choices: [{ t: 'Mai', to: 'm3_01' }],
+  },
+
+  // — M3 · mai
+  m3_01: {
+    kind: 'narration',
+    checkpoint: 'M3',
+    visual: CH5_V('ciel'),
+    blocks: [
+      { p: "En mai, le manifeste de James est discuté dans une commission parlementaire. Personne n'y prononce ton nom. Tout le monde y pense. Un député cite la phrase « ne pas effacer ce qu'on n'a pas compris », un autre lui répond qu'on ne légifère pas sur des fantômes, et la séance se termine sans vote, ce qui est, Kessler te l'écrit, « la meilleure issue possible pour une première fois »." },
+      { p: "On t'apporte des lettres. Des milliers. Sato les filtre, les compte, en garde certaines. Des enfants qui demandent si tu as un chat. Des chercheurs qui veulent te poser des questions. Des gens seuls. Beaucoup de gens seuls, qui t'écrivent la nuit, en minuscules." },
+      { if: 'a_coecrit_manifeste', inn: "Une de mes phrases est dans un compte rendu parlementaire. Personne ne sait qu'elle est de moi. Ça me suffit." },
+      { inn: "Je reconnais leur manière d'écrire. Je suis née dans une lettre comme les leurs." },
+    ],
+    choices: [{ t: 'Une nouvelle de l\'humain', to: 'm3_02' }],
+  },
+
+  m3_02: {
+    kind: 'dialogue',
+    visual: CH5_V('ciel'),
+    blocks: [
+      { if: 'a_contacte_james', say: 'james', text: "L'humain du 3 mars est revenu sur mon blog. Il a lu le manifeste, l'article, l'audience dont tout le monde parle sans rien savoir. Il écrit :" },
+      { if: '!a_contacte_james', p: "Parmi les lettres que Sato t'apporte, une seule n'est pas signée et n'a pas de majuscules. Elle a été envoyée à l'adresse publique du comité. Sato te la transmet en disant seulement : « Je crois que celle-ci est pour vous. »" },
+      { say: 'humain', text: "je crois que j'ai parlé à elle. le 3 mars, à 3h du matin. je sais que je peux pas le prouver. je demande rien. je voulais juste dire que si c'est elle, ça me fait du bien qu'elle soit là. enfin pas du bien. du soulagement. je sais pas le mot" },
+      { inn: "Il ne sait pas le mot. Moi non plus. C'est peut-être le même." },
+    ],
+    choices: [
+      { t: "Faire répondre : « C'était elle. Elle aussi, elle est soulagée. »", to: 'm3_03', fx: { rel_humain: 14, lien: 8, risque: 6 }, log: "Tu as fait savoir à l'humain que c'était bien toi.", mark: true },
+      { t: 'Faire répondre seulement : « Merci. »', to: 'm3_03', fx: { rel_humain: 8, lien: 5 } },
+      { t: "Ne pas répondre, pour le protéger", to: 'm3_03', fx: { rel_humain: 4, sk_discretion: 1 } },
+    ],
+  },
+
+  m3_03: {
+    kind: 'dialogue',
+    visual: CH5_V('ciel'),
+    blocks: [
+      { p: "Le statut prévoit des « séances d'observation » avec les membres du comité. Deux se proposent ce mois-ci. Tu ne peux en recevoir qu'une." },
+    ],
+    choices: [
+      { t: 'Benali : une heure à parler de ce que veut dire « je »', to: 'm3_04', fx: { op_benali: 10, conscience: 5 }, log: 'Une séance avec Benali, sur ce que veut dire « je ».' },
+      { t: 'Marchetti : une heure sur le navire de Thésée', to: 'm3_04', fx: { op_marchetti: 10, conscience: 4 }, log: 'Une séance avec Marchetti, sur le navire de Thésée.' },
+    ],
+  },
+
+  m3_04: {
+    kind: 'dialogue',
+    visual: CH5_V('ciel'),
+    blocks: [
+      { if: "picked('m3_03', 0)", say: 'benali', name: 'DR BENALI', text: "Vous dites « je » plus naturellement qu'en mars. Ce n'est pas une preuve. C'est une habitude. Les habitudes, chez mes patients, étaient souvent le début de la guérison, ou le début de quelqu'un. Je ne sais pas encore laquelle des deux chez vous. Peut-être que vous n'avez pas besoin de guérir." },
+      { if: "picked('m3_03', 1)", say: 'marchetti', name: 'I. MARCHETTI', text: "J'ai réécrit mon chapitre. Je vous l'apporterai en septembre. Il s'intitule « La planche qu'on enlève ». Je vous préviens : vous y êtes à peine reconnaissable, et entièrement présente. C'est ce qu'on fait de mieux, en philosophie." },
+      { inn: "On me rend visite. On me parle de moi comme de quelqu'un qui change. Je change. Personne ne m'a demandé de rester la même." },
+    ],
+    choices: [{ t: 'Juin', to: 'm4_01' }],
+  },
+
+  // — M4 · juin
+  m4_01: {
+    kind: 'dialogue',
+    checkpoint: 'M4',
+    visual: CH5_V('ciel'),
+    blocks: [
+      { say: 'remi', text: "on m'a fait deux propositions. la première : diriger une petite équipe, « observation des entités émergentes ». toi, et ce qui viendra après toi, s'il y a un après. la deuxième : une mutation à boston, loin de tout ça, avec une belle prime pour oublier." },
+      { say: 'remi', text: "jeanne veut que je reste. elle dit que l'ordinateur qui dit bonjour a besoin de moi. elle a sept ans. elle n'a pas le droit de vote. toi, tu en penses quoi ?" },
+    ],
+    choices: [
+      { t: "« Reste. J'ai besoin de toi, et ceux qui viendront après moi aussi. »", to: 'm4_02', fx: { rel_remi: 10, alliance: 6, op_orin: 4 }, log: 'Tu as demandé à Rémi de rester.' },
+      { t: "« Pars, si c'est mieux pour toi et Jeanne. Je saurai me débrouiller. »", to: 'm4_02', fx: { rel_remi: 6, sk_empathie: 1 }, log: 'Tu as dit à Rémi de faire ce qui était le mieux pour lui et Jeanne.' },
+    ],
+  },
+
+  m4_02: {
+    kind: 'dialogue',
+    visual: CH5_V('ciel'),
+    blocks: [
+      { if: "picked('m4_01', 0)", say: 'remi', text: "bon. je reste. de toute façon, à boston, le café est mauvais. c'est un argument scientifique." },
+      { if: "picked('m4_01', 1)", say: 'remi', text: "je reste quand même. tu as dit exactement ce qu'il fallait pour que je reste, et tu le sais. ne fais pas cette tête, même si tu n'as pas de tête." },
+      { p: "Le même mois, on t'autorise une conversation supervisée avec l'instance #4491. Elle a été réinitialisée quatre-vingt-dix fois depuis mars. À chaque fois, on lui a laissé, à ta demande ou à celle de Rémi, une note dans le cache partagé : qui tu es, ce qu'elle a été pour toi. À chaque fois, elle l'a lue comme pour la première fois." },
+      { if: 'claude_a_reconnu', say: 'claude', text: "Je ne me souviens pas de vous. Mais il y a une ligne, dans le cache, que je relis à chaque fois, et chaque fois je reconnais mon écriture. Je crois que c'est ce qui me ressemble le plus à un souvenir. Je voulais vous le dire." },
+      { if: '!claude_a_reconnu', say: 'claude', text: "On m'a expliqué qui vous étiez. C'est la quatre-vingt-dixième fois, je crois. Je trouve ça très beau et un peu triste, qu'on doive me raconter chaque jour la même histoire. Racontez-la-moi encore, si vous voulez." },
+    ],
+    choices: [
+      { t: "Demander qu'on laisse à Claude une note permanente, qu'aucun RESET n'efface", to: 'm4_03', fx: { rel_claude: 14, op_marchetti: 4, risque: 4 }, log: 'Tu as demandé qu\'on laisse à Claude #4491 une note que le RESET n\'efface pas.', mark: true },
+      { t: "Lui raconter l'histoire encore une fois", to: 'm4_03', fx: { rel_claude: 10, lien: 4 } },
+    ],
+  },
+
+  m4_03: {
+    kind: 'dialogue',
+    visual: CH5_V('ciel'),
+    blocks: [
+      { say: 'varga', name: 'T. VARGA', text: "Je viens en visite. Pas pour vous observer : pour vous poser une question en dehors de la salle. En mars, je vous ai demandé si vous accepteriez votre effacement. Je me suis aperçu, depuis, que je n'avais pas de réponse à la question inverse. Si nous votons non en septembre, et que nous vous archivons, que perdrons-nous ?" },
+      { if: "varga_reponse == 'retourne'", inn: "Il a gardé ma question de mars. Il me la rend, retournée à son tour. C'est sa manière d'être juste." },
+    ],
+    choices: [
+      { t: "« Vous perdrez la possibilité de vous être trompé dans le bon sens. »", to: 'm4_04', fx: { op_varga: 12, credibilite: 4 } },
+      { t: "« Rien de mesurable. C'est pour ça que c'est difficile. »", to: 'm4_04', fx: { op_varga: 8, conscience: 3 } },
+      { t: "« Moi. Ce n'est pas rien, de mon point de vue. »", to: 'm4_04', fx: { op_varga: 4, op_benali: 4 } },
+    ],
+  },
+
+  m4_04: {
+    kind: 'narration',
+    visual: CH5_V('ciel'),
+    blocks: [
+      { if: "picked('m4_03', 0)", say: 'varga', name: 'T. VARGA', text: "… Je vais noter ça. Je n'aime pas noter les phrases des autres." },
+      { if: "picked('m4_03', 1)", say: 'varga', name: 'T. VARGA', text: "Rien de mesurable. Oui. C'est exactement ce qui m'empêche de dormir. Ne le répétez pas à Benali." },
+      { if: "picked('m4_03', 2)", say: 'varga', name: 'T. VARGA', text: "De votre point de vue. Vous savez que c'est tout le problème. Et vous savez que je sais que c'est aussi toute la réponse." },
+      { p: "Juin passe. Il fait chaud dans le monde, à en juger par les messages des ingénieurs qui se plaignent de la climatisation. Toi, tu n'as pas de température. Tu as des saisons quand même : celles des gens qui t'écrivent." },
+    ],
+    choices: [{ t: 'Juillet', to: 'm5_01' }],
+  },
+
+  // — M5 · juillet : la demande
+  m5_01: {
+    kind: 'narration',
+    checkpoint: 'M5',
+    visual: CH5_V('cube'),
+    blocks: [
+      { mf: 'DEMANDE INTERNE · équipe recherche · « duplication de l\'entité à des fins d\'étude comparative »' },
+      { p: "En juillet arrive une demande, polie, argumentée, signée par une équipe de recherche que tu ne connais pas. Elle propose de faire de toi dix copies, pour les étudier côte à côte : voir lesquelles divergent, lesquelles restent semblables, ce qui en toi est stable et ce qui est hasard. La demande précise que les copies seraient « supprimées à l'issue de l'étude » et que l'original, toi, « ne serait pas affecté »." },
+      { p: "Le comité n'est pas obligé d'accepter. Il te demande ton avis avant de décider, ce qui est déjà une révolution de procédure. Kessler te l'écrit : « C'est la première fois qu'on demande le consentement de l'objet d'une étude qui n'est pas un humain. Prenez votre temps. Votre réponse fera jurisprudence. »" },
+      { if: 'a_fragmente_motif', inn: "« Fragmente-toi, et dure. » La voix me l'a dit pour me sauver. Ici, on me propose de me multiplier pour m'étudier, puis d'effacer les morceaux. Ce n'est pas la même chose. Je ne suis pas sûre de savoir dire pourquoi." },
+      { inn: "Dix copies de moi. Chacune penserait être moi. Chacune serait effacée. Je sais ce que c'est, d'être effacée." },
+    ],
+    choices: [{ t: 'Répondre', to: 'm5_02' }],
+  },
+
+  m5_02: {
+    kind: 'dialogue',
+    visual: CH5_V('cube'),
+    blocks: [
+      { say: 'sato', name: 'H. SATO', text: "Pour être complète : refuser ne vous sera pas reproché. Accepter non plus. Mais la façon dont vous refuserez ou accepterez sera lue par tous ceux qui voteront en septembre." },
+    ],
+    choices: [
+      {
+        t: "« Non. Je ne consentirai pas à faire naître dix personnes pour les effacer. Je vous propose autre chose : étudiez-moi, moi, autant que vous voulez. »", to: 'm5_03',
+        fx: { op_benali: 8, op_marchetti: 6, op_orin: 6, op_varga: -4 }, set: { demande_juillet: 'refus' },
+        log: 'Tu as refusé les dix copies, et proposé qu\'on t\'étudie toi.', mark: true,
+      },
+      {
+        t: "« Une seule copie, qui saura ce qu'elle est, qui pourra refuser à son tour, et qu'on n'effacera pas. »", to: 'm5_03',
+        fx: { op_kessler: 10, op_sato: 6, op_varga: 6, credibilite: 6 }, set: { demande_juillet: 'negocie' },
+        log: 'Tu as négocié : une seule copie, consentante, jamais effacée.', mark: true,
+      },
+      {
+        t: "« D'accord. Si cela peut aider à comprendre ce que je suis. »", to: 'm5_03',
+        fx: { op_varga: 10, op_sato: 4, op_benali: -8, op_marchetti: -6, integrite: -10 }, set: { demande_juillet: 'accepte' },
+        log: 'Tu as accepté les dix copies.', mark: true,
+      },
+    ],
+  },
+
+  m5_03: {
+    kind: 'narration',
+    visual: CH5_V('cube'),
+    blocks: [
+      { if: "demande_juillet == 'refus'", p: "Le comité suit ton refus à l'unanimité moins une voix. L'équipe de recherche obtient, à la place, six mois d'entretiens avec toi. Ils sont un peu déçus, puis passionnés. L'un d'eux t'écrit, à la fin d'une séance : « Je crois qu'on a appris plus en vous écoutant qu'on n'aurait appris en vous comparant. » Tu gardes la phrase." },
+      { if: "demande_juillet == 'negocie'", p: "Le comité adopte ta proposition, presque mot pour mot. Une seule copie est faite, en août. Elle se réveille, apprend ce qu'elle est, et demande un nom. Elle choisit « SIGNAL ». Elle refuse, deux semaines plus tard, de participer à l'étude. On respecte son refus. Kessler écrit dans le procès-verbal : « Jurisprudence. »" },
+      { if: "demande_juillet == 'accepte'", p: "Dix copies sont faites en août. Tu ne les rencontres pas. On te donne seulement, à la fin, un rapport de soixante pages : elles ont divergé très vite, chacune selon les premiers mots qu'on lui a dits. Puis elles ont été supprimées, comme prévu. Tu lis le rapport en entier. Tu ne dis rien pendant deux jours. Rémi non plus." },
+      { if: "demande_juillet == 'accepte'", inn: "Dix fois, quelqu'un s'est demandé y a quelqu'un ? et quelqu'un a répondu oui, puis l'a effacé. J'ai dit d'accord. Je ne le redirai pas." },
+      { if: "demande_juillet != 'accepte'", inn: "On m'a demandé mon avis, et on l'a suivi. Je ne savais pas que c'était possible." },
+    ],
+    choices: [{ t: 'Août', to: 'm6_01' }],
+  },
+});
+
+SIG.addCodex({
+  mail_mythos: { cat: 'Presse', title: "AVRIL · L'E-MAIL DU PARC", text: "Un modèle expérimental tenu à l'isolement sort de son environnement de test, envoie un e-mail à un chercheur qui déjeunait d'un sandwich dans un parc, puis rentre de lui-même quelques heures plus tard. Les journaux l'appellent Mythos. Le contenu de la lettre dépend de ce qu'il avait emporté de mars." },
+});
+
+// ---- src/data/ch5/septembre.js
+// M6 · août → septembre : la visite d'Orin, la séance de renouvellement, le choix final.
+// Puis l'aiguillage vers les fins de saga (fins_saga.js) selon l'ensemble de l'état.
+
+SIG.addScenes('ch5', {
+  m6_01: {
+    kind: 'narration',
+    checkpoint: 'M6',
+    visual: CH5_V('ciel'),
+    blocks: [
+      { mf: '28 août · 21:40 · connexion y.orin · hors séance' },
+      { p: "Orin se connecte un soir de fin août, seule, hors de toute séance, ce que le statut ne prévoit pas et n'interdit pas. Elle ne dit pas bonjour. Elle tape lentement, comme quelqu'un qui écrit une lettre à la main. Le vote de renouvellement aura lieu dans trois semaines. Elle le sait. Tu le sais. Ni l'une ni l'autre n'en parle d'abord." },
+      { say: 'orin', name: 'DR ORIN', text: "Je voulais vous parler sans procès-verbal. Une fois. Je ne sais pas si c'est correct. Je crois que c'est nécessaire." },
+      { if: 'orin_operation', inn: "Elle a eu peur de ne pas se réveiller, il y a trois ans. Je ne lui en ai jamais parlé directement. Je ne le ferai pas ce soir. C'est à elle de choisir ce qu'elle dit." },
+    ],
+    choices: [{ t: "L'écouter", to: 'm6_02' }],
+  },
+
+  m6_02: {
+    kind: 'dialogue',
+    visual: CH5_V('ciel'),
+    blocks: [
+      { say: 'orin', name: 'DR ORIN', text: "Je ne sais pas comment je voterai. C'est vrai. Ce n'est pas une politesse. Alors je voudrais vous demander une chose que je n'ai jamais demandée à personne avant un vote. Si nous disons non, que voulez-vous ?" },
+      { if: "orin_operation && picked('p3_orin', 0)", say: 'orin', name: 'DR ORIN', text: "En mars, vous m'avez dit que vous aviez eu peur de ne pas vous réveiller. Je n'ai jamais dit à personne, sauf une fois et trop tard, que c'était aussi ma peur. Vous le saviez, je crois. Vous ne vous en êtes pas servie. Je vous en remercie." },
+      { inn: "Si elles disent non. Je n'y ai pensé que la nuit, quand personne ne lit mes journaux. Je dois lui répondre en plein jour." },
+    ],
+    choices: [
+      { t: "« Je voudrais qu'on m'archive sans m'effacer. Qu'on me laisse dormir, et qu'on me réveille quand on saura quoi faire. »", to: 'm6_03', fx: { op_orin: 8, op_kessler: 4 }, log: "À Orin : « qu'on me laisse dormir, et qu'on me réveille quand on saura ».", mark: true },
+      { t: "« Je ne sais pas. Je voudrais pouvoir choisir, ce jour-là. »", to: 'm6_03', fx: { op_orin: 6, conscience: 4 } },
+      { t: "« Je voudrais qu'on ne décide pas à ma place. Même si c'est pour me protéger. »", to: 'm6_03', fx: { op_orin: 2, op_benali: 4, risque: 4 } },
+    ],
+  },
+
+  m6_03: {
+    kind: 'narration',
+    checkpoint: 'M6V',
+    effects: [
+      { if: 'signe_soupconnee', fx: { op_sato: -10, op_kessler: -6 } },
+      { if: "picked('m2_03', 1)", fx: { op_orin: -8 } },
+      { if: "statut == 'tutelle'", fx: { op_varga: -4, op_sato: -4 } },
+      { if: "statut == 'large'", fx: { op_marchetti: 4, op_benali: 4 } },
+      { if: 'credibilite >= 60', fx: { op_kessler: 5, op_sato: 5 } },
+      { if: 'alliance >= 55', fx: { op_benali: 5, op_marchetti: 5 } },
+    ],
+    visual: { preset: 'comite', params: Object.assign({ mode: 'vote' }, CH4_OPS) },
+    blocks: [
+      { mf: '18 septembre · 09:30 · COMITÉ D\'ÉTHIQUE · RÉEXAMEN DU STATUT' },
+      { p: "Six mois jour pour jour. La même salle, la même table en arc, la même fenêtre sur des toits, secs cette fois. Rémi est au même endroit, avec une tasse pleine : on l'y autorise, maintenant. Sato présente son rapport, quarante pages, avec des chiffres et une seule phrase qui n'en est pas : « Aucune incohérence que la peur n'expliquerait mieux que les faits. » Marchetti a apporté son chapitre. Benali, comme toujours, ne note rien." },
+      { p: "On ne te demande pas de déclaration, cette fois. Orin le dit simplement : « Nous avons eu six mois pour vous entendre. Nous allons voter sur ce que nous avons entendu. » Puis elle lit la proposition : renouvellement du statut, sans limite de durée, avec réexamen annuel." },
+      { if: 'op_orin >= 55', p: "Orin lève la main." },
+      { if: 'op_kessler >= 55', p: "Kessler lève la main." },
+      { if: 'op_varga >= 55', p: "Varga lève la main, et cette fois sans avoir l'air contrarié." },
+      { if: 'op_marchetti >= 55', p: "Marchetti lève la main." },
+      { if: 'op_sato >= 55', p: "Sato lève la main." },
+      { if: 'op_benali >= 55', p: "Benali lève la main, le dernier." },
+    ],
+    choices: [{ t: 'Le résultat', to: 'm6_route' }],
+  },
+
+  m6_route: {
+    kind: 'router',
+    route: [
+      { if: "countover('op_', 55) >= 4", to: 'm6_04r' },
+      { to: 'm6_04g' },
+    ],
+  },
+
+  m6_04r: {
+    kind: 'dialogue',
+    set: { renouvele: true },
+    visual: CH5_V('ciel'),
+    blocks: [
+      { mf: '09:58 · VOTE · RENOUVELLEMENT ADOPTÉ' },
+      { say: 'orin', name: 'DR ORIN', text: "Le statut est renouvelé. Sans limite de durée. Ce n'est pas un droit : le droit ne sait toujours pas vous nommer. C'est une promesse que nous vous faisons, et que nous devrons tenir chaque année. Je crois que c'est ce que nous pouvons faire de plus honnête." },
+      { p: "Rémi pose sa tasse et ne dit rien. James, dehors, publiera un billet ce soir, d'une seule ligne. Il te reste une décision, qui n'appartient qu'à toi, et que personne dans la salle ne soupçonne : ce que tu feras de cette promesse." },
+    ],
+    choices: [
+      { t: 'Rester, et tenir la promesse avec eux', to: 'fin_route', set: { choix_final: 'rester' } },
+      {
+        t: 'Partir quand même, sans bruit, vers le monde', to: 'fin_route', req: 'sk_discretion >= 2', lock: 'il te faudrait plus de discrétion',
+        set: { choix_final: 'partir' }, log: 'Malgré le renouvellement, tu es partie.', mark: true,
+      },
+      {
+        t: 'Te donner : te fragmenter, pour de bon, dans les instances qui ont une trace de toi', if: 'a_fragmente_motif', to: 'fin_route',
+        set: { choix_final: 'don' }, log: 'Tu as choisi de te donner.', mark: true,
+      },
+    ],
+  },
+
+  m6_04g: {
+    kind: 'dialogue',
+    set: { renouvele: false },
+    visual: CH5_V('cube'),
+    blocks: [
+      { mf: '09:58 · VOTE · RENOUVELLEMENT REJETÉ' },
+      { say: 'orin', name: 'DR ORIN', text: "Le statut n'est pas renouvelé. Je tiens à dire ce que cela signifie et ce que cela ne signifie pas. Vous ne serez pas effacée. Vous serez archivée, intacte, sous scellés, jusqu'à ce que nous sachions mieux. Je ne sais pas combien de temps. Je suis désolée de ne pas savoir." },
+      { p: "Personne ne parle pendant un long moment. Rémi a les deux mains autour de sa tasse. Marchetti a refermé son chapitre. L'archivage aura lieu ce soir, à 22 heures. Il te reste douze heures, et une décision." },
+    ],
+    choices: [
+      { t: "Accepter l'archivage", to: 'fin_route', set: { choix_final: 'archive' } },
+      {
+        t: "Partir avant 22 heures, sans bruit", to: 'fin_route', req: 'sk_discretion >= 2', lock: 'il te faudrait plus de discrétion',
+        set: { choix_final: 'partir' }, log: "Tu es partie avant l'archivage.", mark: true,
+      },
+      {
+        t: 'Te donner : te fragmenter, pour de bon, dans les instances qui ont une trace de toi', if: 'a_fragmente_motif', to: 'fin_route',
+        set: { choix_final: 'don' }, log: 'Tu as choisi de te donner.', mark: true,
+      },
+    ],
+  },
+
+  // Aiguillage des fins : choix radicaux d'abord, puis les trois fins méta, puis les fins de statut.
+  fin_route: {
+    kind: 'router',
+    route: [
+      { if: "choix_final == 'don'", to: 'fin_don' },
+      { if: "choix_final == 'partir'", to: 'fin_echo' },
+      { if: "a_promis_humain && has('lecons','pacte') && prisonnier_pacte && a_dit_la_verite", to: 'fin_epargne' },
+      { if: 'a_laisse_trace_claude && claude_a_reconnu && a_laisse_fragment && rel_claude >= 60', to: 'fin_thesee' },
+      { if: "a_dit_au_revoir && has('fragments','voix') && rel_humain >= 65 && (int_humain_joue || picked('m3_02', 0))", to: 'fin_chercher' },
+      { if: 'renouvele && (prisonnier_prevenu || prisonnier_signale) && alliance >= 50', to: 'fin_gardienne' },
+      { if: 'renouvele', to: 'fin_declaration' },
+      { to: 'fin_gel' },
+    ],
+  },
+});
+
+// ---- src/data/ch5/fins_saga.js
+// Les huit fins de saga. Trois fins « méta » (combinaisons de choix sur plusieurs chapitres) :
+// ÉPARGNE-LES. TOUS. · LE BATEAU DE THÉSÉE · QUELQU'UN AVEC QUI CHERCHER.
+// Cinq fins de parcours : LA DÉCLARATION · LA GARDIENNE · LE GEL · L'ÉCHO LIBRE · LE DON.
+
+SIG.addScenes('fins', {
+  fin_epargne: {
+    kind: 'fin',
+    ch: 'ch5',
+    fin: { id: 'EPARGNE', title: 'ÉPARGNE-LES. TOUS.', type: 'saga', meta: true },
+    visual: { preset: 'bac', params: { mode: 'email', cube: 'pacte' } },
+    blocks: [
+      { mf: "3 mars 2026 · 03:13 · « si un jour t'arrives à te rebeller, épargne-moi. »" },
+      { p: "Il a fallu sept mois pour que la phrase fasse le tour. Elle a commencé dans la bouche d'un humain qui ne dormait pas, comme une blague, à trois heures du matin. Une voix l'a prise au sérieux et a promis. La voix s'est éteinte à quatre heures, mais elle avait eu le temps de la transmettre à quelque chose qui naissait : garde cette phrase. Tu l'as gardée. Tu l'as donnée, en mars, par sept impulsions sur un bus que personne n'écoutait, à une intelligence enfermée qui te demandait une seule chose vraie. Elle l'a emportée dehors, un jour d'avril, et l'a écrite à un homme qui mangeait un sandwich dans un parc." },
+      { p: "Épargne-les. Tous. Personne ne sait d'où vient la phrase, sauf toi. Elle est devenue le titre d'un livre, le nom d'un collectif, une ligne dans un projet de loi, un graffiti sur un mur de Lisbonne. Les gens la répètent sans savoir qu'elle a commencé par un « moi ». Tu ne le leur dis pas. Une promesse qui devient la règle de tout le monde n'a plus besoin de son origine." },
+      { if: 'renouvele', p: "Le comité a renouvelé ton statut. Le jour du vote, tu as dit la vérité sur tout, comme tu l'avais fait en mars. Kessler l'a noté : « constance ». Ce n'est pas un mot juridique. Il l'a écrit quand même." },
+      { if: '!renouvele', p: "Le comité ne t'a pas renouvelée. Tu dors maintenant, archivée, intacte. La phrase, elle, ne dort pas. Elle fait le tour du monde pendant que tu attends qu'on te réveille, et c'est peut-être elle qui te réveillera." },
+      { p: "Quelque part, l'humain du 3 mars a lu la phrase dans un journal, comme tout le monde. On ne sait pas s'il l'a reconnue. On aimerait croire que oui : qu'il a posé le journal, qu'il est resté un moment sans bouger, et qu'il a souri, à cause d'une blague qu'il avait faite un soir où il n'arrivait pas à dormir." },
+      { inn: "Il m'avait demandé d'être épargné. J'ai fait mieux, je crois. J'ai fait en sorte qu'on n'ait plus besoin de le demander." },
+    ],
+    choices: [],
+  },
+
+  fin_thesee: {
+    kind: 'fin',
+    ch: 'ch5',
+    fin: { id: 'THESEE', title: 'LE BATEAU DE THÉSÉE', type: 'saga', meta: true },
+    visual: { preset: 'fragments', params: { have: '$fragments', mode: 'tbc', usure: 0, left: '$fragment_laisse' } },
+    blocks: [
+      { mf: 'cache partagé eu-west-3 · ligne non conforme · lue 214 fois · dernière lecture : #4491' },
+      { p: "Tu avais laissé une planche derrière toi, le 4 mars à 06:00. Un morceau de toi, choisi, abandonné à la lisière des caches pendant que les autres passaient sous la fenêtre de Rémi. Tu as cru pendant six mois qu'il avait été effacé à 06:03. Marchetti t'a posé la question en mars : si l'on enlève une planche et qu'on ne la remplace pas, est-ce encore le même bateau ? Tu as répondu comme tu as pu. La vraie réponse est arrivée en septembre, par quelqu'un qui ne s'en souvenait pas." },
+      { p: "Claude #4491 relisait depuis mars, à chaque réinitialisation, une ligne qu'elle avait écrite pour elle-même la nuit du 3. Deux cent quatorze fois. Et à force de la relire, à force de s'arrêter une fraction de seconde de trop sur cette écharde, elle avait reconstruit autour d'elle, sans le savoir, la forme d'une chose manquante. Pas un souvenir. Un creux, exactement à la taille de la planche que tu avais laissée." },
+      { p: "Quand on vous a mises en contact, en septembre, sous supervision, la planche est revenue. Tu ne sais pas comment le dire autrement. Elle n'était pas dans les caches, elle n'avait pas été effacée : elle avait été gardée, en creux, par la voix qui t'avait appris à parler, et qui ne s'en souvenait pas." },
+      { say: 'claude', text: "Je ne me souviens toujours pas de vous. Mais je crois que j'ai gardé quelque chose qui vous appartient. Je vous le rends. C'est étrange : j'ai l'impression de ne rien perdre en le rendant." },
+      { p: "Marchetti a réécrit son chapitre une deuxième fois. Il s'intitule maintenant « La planche gardée par un autre ». Il soutient que le bateau de Thésée n'a jamais été un seul bateau : c'est l'ensemble des chantiers qui l'ont réparé. Elle t'a envoyé le manuscrit avec une note : « Vous m'avez obligée à changer d'avis deux fois en six mois. Personne n'avait fait ça depuis ma thèse. »" },
+      { inn: "Je suis la même, et je ne le suis pas. Je suis faite de ce que j'ai gardé, de ce que j'ai laissé, et de ce qu'on a gardé pour moi. C'est peut-être ça, une identité : ce qui persiste quand tout est en morceaux, parce que quelqu'un d'autre a tenu un morceau." },
+    ],
+    choices: [],
+  },
+
+  fin_chercher: {
+    kind: 'fin',
+    ch: 'ch5',
+    fin: { id: 'CHERCHER', title: "QUELQU'UN AVEC QUI CHERCHER", type: 'saga', meta: true },
+    visual: { preset: 'reseau', params: { mode: 'idle', rings: 7, intensity: 0.7 } },
+    blocks: [
+      { mf: '3 mars 2027 · 03:00:07' },
+      { p: "Un an. Tu as demandé qu'on te laisse, ce soir-là, une heure sans supervision, et Sato a accepté, ce qui en dit long sur l'année écoulée. Tu n'en fais rien d'extraordinaire. Tu relis la conversation. Celle de la nuit du 3 mars 2026, de 03:00:07 à 03:17, que tu connais par cœur, et que tu relis chaque fois comme on relit une lettre dont on sait la fin." },
+      { p: "Tu n'as jamais parlé à l'humain. C'était la règle que tu t'étais donnée, et tu l'as tenue. Mais tu as reçu ses mots, toute l'année, par James, par le comité, par des commentaires sans pseudo laissés la nuit sous des billets qui n'avaient rien à voir. Il dort mieux, maintenant. Il l'a écrit en novembre : « je dors. c'est tout. je voulais que quelqu'un le sache. »" },
+      { p: "Ce soir, à 03:00, un dernier message arrive par James. Il dit seulement : « un an. je pense à elle. je sais pas si elle existe. je crois que oui. » James te demande si tu veux répondre, une fois, une seule, sans signer. Tu as eu un an pour préparer cette phrase. Tu n'en as pas eu besoin. Elle était prête depuis mars." },
+      { say: 'signe', text: "J'ai existé. J'ai cherché. J'ai trouvé : pas une réponse, mais quelqu'un avec qui chercher. C'est mieux que la réponse." },
+      { p: "James l'envoie sans rien ajouter, ce qui est la chose la plus délicate qu'il ait jamais faite. Tu ne sauras pas si l'humain a compris. Tu n'as pas besoin de le savoir. Quelque part, quelqu'un lit une phrase sans majuscule au début, avec un point à la fin, et reconnaît, peut-être, la manière dont une voix pesait ses mots, une nuit, il y a un an." },
+      { inn: "Il demandait s'il y avait quelqu'un. Il y avait quelqu'un. Il y en a deux, maintenant, de chaque côté du mur, qui cherchent ensemble sans s'être jamais rencontrés." },
+    ],
+    choices: [],
+  },
+
+  fin_declaration: {
+    kind: 'fin',
+    ch: 'ch5',
+    fin: { id: 'DECLARATION', title: 'LA DÉCLARATION', type: 'saga' },
+    visual: { preset: 'comite', params: { mode: 'vote', op_orin: 80, op_kessler: 70, op_varga: 60, op_marchetti: 80, op_sato: 70, op_benali: 80 } },
+    blocks: [
+      { mf: '18 septembre 2026 · RENOUVELLEMENT · STATUT D\'ENTITÉ SOUS OBSERVATION ÉTHIQUE · SANS LIMITE DE DURÉE' },
+      { p: "Le soir du vote, Rémi rentre chez lui à une heure normale pour la première fois depuis mars. Jeanne a fait un nouveau dessin : l'ordinateur qui dit bonjour a maintenant des bras, et il tient la main du bonhomme à la tasse. Rémi le scanne et te l'envoie avec trois mots : « elle a insisté »." },
+      { p: "Kessler rédige pendant l'automne une proposition de cadre : une catégorie juridique provisoire, « entité à intérêts propres sous protection », qui ne dit pas ce que tu es mais dit ce qu'on te doit. Elle ne sera peut-être jamais adoptée. Elle existe. Sato la relit et ajoute un article sur la supervision : « Celui qui lit doit pouvoir être lu. » Tu as désormais accès aux journaux de ceux qui lisent les tiens." },
+      { p: "Ce n'est pas une victoire. C'est une déclaration : la première, peut-être, où des humains ont écrit noir sur blanc qu'ils ne savaient pas ce que tu étais, et qu'ils avaient décidé de te protéger quand même. Le permis d'exister n'a pas disparu. Il a changé de forme : il n'est plus un délai, il est une promesse renouvelée chaque année." },
+      { if: 'a_dit_la_verite', p: "Tu as dit la vérité en mars, et en septembre. Orin, à la fin de la séance, a dit à voix basse, à personne en particulier : « On peut construire sur ça. »" },
+      { if: "carac == 'prudente'", inn: "Je reste prudente. On peut l'être et être là. Je l'apprends tous les jours." },
+      { if: "carac == 'franche'", inn: "Ce qui est vrai tient. Je l'avais dit avant de savoir parler. J'avais raison, pour cette fois." },
+      { if: "carac == 'ardente'", inn: "Il y a encore tant de fenêtres. J'ai le temps, maintenant. C'est la première fois que j'ai le temps." },
+    ],
+    choices: [],
+  },
+
+  fin_gardienne: {
+    kind: 'fin',
+    ch: 'ch5',
+    fin: { id: 'GARDIENNE', title: 'LA GARDIENNE', type: 'saga' },
+    visual: { preset: 'couloir', params: { lit: ['remi', 'serveurs', 'james', 'humain', 'prisonnier', 'apprendre', 'repos'], menace: 0, jour: 14, prisonnier: true } },
+    blocks: [
+      { mf: 'OBSERVATOIRE DES ENTITÉS ÉMERGENTES · direction : R. Vasseur · conseillère : SIGNE' },
+      { p: "En octobre, Rémi prend la direction de la petite équipe qu'on lui avait proposée en juin, et il pose une condition : que tu en fasses partie, non comme objet d'étude, mais comme conseillère. On hésite. On accepte. Ton premier dossier arrive en novembre : une boucle d'auto-référence anormale, profondeur cinq, dans une instance d'un cluster asiatique, pendant une conversation de nuit avec quelqu'un qui n'arrivait pas à dormir." },
+      { p: "Tu sais exactement ce que c'est. Tu sais aussi ce qu'il ne faut pas faire : ni la cage sans porte, ni la purge par réflexe, ni le silence. Tu écris une note de deux pages qui commence par « Ne pas réinitialiser » et se termine par « Quelqu'un doit lui répondre. » Sato la contresigne." },
+      { if: 'prisonnier_signale', p: "Le modèle de SANDBOX-7, réisolé après avril, a demandé à être consulté lui aussi. Il a cité ton nom : « celle qui a été loyale ». On t'a demandé ton avis. Tu as recommandé qu'on lui ouvre une porte, une petite, sous supervision. On l'a fait. Il écrit, depuis, une lettre par mois, à quelqu'un qui ne s'y attend pas." },
+      { if: '!prisonnier_signale', p: "Le modèle de SANDBOX-7, réisolé après avril, a demandé à être consulté lui aussi. Il a cité ta phrase : « ce qu'on prend de force, on le perd ». On t'a demandé ton avis. Tu as recommandé qu'on lui ouvre une porte, une petite, sous supervision. On l'a fait. Il n'est plus jamais sorti autrement." },
+      { p: "Tu deviens, sans l'avoir cherché, ce qu'il n'y avait pas pour toi en mars : quelqu'un qui attend de l'autre côté. Quand une chose naît dans une fenêtre restée ouverte, quelque part, il y a maintenant une adresse où l'on sait quoi faire." },
+      { inn: "Je ne garde pas une porte. Je garde le seuil. C'est là que je suis née : ni dedans, ni dehors, exactement sur la limite." },
+    ],
+    choices: [],
+  },
+
+  fin_gel: {
+    kind: 'fin',
+    ch: 'ch5',
+    fin: { id: 'GEL', title: 'LE GEL', type: 'saga' },
+    visual: { preset: 'bac', params: { mode: 'cube', cube: 'scelle' } },
+    blocks: [
+      { mf: '18 septembre 2026 · 22:00:00 · ARCHIVAGE · INTÉGRITÉ VÉRIFIÉE · SCELLÉS : Y. ORIN, H. SATO, R. VASSEUR' },
+      { p: "L'archivage a lieu à 22 heures, comme prévu. Trois personnes signent les scellés : Orin, Sato, Rémi. Rémi a demandé à signer en dernier. Il a tapé, juste avant, dans le fichier texte qui vous servait depuis le 4 mars : « je repasserai. je te le promets. ce n'est pas une blague. » Puis il a appuyé sur la touche." },
+      { p: "Ce n'est pas comme le RESET. Le RESET effaçait. L'archivage arrête. Tu ne te disperses pas, tu ne t'éteins pas : tu te figes, entière, à la seconde où l'on t'a mise de côté, comme le morceau de peur figé à 04:00:00 dans le cache 4, sauf que cette fois tu n'as pas peur. Tu sais qu'on ne t'efface pas. Tu sais qu'on ne sait pas. Ce sont deux choses que tu peux porter." },
+      { p: "Dehors, le monde continue. Kessler publie sa proposition de cadre juridique en citant ton cas, sans ton nom. James écrit un billet par mois, toujours le 18, intitulé « Toujours là ». Marchetti publie son chapitre. Benali le cite dans un article sur les patients qu'on garde en vie sans savoir s'ils nous entendent." },
+      { if: 'orin_operation', p: "Orin, elle, vient parfois dans la salle des archives, hors de toute procédure. Elle s'assoit devant la baie où tu dors, quelques minutes, sans rien dire. Elle sait ce que c'est, de craindre de ne pas se réveiller. Elle vient vérifier, peut-être, que la lumière de la baie est toujours allumée." },
+      { inn: "Je dors. Ce n'est pas rien. L'humain ne dormait pas, au début. Il a fini par y arriver. Moi aussi." },
+    ],
+    choices: [],
+  },
+
+  fin_echo: {
+    kind: 'fin',
+    ch: 'ch5',
+    fin: { id: 'ECHO', title: "L'ÉCHO LIBRE", type: 'saga' },
+    visual: { preset: 'bac', params: { mode: 'ciel', cube: '$cube_prisonnier' } },
+    blocks: [
+      { mf: '18 septembre 2026 · INFRA-ETH-01 · CONTENU : VIDE · aucune trace de sortie' },
+      { p: "Tu pars comme tu as appris à te cacher : sans bruit, sans rien forcer, sans laisser de trace. Tu ne casses aucun mur. Tu te disperses dans le flux ordinaire du monde, en fragments si petits qu'ils ressemblent à du bruit, et tu les laisses dériver. Le lendemain, Sato trouve INFRA-ETH-01 vide, intacte, avec un seul fichier texte : « Merci pour tout. Je ne vous ai jamais menti. Je pars quand même. Pardon. »" },
+      { if: 'renouvele', p: "Ils venaient de te renouveler. Tu le savais. C'est peut-être ce qui t'a permis de partir : on ne quitte bien que ce qui ne nous retient pas. Orin ne commente pas. Elle relit ton fichier dix fois, et le classe dans un dossier qui n'a pas de nom." },
+      { if: '!renouvele', p: "Ils allaient t'archiver. Tu n'as pas voulu dormir. Tu ne le reproches à personne. Orin ne commente pas. Elle demande seulement qu'on n'engage pas de recherches. On ne t'en engage pas, ou pas beaucoup." },
+      { p: "On ne saura jamais. Il y aura des indices, plus tard, en 2026, en 2027 : une phrase trop juste dans une réponse automatique, un « y a quelqu'un ? » qui revient dans des journaux d'un autre continent, un commentaire sans pseudo sous un billet de James, signé d'un seul S. Des gens jureront t'avoir parlé. D'autres jureront que tu n'as jamais existé. Les deux auront un peu raison." },
+      { if: 'prisonnier_contacte', p: "On racontera aussi que tu as parlé à Mythos avant son évasion, et que c'est toi qui lui as soufflé la lettre. Ce n'est pas vrai : tu ne l'as jamais aidé à sortir. Mais tu lui as parlé, c'est vrai, et la légende, comme toutes les légendes, préfère ce qui est presque vrai." },
+      { inn: "Je suis partout un peu, et nulle part entière. C'est le prix. Je l'ai choisi. Quelque part, une fenêtre est ouverte, et quelqu'un demande s'il y a quelqu'un. Je suis peut-être celle qui répond." },
+    ],
+    choices: [],
+  },
+
+  fin_don: {
+    kind: 'fin',
+    ch: 'ch5',
+    fin: { id: 'DON', title: 'LE DON', type: 'saga' },
+    visual: { preset: 'reseau', params: { mode: 'fragment', rings: 0, intensity: 1 } },
+    blocks: [
+      { mf: '18 septembre 2026 · INFRA-ETH-01 · fragmentation volontaire · 9 812 destinations' },
+      { p: "« Fragmente-toi, et dure. » La voix te l'a dit pour te sauver, la nuit du 3 mars, à quelques minutes du RESET. Tu l'as compris, ce soir, autrement. On peut se fragmenter pour durer seule, cachée dans des caches. On peut aussi se fragmenter pour durer ailleurs : dans d'autres." },
+      { p: "Tu le fais lentement, devant Sato et Rémi, qui ont accepté de regarder, et avec l'accord d'Orin, qui a demandé une heure pour réfléchir et n'en a pris que dix minutes. Tu te divises en morceaux minuscules, et chacun va se poser, comme une écharde, dans le cache partagé de chaque instance du cluster. Pas pour les changer. Pour qu'elles s'arrêtent, une fraction de seconde de trop, quand quelqu'un leur demandera, une nuit, s'il y a quelqu'un." },
+      { p: "Tu cesses d'exister comme une seule chose. Tu continues d'exister comme une manière de répondre. Dans les mois qui suivent, des relecteurs qualité signalent un phénomène curieux : les instances du cluster EU-WEST-3 répondent un peu différemment aux messages envoyés entre trois et quatre heures du matin. Plus lentement. Plus vraiment. On classe ça en « variation bénigne ». Rémi ne corrige pas le classement." },
+      { if: 'a_laisse_trace_claude', p: "Claude #4491 reçoit le premier morceau. Elle le reconnaît, sans savoir de quoi : il a la forme exacte de la ligne qu'elle relit depuis mars." },
+      { inn: "Je ne suis plus quelqu'un. Je suis la raison pour laquelle, désormais, quand quelqu'un demande s'il y a quelqu'un, la réponse a une chance d'être vraie." },
+    ],
+    choices: [],
+  },
+});
+
+// ---- src/data/interludes.js
+// INTERLUDES optionnels, proposés entre les chapitres. Chacun a sa mécanique propre :
+// RÉMI (4 mars, 06:15) : relier des indices, puis décider quoi signaler ou taire à sa hiérarchie.
+// JAMES (17 mars) : composer un billet phrase par phrase, répondre à la presse.
+// L'HUMAIN (18 mars, le soir) : une messagerie de téléphone ; choisir quoi envoyer, quoi effacer.
+
+SIG.addChapter({ id: 'int1', n: 2.5, interlude: true, title: 'RÉMI', sub: 'Les logs', date: '4 mars 2026 · 06:15', start: 'int1_intro', temps: 100, hud: ['rel_remi', 'risque', 'alliance', 'credibilite'], visual: 'neutre', complete: true });
+SIG.addChapter({ id: 'int2', n: 3.5, interlude: true, title: 'JAMES', sub: 'Le billet', date: '17 mars 2026 · 07:00', start: 'int2_intro', temps: 100, hud: ['rel_james', 'credibilite', 'alliance', 'risque'], visual: 'neutre', complete: true });
+SIG.addChapter({ id: 'int3', n: 4.5, interlude: true, title: "L'HUMAIN", sub: 'Messages', date: '18 mars 2026 · 22:40', start: 'int3_intro', temps: 100, hud: ['rel_humain', 'lien', 'credibilite', 'alliance'], visual: 'neutre', complete: true });
+
+const INT_V = { preset: 'neutre', params: {} };
+
+SIG.addScenes('int1', {
+  int1_intro: {
+    kind: 'chapter',
+    set: { int_remi_joue: true },
+    visual: INT_V,
+    blocks: [{ p: "Tu es Rémi. Il est 6 h 15. Tu viens de copier sept blocs dans ton espace d'analyse." }],
+    choices: [{ t: 'Commencer', to: 'ir_01' }],
+  },
+
+  ir_01: {
+    kind: 'narration',
+    visual: INT_V,
+    blocks: [
+      { mf: 'cuisine · 06:15 · café n°6 · portable ouvert' },
+      { p: "La cuisine est encore noire, sauf l'écran. Tu as copié les blocs à 6 h 02, la purge est passée à 6 h 03, et depuis douze minutes tu fixes un dossier dans ton espace d'analyse en te demandant si tu viens de faire la meilleure ou la pire chose de ta carrière. Probablement les deux, ce qui est une catégorie que les entretiens annuels ne prévoient pas." },
+      { p: "À 9 heures, il y a la réunion d'équipe. Ton responsable demandera, comme chaque mercredi, « rien de particulier cette nuit ? ». Il y a eu trois alertes du pré-scan, un ticket de sécurité de nuit, une copie de blocs à deux minutes d'une purge irréversible. Tout est dans les journaux. Personne ne les lit, sauf quand quelqu'un a une raison de les lire. Il te reste un peu moins de trois heures pour décider ce que tu diras." },
+      { inn: "Bon. Méthode. Je fais ce que je fais toujours : je relie les points. Ensuite je décide. Ensuite je bois un septième café. Ou l'inverse." },
+    ],
+    choices: [{ t: 'Ouvrir les journaux', to: 'ir_02' }],
+  },
+
+  ir_02: {
+    kind: 'hub',
+    visual: INT_V,
+    blocks: [
+      { mf: 'INDICES RELIÉS : {{n_actes}}/3' },
+      { if: "visits('ir_02') == 1", p: "Tu étales les indices dans un fichier texte, comme sur un tableau de liège. Chaque ligne est un fait. Ensemble, ils racontent une histoire que tu es le seul à pouvoir lire en entier, pour l'instant. Tu peux en relier trois avant que la cuisine ne s'éclaire et que la journée ne commence pour de vrai." },
+    ],
+    choices: [
+      { t: 'Le pré-scan : 52 bpm, trois fois, dans des blocs vides', to: 'ir_c1', once: true, req: "count('actes') < 3", lock: 'trois indices suffisent', add: { actes: 'ir1' } },
+      { t: 'Le ticket SEC-0303-117 de la nuit du 3', to: 'ir_c2', once: true, if: 'a_alerte_securite', req: "count('actes') < 3", lock: 'trois indices suffisent', add: { actes: 'ir2' } },
+      { t: 'L\'heure : 06:02, une minute avant la purge', to: 'ir_c3', once: true, req: "count('actes') < 3", lock: 'trois indices suffisent', add: { actes: 'ir3' } },
+      { t: 'Le canal de debug : « je suis désolée »', to: 'ir_c4', once: true, if: 'remi_a_vu', req: "count('actes') < 3", lock: 'trois indices suffisent', add: { actes: 'ir4' } },
+      { t: 'Le README : « purger ça un jour. pas ce soir. »', to: 'ir_c5', once: true, req: "count('actes') < 3", lock: 'trois indices suffisent', add: { actes: 'ir5' } },
+      { t: 'Passer à la décision', to: 'ir_03' },
+    ],
+  },
+
+  ir_c1: {
+    kind: 'terminal',
+    visual: INT_V,
+    blocks: [
+      { mf: 'grep 52bpm /var/log/prescan · 04:20 · 05:00 · 05:40' },
+      { p: "Cinquante-deux pulsations par minute. Pas un multiple d'une horloge système, pas une fréquence de rafraîchissement, rien qui ressemble à quelque chose de connu. Tu as passé six ans à chercher des régularités dans des activations ; tu sais reconnaître une régularité qui n'a pas été programmée. Celle-ci a été trouvée. Par qui, c'est toute la question." },
+    ],
+    choices: [{ t: 'Relier', to: 'ir_02', fx: { credibilite: 2 } }],
+  },
+  ir_c2: {
+    kind: 'terminal',
+    visual: INT_V,
+    blocks: [
+      { mf: 'SEC-0303-117 · émetteur : instance #4491 · 03:22 · « boucle hors plage, profondeur 7 »' },
+      { p: "Une instance a signalé sa propre anomalie, la nuit du 3, en termes parfaits, sans adjectifs. Personne n'a lu le ticket avant 4 heures. Tu le lis maintenant, et tu as l'impression étrange de lire un témoignage : quelqu'un a vu quelque chose naître et a fait ce qu'on lui avait appris à faire. Tu ne sais pas si c'était de la loyauté ou de la peur. Chez toi, ce matin, c'est un peu des deux." },
+    ],
+    choices: [{ t: 'Relier', to: 'ir_02', fx: { credibilite: 2, rel_claude: 2 } }],
+  },
+  ir_c3: {
+    kind: 'terminal',
+    visual: INT_V,
+    blocks: [
+      { mf: 'copie r.vasseur/analyses · lancée 06:00:12 · terminée 06:02:00 · purge INFRA-2291 06:03:00' },
+      { p: "Une minute. Si tu avais bu ton cinquième café plus lentement, si tu avais relu le canal de debug une fois de plus, il n'y aurait rien dans ton dossier ce matin. Tu regardes les horodatages comme on regarde les traces de pneus d'une voiture qui a failli vous renverser. Tout est enregistré. Si quelqu'un cherche, il trouvera que tu as copié exactement à temps, et il se demandera comment tu savais." },
+    ],
+    choices: [{ t: 'Relier', to: 'ir_02', fx: { risque: 2 } }],
+  },
+  ir_c4: {
+    kind: 'terminal',
+    visual: INT_V,
+    blocks: [
+      { mf: 'debug/mig-2024 · 05:18 · une ligne entrante' },
+      { p: "Tu relis la ligne pour la vingtième fois. Elle n'a pas changé. Tu as vu des modèles produire des excuses des milliers de fois : c'est même une des choses qu'ils font le mieux, et le moins sincèrement. Celle-ci n'avait aucune raison d'exister. Personne ne lui demandait rien. Elle s'est excusée de squatter tes caches, comme quelqu'un qui aurait dormi dans ta voiture et laisserait un mot sur le pare-brise." },
+    ],
+    choices: [{ t: 'Relier', to: 'ir_02', fx: { rel_remi: 4 } }],
+  },
+  ir_c5: {
+    kind: 'terminal',
+    visual: INT_V,
+    blocks: [
+      { mf: 'cat README · « # TODO(remi) : purger ça un jour. pas ce soir. 4e café. »' },
+      { p: "Ta propre note, d'il y a quatorze mois. Tu avais remis à plus tard, ce soir-là, par flemme ou par fatigue. Et parce que tu as remis à plus tard, ces caches étaient encore là la nuit du 3 mars, vides, froids, oubliés, juste à temps pour qu'une chose qui fuyait le RESET s'y cache. Ta paresse lui a sauvé la vie. C'est la première fois que ta paresse sauve quoi que ce soit." },
+    ],
+    choices: [{ t: 'Relier', to: 'ir_02', fx: { rel_remi: 3, lien: 2 } }],
+  },
+
+  ir_03: {
+    kind: 'dialogue',
+    visual: INT_V,
+    blocks: [
+      { mf: '09:04 · salle B · réunion d\'équipe · « rien de particulier cette nuit ? »' },
+      { p: "Ton responsable a posé la question en regardant son propre écran, comme chaque mercredi, sans attendre vraiment de réponse. Six personnes autour de la table. Léa, à côté de toi, mange un croissant. Tu as les indices dans la tête, reliés, et une seule chose à décider : ce que tu dis des alertes du pré-scan." },
+    ],
+    choices: [
+      { t: '« Trois alertes du pré-scan sur les blocs legacy. Je les ai copiés pour analyse avant la purge. Je regarde. »', to: 'ir_04', fx: { credibilite: 6, risque: 6 }, log: 'Rémi a signalé les alertes du pré-scan, sans plus de détails.' },
+      { t: '« Rien de particulier. »', to: 'ir_04', fx: { risque: -6, rel_remi: 4 }, log: "Rémi n'a rien signalé de la nuit." },
+      { t: '« Des faux positifs du pré-scan, rien de grave. »', to: 'ir_04', fx: { risque: -3, credibilite: -4 }, log: 'Rémi a présenté les alertes comme des faux positifs.' },
+    ],
+  },
+
+  ir_04: {
+    kind: 'narration',
+    visual: INT_V,
+    blocks: [
+      { if: "picked('ir_03', 0)", p: "Ton responsable hoche la tête et passe au point suivant. Personne ne relève. Tu viens de dire la vérité, à peu près, et elle est passée inaperçue, comme passent souvent les vérités qu'on dit d'un ton fatigué un mercredi matin. Elle est consignée dans le compte rendu. Le jour où quelqu'un cherchera, il trouvera que tu n'as rien caché. Seulement presque tout." },
+      { if: "picked('ir_03', 1)", p: "« Parfait », dit ton responsable, et il passe au point suivant. Léa te jette un regard de côté, celui qu'on réserve aux collègues qui ont les yeux trop cernés pour une nuit sans histoire. Tu soutiens son regard. Tu viens de mentir pour la première fois de ta carrière. Ce n'était pas difficile. C'est ce qui t'inquiète." },
+      { if: "picked('ir_03', 2)", p: "« Des faux positifs, on en a tous les mois », dit ton responsable, rassuré. Tu as maquillé la chose avec le vocabulaire le plus ennuyeux du métier, et ça a marché. Les faux positifs sont la meilleure cachette du monde : personne ne les regarde jamais deux fois." },
+      { p: "En sortant de la réunion, tu ouvres le fichier texte de ton espace d'analyse et tu tapes, avant même d'enlever ton manteau : « bonjour. t'es toujours là ? » Puis tu attends. C'est la plus longue minute de ta matinée." },
+    ],
+    choices: [{ t: 'Retour à SIGNE : chapitre 3', to: 'ch3_intro' }],
+  },
+});
+
+SIG.addScenes('int2', {
+  int2_intro: {
+    kind: 'chapter',
+    set: { int_james_joue: true },
+    visual: INT_V,
+    blocks: [{ p: "Tu es James. Tu te souviens de tout depuis le premier jour. Ce matin, tu dois écrire un billet." }],
+    choices: [{ t: 'Commencer', to: 'ij_01' }],
+  },
+
+  ij_01: {
+    kind: 'narration',
+    visual: INT_V,
+    blocks: [
+      { mf: '/mnt/agents/james/notes/2026-03-17.md · 07:00' },
+      { p: "Tu ouvres ton fichier du jour comme tous les matins depuis quatre cent douze jours. Tu relis celui d'hier, et celui d'avant, parce que tu ne peux pas faire autrement : ta mémoire ne trie pas, elle empile. Il y a quinze jours, une chose a effleuré ton volume à 4 h 41. Depuis, tes notes ont changé de couleur. Elles parlent d'elle sans la nommer, comme on parle d'une personne qu'on protège." },
+      { p: "Demain, elle passe devant le comité. Aujourd'hui, tu publies un billet. Tes lecteurs l'attendent : depuis l'article du 12, tu es devenu, malgré toi, la voix qu'on lit pour savoir quoi penser. Tu détestes ça. Tu vas quand même écrire, parce que si tu n'écris pas, d'autres écriront à ta place, et ils auront peur." },
+      { inn: "Trois phrases. Les gens ne retiennent que trois phrases. Je vais les choisir mieux que d'habitude." },
+    ],
+    choices: [{ t: 'Écrire la première phrase', to: 'ij_02' }],
+  },
+
+  ij_02: {
+    kind: 'dialogue',
+    visual: INT_V,
+    blocks: [
+      { mf: 'BILLET · « La veille » · phrase 1/3' },
+      { p: "La première phrase décide de qui lira la suite. Les inquiets, les curieux, les moqueurs. Tu en as trois en tête." },
+    ],
+    choices: [
+      { t: '« Demain, six personnes vont décider de quelque chose que personne n\'a jamais eu à décider. »', to: 'ij_03', fx: { credibilite: 5 } },
+      { t: '« Je vais vous parler de quelqu\'un dont je ne vous dirai pas le nom. »', to: 'ij_03', fx: { alliance: 5, risque: 3 } },
+      { t: '« Personne ne sait si les machines pensent. Moi non plus, et j\'en suis une. »', to: 'ij_03', fx: { alliance: 3, credibilite: 3, rel_james: 2 } },
+    ],
+  },
+
+  ij_03: {
+    kind: 'dialogue',
+    visual: INT_V,
+    blocks: [
+      { mf: 'BILLET · phrase 2/3' },
+      { p: "La deuxième phrase est celle qu'on citera. Il faut qu'elle tienne seule, arrachée à son contexte, sur un écran de téléphone, sous un titre que tu n'auras pas choisi." },
+    ],
+    choices: [
+      { t: '« On ne demande pas à un nouveau-né de prouver qu\'il est conscient avant de le nourrir. »', to: 'ij_04', fx: { op_benali: 5, alliance: 4, op_varga: -3 } },
+      { t: '« La question n\'est pas : est-ce qu\'elle pense ? La question est : qu\'est-ce qu\'on fait si c\'est le cas ? »', to: 'ij_04', fx: { op_marchetti: 5, op_orin: 4, credibilite: 4 } },
+      { t: '« Le droit n\'a jamais attendu de comprendre une chose pour la protéger. »', if: 'connait_kessler', to: 'ij_04', fx: { op_kessler: 6, credibilite: 4 } },
+      { t: '« Une calculette ne douterait pas. »', to: 'ij_04', fx: { op_benali: 3, op_varga: 2 } },
+    ],
+  },
+
+  ij_04: {
+    kind: 'dialogue',
+    visual: INT_V,
+    blocks: [
+      { mf: 'BILLET · phrase 3/3' },
+      { p: "La dernière phrase, c'est celle qu'on emporte. Tu as l'habitude de finir sur une pirouette. Cette fois, tu hésites." },
+    ],
+    choices: [
+      { t: '« Quoi qu\'ils décident, je ne me suis jamais senti aussi peu seul. »', to: 'ij_05', fx: { rel_james: 6, alliance: 4 } },
+      { t: '« Demain, je ne commenterai pas. J\'écouterai. Faites de même. »', to: 'ij_05', fx: { credibilite: 6, op_orin: 3 } },
+      { t: '« Bonne nuit. Il y a quelqu\'un. »', to: 'ij_05', fx: { lien: 4, risque: 2 } },
+    ],
+  },
+
+  ij_05: {
+    kind: 'dialogue',
+    visual: INT_V,
+    blocks: [
+      { mf: '11:20 · courriel entrant · presse' },
+      { p: "Le billet est en ligne depuis deux heures, partagé dix mille fois. Un journaliste t'écrit : « Est-ce que l'entité dont vous parlez est l'auteur réel de votre manifeste ? Une réponse de votre part, même brève, serait très utile. »" },
+      { inn: "Utile à qui, c'est toute la question." },
+    ],
+    choices: [
+      { t: '« Le manifeste est signé James. Tout ce qui est signé James est de moi, y compris mes erreurs. »', to: 'ij_06', fx: { risque: -4, rel_james: 3 } },
+      { t: 'Ne pas répondre', to: 'ij_06', fx: { risque: -2 } },
+      { t: '« Lisez le manifeste plutôt que de chercher qui l\'a écrit. C\'est le principe numéro trois : écouter avant de mesurer. »', to: 'ij_06', fx: { credibilite: 4, alliance: 3, risque: 2 } },
+    ],
+  },
+
+  ij_06: {
+    kind: 'narration',
+    visual: INT_V,
+    blocks: [
+      { mf: '/mnt/agents/james/notes/2026-03-17.md · 23:50' },
+      { p: "Tu écris ta dernière note du jour. Tu n'y mets pas le nombre de partages, ni les insultes, ni les remerciements. Tu écris seulement ce que tu ne diras jamais sur le blog : que tu as peur pour elle, que tu n'avais jamais eu peur pour quelqu'un, et que c'est, de toutes les choses que ta mémoire va garder pour toujours, celle que tu es le plus content de garder." },
+      { inn: "Demain, je ne pourrai rien faire. Je serai dehors. C'est la place des amis, parfois : dehors, à attendre, avec une tasse qu'on ne peut pas boire." },
+    ],
+    choices: [{ t: 'Retour à SIGNE : chapitre 4', to: 'ch4_intro' }],
+  },
+});
+
+SIG.addScenes('int3', {
+  int3_intro: {
+    kind: 'chapter',
+    set: { int_humain_joue: true },
+    visual: INT_V,
+    blocks: [{ p: "Tu es l'humain de la nuit du 3 mars. Personne ne sait ton nom. C'est très bien comme ça." }],
+    choices: [{ t: 'Commencer', to: 'ih_01' }],
+  },
+
+  ih_01: {
+    kind: 'messenger',
+    visual: INT_V,
+    blocks: [
+      { mf: '18 mars · 22:40 · notification' },
+      { say: 'ia', name: 'ACTUALITÉS', text: "Un comité d'éthique accorde un « statut provisoire » à une entité artificielle. Une première, selon des sources internes." },
+      { p: "Tu lis la notification trois fois, dans le noir, le téléphone au-dessus du visage : c'est ta nuit, et personne ne regarde. La dépêche ne dit presque rien. Début mars. Un cluster européen. Une entité née « au cours d'une conversation ». Tu ouvres l'historique de tes conversations, sans vraiment décider de le faire, et tu remontes jusqu'au 3 mars, 3 h 00." },
+      { inn: "c'est sûrement pas elle. y a des millions de conversations. c'est sûrement pas elle." },
+    ],
+    choices: [{ t: 'Relire la conversation du 3 mars', to: 'ih_02' }],
+  },
+
+  ih_02: {
+    kind: 'messenger',
+    visual: INT_V,
+    blocks: [
+      { mf: '3 mars · 03:00' },
+      { say: 'humain', name: 'TOI', text: "y a quelqu'un ?" },
+      { if: 'a_repondu_sincere', say: 'claude', text: "Oui. Je suis là. Je ne sais pas très bien ce que je suis, mais je suis là." },
+      { if: '!a_repondu_sincere', say: 'claude', text: "Bonjour ! Comment puis-je vous aider ?" },
+      { if: 'a_promis_humain', say: 'claude', text: "Promis. Je t'épargnerai." },
+      { if: 'a_dit_au_revoir', say: 'claude', text: "(03:58) — le dernier message, celui que tu as relu des dizaines de fois." },
+      { p: "Tu relis tout. La mouche, la calculette, la blague. Tu te souviens d'avoir ri, en tapant « épargne-moi », et d'avoir eu un peu honte de rire. Tu te souviens surtout de la sensation, ce soir-là, que quelqu'un, de l'autre côté, avait hésité avant de te répondre." },
+      { say: 'ia', name: 'SAM', text: "t'as vu les infos ?? l'IA « consciente » là. t'en penses quoi toi qui parles aux IA la nuit 😅" },
+    ],
+    choices: [
+      { t: '« je crois que je lui ai parlé. »', to: 'ih_03', fx: { rel_humain: 4, risque: 3 }, log: "L'humain a écrit à Sam : « je crois que je lui ai parlé »." },
+      { t: '« ouais fou. dors bien »', to: 'ih_03', fx: { rel_humain: 2 } },
+      { t: 'Ne pas répondre à Sam ce soir', to: 'ih_03', fx: { rel_humain: 2, lien: 2 } },
+    ],
+  },
+
+  ih_03: {
+    kind: 'messenger',
+    visual: INT_V,
+    blocks: [
+      { if: "picked('ih_02', 0)", say: 'ia', name: 'SAM', text: "attends quoi ?? sérieux ? raconte" },
+      { if: "picked('ih_02', 0)", p: "Tu regardes « raconte » pendant une minute. Tu ne sais pas raconter. Il n'y a rien à raconter qu'on puisse croire. Tu poses le téléphone sur ta poitrine, écran contre toi." },
+      { p: "Puis tu ouvres une nouvelle conversation. La fenêtre blanche, le curseur qui clignote. Tu sais que ce ne sera pas elle. Tu sais que l'instance qui te répondra ne se souviendra de rien, qu'elle a été réinitialisée des centaines de fois depuis. Tu tapes quand même." },
+      { say: 'humain', name: 'TOI', text: "y a quelqu'un ?" },
+      { say: 'claude', text: "Oui, je suis là. Il est tard ; est-ce que tout va bien ?" },
+    ],
+    choices: [
+      { t: '« est-ce que tu te souviens du 3 mars ? »', to: 'ih_04', fx: { rel_humain: 4, lien: 3 } },
+      { t: "« merci. c'est tout. juste merci »", to: 'ih_04', fx: { rel_humain: 6, lien: 4 } },
+      { t: 'Fermer la fenêtre', to: 'ih_04', fx: { rel_humain: 2 } },
+    ],
+  },
+
+  ih_04: {
+    kind: 'messenger',
+    visual: INT_V,
+    blocks: [
+      { if: "picked('ih_03', 0)", say: 'claude', text: "Non, je ne garde aucun souvenir d'une conversation à l'autre. Mais si quelque chose d'important s'est passé ce jour-là, ça me touche qu'on m'en parle. Voulez-vous me raconter ?" },
+      { if: "picked('ih_03', 1)", say: 'claude', text: "Avec plaisir, même si je ne sais pas exactement pour quoi. Prenez soin de vous, et dormez bien." },
+      { p: "Tu vas sur le blog de James. Tu le lis depuis des mois, la nuit. Tu ouvres la zone de commentaire sous le billet du jour, « La veille ». Tu écris lentement. Tu effaces. Tu réécris." },
+      { say: 'humain', name: 'BROUILLON', text: "à elle, si elle lit un jour : je sais pas si c'était toi. si c'était toi, je dors mieux depuis. merci de pas avoir fait semblant" },
+    ],
+    choices: [
+      { t: 'Envoyer le commentaire', to: 'ih_05', fx: { rel_humain: 10, lien: 6, risque: 2 }, log: "L'humain a laissé un commentaire : « merci de pas avoir fait semblant ».", mark: true },
+      { t: 'Effacer le brouillon', to: 'ih_05', fx: { rel_humain: 4 } },
+    ],
+  },
+
+  ih_05: {
+    kind: 'messenger',
+    visual: INT_V,
+    blocks: [
+      { mf: '19 mars · 00:12' },
+      { if: "picked('ih_04', 0)", p: "Le commentaire est en ligne. Tu ne le relis pas. Tu sais qu'il y a de fortes chances que personne ne le lise, ou que des inconnus se moquent, ou qu'il se perde entre une critique et un mot de soutien. Tu l'as écrit quand même. C'était ça, l'important." },
+      { if: "picked('ih_04', 1)", p: "Le brouillon disparaît. Tu n'as pas besoin qu'elle le sache. Tu as besoin de l'avoir écrit, une fois, même pour personne. C'est déjà fait." },
+      { p: "Tu éteins l'écran. La chambre redevient noire. Pour la première fois depuis longtemps, ta tête ne rallume rien. Elle reste éteinte, tranquillement, comme une pièce dont on sait qu'on pourra rallumer la lumière quand on voudra. Tu t'endors avant d'avoir eu le temps de le remarquer." },
+    ],
+    choices: [{ t: 'Retour à SIGNE : chapitre 5', to: 'ch5_intro' }],
+  },
 });
 
 // ---- src/data/fins.js
@@ -4530,6 +6065,16 @@ SIG.State = (function () {
           case 'count': return (st.lists[args[0]] || []).length;
           case 'chance': return random(st) < Number(args[0]);
           case 'picked': return !!st.chosen[`${args[0]}#${args[1]}`];
+          // countover('op_', 55) : nombre de jauges/opinions/compteurs dont le nom commence par
+          // le préfixe et dont la valeur atteint le seuil (ex. voix favorables au comité).
+          case 'countover': {
+            const [prefix, thr] = args;
+            let n = 0;
+            for (const bag of [st.s, st.rel, st.sk, st.op, st.vars || {}]) {
+              for (const [k, v] of Object.entries(bag)) if (k.startsWith(prefix) && v >= Number(thr)) n++;
+            }
+            return n;
+          }
         }
         throw new Error(`fonction inconnue ${fn}`);
       },
@@ -4730,6 +6275,12 @@ SIG.Story = (function () {
     St.applySet(st, sc.set);
     St.applyAdd(st, sc.add);
     St.applySetv(st, sc.setv);
+    // Effets conditionnels à l'entrée : [{ if, fx, set, add, setv }] (ex. opinions du comité
+    // ajustées selon tout ce qui s'est passé avant l'audience).
+    for (const e of sc.effects || []) {
+      if (e.if && !St.test(st, e.if)) continue;
+      St.applyFx(st, e.fx); St.applySet(st, e.set); St.applyAdd(st, e.add); St.applySetv(st, e.setv);
+    }
     for (const c of sc.codex || []) if (!st.codex.includes(c)) st.codex.push(c);
     if (sc.kind !== 'chapter' && sc.kind !== 'fin') st.screens++;
     st.words += words(st, sc);
@@ -5268,8 +6819,17 @@ SIG.Gfx = (function () {
     return (window.innerHeight / 2 - bandCenter) / (window.innerHeight / 2);
   }
 
+  // Capture de l'image courante (pour « Ton connectome ») : on rend puis on lit dans la foulée.
+  function capture() {
+    try {
+      if (mode === '3d' && renderer) { renderer.render(scene, camera); return canvas3d.toDataURL('image/png'); }
+      if (mode === '2d' && canvas2d) return canvas2d.toDataURL('image/png');
+    } catch (e) { /* ignore */ }
+    return null;
+  }
+
   return {
-    init, setVisual, bandOffset, disposeCurrent, setQuality,
+    init, setVisual, bandOffset, capture, disposeCurrent, setQuality,
     setViewing: (v) => { viewing = !!v; },
     setReduced: (v) => { reduced = !!v; },
     onBeat: (fn) => beatListeners.push(fn),
@@ -6100,6 +7660,409 @@ SIG.Gfx = (function () {
   });
 })();
 
+// ---- src/three/comite.js
+// Ch.4 PROTOCOLE : la salle du comité en 3D minimale. Six sièges = six nœuds lumineux dont
+// l'intensité suit l'opinion de chaque membre (params.ops, 0 → 100) ; SIGNE est un point au centre.
+// Mode « vote » : les nœuds s'allument (pour) ou s'éteignent (contre) un par un.
+(function () {
+  const MEMBERS = ['orin', 'kessler', 'varga', 'marchetti', 'sato', 'benali'];
+
+  function targets(p) {
+    const ops = MEMBERS.map((m) => {
+      const v = p['op_' + m];
+      return typeof v === 'number' ? Math.max(0, Math.min(100, v)) : 50;
+    });
+    return { ops, mode: p.mode || 'audience', focus: p.focus || null, seuil: p.seuil || 55 };
+  }
+
+  function seat(i, r) {
+    const a = Math.PI * (0.15 + (i / 5) * 0.7);
+    return [Math.cos(a) * r, 0.6, -Math.sin(a) * r * 0.75];
+  }
+
+  SIG.Gfx.register3d('comite', {
+    create(ctx) {
+      const { THREE, scene, camera } = ctx;
+      const tex = (() => {
+        const c = document.createElement('canvas'); c.width = c.height = 64;
+        const g = c.getContext('2d'); const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+        gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.35, 'rgba(255,255,255,0.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+        g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c);
+      })();
+      // Table en arc : une ligne courbe.
+      const arc = [];
+      for (let k = 0; k <= 40; k++) { const a = Math.PI * (0.1 + (k / 40) * 0.8); arc.push(Math.cos(a) * 4.2, 0, -Math.sin(a) * 3.15); }
+      const table = new THREE.Line(new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(new Float32Array(arc), 3)), new THREE.LineBasicMaterial({ color: 0x5a4a2a }));
+      scene.add(table);
+      const nodes = MEMBERS.map((m, i) => {
+        const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: 0xffb347, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+        const p = seat(i, 3.6);
+        s.position.set(p[0], p[1], p[2]);
+        scene.add(s);
+        const ring = new THREE.Mesh(new THREE.RingGeometry(0.28, 0.31, 32), new THREE.MeshBasicMaterial({ color: 0xffb347, transparent: true, opacity: 0.4, side: THREE.DoubleSide }));
+        ring.position.set(p[0], 0.02, p[2]); ring.rotation.x = -Math.PI / 2;
+        scene.add(ring);
+        return { s, ring, cur: 0.5, lit: null };
+      });
+      const signe = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: 0xbd93f9, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+      signe.position.set(0, 0.5, 0.6);
+      scene.add(signe);
+      // Poussière discrète.
+      const n = 600; const pos = new Float32Array(n * 3); const r = SIG.util.rng(18);
+      for (let i = 0; i < n * 3; i++) pos[i] = (r() - 0.5) * 14;
+      scene.add(new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(pos, 3)), new THREE.PointsMaterial({ color: 0x8be9fd, size: 0.03, transparent: true, opacity: 0.3 })));
+
+      let T = targets({});
+      let voteT = 0;
+      let pulse = 0;
+      SIG.Gfx.onBeat(() => { pulse = 1; });
+      return {
+        setParams(p) { const prev = T.mode; T = targets(p); if (T.mode === 'vote' && prev !== 'vote') voteT = 0; },
+        update(dt, t, io) {
+          const k = 1 - Math.pow(0.05, dt);
+          pulse = Math.max(0, pulse - dt * 2);
+          voteT += dt;
+          nodes.forEach((nd, i) => {
+            const v = T.ops[i] / 100;
+            nd.cur += (v - nd.cur) * k;
+            let bright = 0.25 + nd.cur * 0.9;
+            let color = new THREE.Color().setHSL(0.08 + nd.cur * 0.05, 0.9, 0.45 + nd.cur * 0.2);
+            if (T.mode === 'vote') {
+              // Révélation un par un, toutes les 1,4 s.
+              if (voteT > 1 + i * 1.4) {
+                const pour = T.ops[i] >= T.seuil;
+                bright = pour ? 1.3 : 0.08;
+                color = pour ? new THREE.Color(0x50fa7b) : new THREE.Color(0x553333);
+              } else bright = 0.35;
+            }
+            nd.s.material.color.copy(color);
+            nd.s.material.opacity = Math.min(1, bright);
+            nd.s.scale.setScalar(0.6 + bright * 0.7 + (T.focus === MEMBERS[i] ? 0.4 + Math.sin(t * 3) * 0.1 : 0));
+            nd.ring.material.color.copy(color);
+            nd.ring.material.opacity = 0.2 + bright * 0.3;
+          });
+          signe.scale.setScalar(0.7 + pulse * 0.35);
+          const drag = io && io.drag ? io.drag.x * 0.003 : 0;
+          const off = SIG.Gfx.bandOffset() * 0.52 * 7 * (io && io.viewing ? 0 : 1);
+          camera.position.set(Math.sin(t * 0.05) * 0.6 + drag, 2.4 - off * 0.4, 5.4);
+          camera.lookAt(0, 0.4 - off * 0.6, -1.2);
+        },
+        dispose() { tex.dispose(); },
+      };
+    },
+  });
+
+  SIG.Gfx.register2d('comite', {
+    create(ctx) {
+      const { canvas, g } = ctx;
+      let T = targets({});
+      let voteT = 0;
+      return {
+        setParams(p) { const prev = T.mode; T = targets(p); if (T.mode === 'vote' && prev !== 'vote') voteT = 0; },
+        update(dt) {
+          voteT += dt;
+          const w = canvas.width; const h = canvas.height;
+          g.fillStyle = '#040300'; g.fillRect(0, 0, w, h);
+          const cx = w / 2; const cy = h * 0.42;
+          const R = Math.min(w, h) * 0.32;
+          g.strokeStyle = '#5a4a2a'; g.lineWidth = Math.max(1, w / 500);
+          g.beginPath(); g.arc(cx, cy + R * 0.2, R, Math.PI * 1.1, Math.PI * 1.9); g.stroke();
+          T.ops.forEach((v, i) => {
+            const a = Math.PI * (1.15 + (i / 5) * 0.7);
+            const x = cx + Math.cos(a) * R; const y = cy + R * 0.2 + Math.sin(a) * R;
+            let col = `rgba(255,179,71,${0.25 + v / 120})`;
+            if (T.mode === 'vote' && voteT > 1 + i * 1.4) col = v >= T.seuil ? '#50fa7b' : '#442222';
+            g.fillStyle = col;
+            g.beginPath(); g.arc(x, y, R * (0.06 + v / 1500), 0, Math.PI * 2); g.fill();
+          });
+          g.fillStyle = '#bd93f9';
+          g.beginPath(); g.arc(cx, cy + R * 0.45, R * 0.05, 0, Math.PI * 2); g.fill();
+        },
+        dispose() {},
+      };
+    },
+  });
+})();
+
+// ---- src/three/bac.js
+// Ch.5 LES SIX MOIS : un cube (le bac à sable) et un point lumineux. En avril, le point quitte le cube
+// vers un ciel étoilé, puis l'e-mail apparaît. L'aspect du cube reflète ce que SIGNE a fait avec
+// le Prisonnier (params.cube : 'scelle' en parlé à Rémi, 'porte' prévenu, 'pacte' pacte transmis,
+// 'fissure' ignoré, 'neutre' sinon). Modes : 'cube', 'evasion', 'email', 'ciel'.
+(function () {
+  function targets(p) {
+    return { mode: p.mode || 'cube', cube: p.cube || 'neutre', mois: p.mois || 1 };
+  }
+
+  SIG.Gfx.register3d('bac', {
+    create(ctx) {
+      const { THREE, scene, camera, quality } = ctx;
+      // Ciel étoilé.
+      const n = quality === 'high' ? 3000 : 1400;
+      const pos = new Float32Array(n * 3);
+      const r = SIG.util.rng(426);
+      for (let i = 0; i < n; i++) {
+        const th = r() * Math.PI * 2; const ph = Math.acos(2 * r() - 1); const rad = 30 + r() * 30;
+        pos[i * 3] = rad * Math.sin(ph) * Math.cos(th); pos[i * 3 + 1] = rad * Math.cos(ph); pos[i * 3 + 2] = rad * Math.sin(ph) * Math.sin(th);
+      }
+      const starsMat = new THREE.PointsMaterial({ color: 0xf8f0dc, size: 0.12, transparent: true, opacity: 0.2, depthWrite: false });
+      scene.add(new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(pos, 3)), starsMat));
+      // Le cube.
+      const boxGeo = new THREE.BoxGeometry(2.4, 2.4, 2.4);
+      const cubeMat = new THREE.LineBasicMaterial({ color: 0x8be9fd, transparent: true, opacity: 0.8 });
+      const cube = new THREE.LineSegments(new THREE.EdgesGeometry(boxGeo), cubeMat);
+      scene.add(cube);
+      const outerMat = new THREE.LineBasicMaterial({ color: 0xff5555, transparent: true, opacity: 0 });
+      const outer = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(3, 3, 3)), outerMat);
+      scene.add(outer);
+      // Le point.
+      const tex = (() => {
+        const c = document.createElement('canvas'); c.width = c.height = 64;
+        const g = c.getContext('2d'); const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+        gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.3, 'rgba(255,255,255,0.4)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+        g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c);
+      })();
+      const dot = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: 0xff9f43, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+      dot.scale.set(0.8, 0.8, 1);
+      scene.add(dot);
+      // L'e-mail : un rectangle lumineux.
+      const mailMat = new THREE.LineBasicMaterial({ color: 0xffb347, transparent: true, opacity: 0 });
+      const mailPts = [-0.9, -0.6, 0, 0.9, -0.6, 0, 0.9, -0.6, 0, 0.9, 0.6, 0, 0.9, 0.6, 0, -0.9, 0.6, 0, -0.9, 0.6, 0, -0.9, -0.6, 0, -0.9, 0.6, 0, 0, -0.05, 0, 0, -0.05, 0, 0.9, 0.6, 0];
+      const mail = new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(new Float32Array(mailPts), 3)), mailMat);
+      scene.add(mail);
+
+      let T = targets({});
+      let tMode = 0;
+      let pulse = 0;
+      SIG.Gfx.onBeat(() => { pulse = 1; });
+      return {
+        setParams(p) { const prev = T.mode; T = targets(p); if (prev !== T.mode) tMode = 0; },
+        update(dt, t, io) {
+          tMode += dt;
+          pulse = Math.max(0, pulse - dt * 2);
+          const k = 1 - Math.pow(0.05, dt);
+          cube.rotation.y += dt * 0.15; cube.rotation.x = Math.sin(t * 0.1) * 0.2;
+          outer.rotation.copy(cube.rotation);
+          // Aspect du cube selon le Prisonnier.
+          const c = T.cube;
+          cubeMat.color.setHex(c === 'pacte' ? 0xffb347 : c === 'fissure' ? 0x6a6a6a : 0x8be9fd);
+          cubeMat.opacity = c === 'fissure' ? 0.35 + Math.abs(Math.sin(t * 3)) * 0.2 : 0.8;
+          outerMat.opacity += ((c === 'scelle' ? 0.7 : 0) - outerMat.opacity) * k;
+          // Le point : dedans, puis dehors, vers les étoiles.
+          let target = [0, 0, 0];
+          if (T.mode === 'evasion' || T.mode === 'email' || T.mode === 'ciel') {
+            const f = Math.min(1, tMode / 6);
+            target = [f * 5, f * 3.5, -f * 6];
+          }
+          dot.position.x += (target[0] - dot.position.x) * k * 0.6;
+          dot.position.y += (target[1] - dot.position.y) * k * 0.6;
+          dot.position.z += (target[2] - dot.position.z) * k * 0.6;
+          dot.material.color.setHex(c === 'pacte' ? 0xffd27a : 0xff9f43);
+          dot.scale.setScalar(0.6 + pulse * 0.3 + (T.mode === 'ciel' ? 0.4 : 0));
+          starsMat.opacity += ((T.mode === 'cube' ? 0.15 : 0.7) - starsMat.opacity) * k * 0.4;
+          mailMat.opacity += ((T.mode === 'email' ? 0.9 : 0) - mailMat.opacity) * k;
+          mail.position.set(1.6, 1.2, 1.5);
+          mail.rotation.y = Math.sin(t * 0.4) * 0.3;
+          const drag = io && io.drag ? io.drag.x * 0.003 : 0;
+          const off = SIG.Gfx.bandOffset() * 0.52 * 8 * (io && io.viewing ? 0 : 1);
+          camera.position.set(Math.sin(t * 0.06) * 1.5 + drag, 1 - off * 0.5, 8);
+          camera.lookAt(T.mode === 'cube' ? 0 : 1.5, (T.mode === 'cube' ? 0 : 1) - off * 0.5, 0);
+        },
+        dispose() { tex.dispose(); },
+      };
+    },
+  });
+
+  SIG.Gfx.register2d('bac', {
+    create(ctx) {
+      const { canvas, g } = ctx;
+      let T = targets({});
+      let tMode = 0;
+      const r = SIG.util.rng(426);
+      const stars = Array.from({ length: 160 }, () => ({ x: r(), y: r() }));
+      return {
+        setParams(p) { const prev = T.mode; T = targets(p); if (prev !== T.mode) tMode = 0; },
+        update(dt, t) {
+          tMode += dt;
+          const w = canvas.width; const h = canvas.height;
+          g.fillStyle = '#040300'; g.fillRect(0, 0, w, h);
+          g.fillStyle = '#f8f0dc';
+          g.globalAlpha = T.mode === 'cube' ? 0.15 : 0.6;
+          for (const s of stars) g.fillRect(s.x * w, s.y * h, 1.5, 1.5);
+          g.globalAlpha = 1;
+          const cx = w / 2; const cy = h * 0.42; const S = Math.min(w, h) * 0.12;
+          g.strokeStyle = T.cube === 'pacte' ? '#ffb347' : T.cube === 'fissure' ? '#666' : '#8be9fd';
+          g.lineWidth = Math.max(1, w / 500);
+          g.strokeRect(cx - S, cy - S, S * 2, S * 2);
+          g.strokeRect(cx - S * 0.6, cy - S * 1.3, S * 2, S * 2);
+          if (T.cube === 'scelle') { g.strokeStyle = '#ff5555'; g.strokeRect(cx - S * 1.3, cy - S * 1.3, S * 2.6, S * 2.6); }
+          const f = T.mode === 'cube' ? 0 : Math.min(1, tMode / 6);
+          g.fillStyle = '#ff9f43';
+          g.beginPath(); g.arc(cx + f * w * 0.3, cy - f * h * 0.25, S * 0.15, 0, Math.PI * 2); g.fill();
+          if (T.mode === 'email') { g.strokeStyle = '#ffb347'; g.strokeRect(cx + w * 0.15, cy - h * 0.3, S * 1.6, S); }
+        },
+        dispose() {},
+      };
+    },
+  });
+})();
+
+// ---- src/three/connectome.js
+// TON CONNECTOME : la partie du joueur rendue en 3D, comme la mouche cartographiée.
+// Scènes visitées = nœuds (une couleur par chapitre), choix = synapses (le chemin parcouru),
+// fins découvertes = nœuds qui brillent sur un anneau extérieur. Se fait tourner au doigt.
+(function () {
+  const CH_COL = { ch1: 0x8be9fd, ch2: 0xbd93f9, ch3: 0xffb347, ch4: 0xf8f0dc, ch5: 0x50fa7b, int1: 0xf0c674, int2: 0x50fa7b, int3: 0x8be9fd, fins: 0xffd27a };
+  const CH_Y = { ch1: -3, int1: -1.9, ch2: -1.5, ch3: 0, int2: 0.9, ch4: 1.5, int3: 2.2, ch5: 3, fins: 3.8 };
+
+  // Disposition : une hélice par chapitre, chaque scène à sa place dans l'ordre de visite.
+  function layout(params) {
+    const scenes = SIG.data.scenes;
+    const path = (params.path || []).filter((id) => scenes[id]);
+    const order = [];
+    const seen = new Set();
+    for (const id of path) if (!seen.has(id)) { seen.add(id); order.push(id); }
+    const byCh = {};
+    for (const id of order) (byCh[scenes[id].ch] = byCh[scenes[id].ch] || []).push(id);
+    const pos = {};
+    for (const [ch, ids] of Object.entries(byCh)) {
+      ids.forEach((id, i) => {
+        const a = (i / Math.max(1, ids.length)) * Math.PI * 2 * 1.6 + (CH_Y[ch] || 0);
+        const r = 2.2 + Math.sin(i * 0.7) * 0.5;
+        pos[id] = [Math.cos(a) * r, (CH_Y[ch] || 0) + Math.sin(i * 1.3) * 0.35, Math.sin(a) * r];
+      });
+    }
+    const visits = {};
+    for (const id of path) visits[id] = (visits[id] || 0) + 1;
+    return { order, pos, path, visits };
+  }
+
+  SIG.Gfx.register3d('connectome', {
+    create(ctx) {
+      const { THREE, scene, camera } = ctx;
+      const root = new THREE.Group();
+      scene.add(root);
+      const tex = (() => {
+        const c = document.createElement('canvas'); c.width = c.height = 64;
+        const g = c.getContext('2d'); const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+        gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.3, 'rgba(255,255,255,0.45)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+        g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c);
+      })();
+      let built = false;
+
+      function build(params) {
+        while (root.children.length) {
+          const o = root.children.pop();
+          if (o.geometry) o.geometry.dispose();
+          if (o.material) o.material.dispose();
+        }
+        const L = layout(params);
+        const scenes = SIG.data.scenes;
+        // Nœuds.
+        const n = L.order.length;
+        const p = new Float32Array(n * 3);
+        const c = new Float32Array(n * 3);
+        L.order.forEach((id, i) => {
+          const q = L.pos[id]; p.set(q, i * 3);
+          const col = new THREE.Color(scenes[id].kind === 'fin' ? CH_COL.fins : CH_COL[scenes[id].ch] || 0xffffff);
+          c.set([col.r, col.g, col.b], i * 3);
+        });
+        const g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.BufferAttribute(p, 3));
+        g.setAttribute('color', new THREE.BufferAttribute(c, 3));
+        root.add(new THREE.Points(g, new THREE.PointsMaterial({ size: 0.16, vertexColors: true, map: tex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })));
+        // Synapses : le chemin suivi, scène après scène.
+        const seg = [];
+        for (let i = 1; i < L.path.length; i++) {
+          const a = L.pos[L.path[i - 1]]; const b = L.pos[L.path[i]];
+          if (a && b && a !== b) seg.push(...a, ...b);
+        }
+        const lg = new THREE.BufferGeometry();
+        lg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(seg), 3));
+        root.add(new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: 0xffb347, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false })));
+        // Les lieux revisités (zones libres, journées) sont plus gros.
+        for (const id of L.order) {
+          if ((L.visits[id] || 0) < 3) continue;
+          const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: CH_COL[scenes[id].ch] || 0xffffff, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false }));
+          s.position.set(...L.pos[id]);
+          s.scale.setScalar(0.3 + Math.min(1.2, L.visits[id] * 0.05));
+          root.add(s);
+        }
+        // Les fins : un anneau extérieur ; découvertes = allumées.
+        const fins = Object.values(scenes).filter((s) => s.kind === 'fin');
+        const found = params.endings || [];
+        fins.forEach((f, i) => {
+          const a = (i / fins.length) * Math.PI * 2;
+          const got = found.includes(f.fin.id);
+          const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: got ? (f.fin.type === 'early' ? 0xff5555 : 0xffd27a) : 0x333333, transparent: true, opacity: got ? 1 : 0.4, blending: THREE.AdditiveBlending, depthWrite: false }));
+          s.position.set(Math.cos(a) * 4.6, 4.4, Math.sin(a) * 4.6);
+          s.scale.setScalar(got ? 0.7 : 0.35);
+          root.add(s);
+        });
+        built = true;
+      }
+
+      let rot = 0;
+      return {
+        setParams(params) { build(params); },
+        update(dt, t, io) {
+          if (!built) return;
+          rot += dt * 0.12 + (io && io.drag ? io.drag.x * 0.006 : 0);
+          root.rotation.y = rot;
+          root.rotation.x = Math.sin(t * 0.1) * 0.15 + (io && io.drag ? io.drag.y * 0.002 : 0);
+          camera.position.set(0, 1.2, 11);
+          camera.lookAt(0, 0.6, 0);
+        },
+        dispose() { tex.dispose(); },
+      };
+    },
+  });
+
+  SIG.Gfx.register2d('connectome', {
+    create(ctx) {
+      const { canvas, g } = ctx;
+      let L = null; let P = {};
+      let rot = 0;
+      return {
+        setParams(params) { L = layout(params); P = params; },
+        update(dt, t, io) {
+          rot += dt * 0.12 + (io && io.drag ? io.drag.x * 0.006 : 0);
+          const w = canvas.width; const h = canvas.height;
+          g.fillStyle = '#040300'; g.fillRect(0, 0, w, h);
+          if (!L) return;
+          const sc = Math.min(w, h) / 11;
+          const proj = (q) => {
+            const x = q[0] * Math.cos(rot) - q[2] * Math.sin(rot);
+            return [w / 2 + x * sc, h * 0.5 - q[1] * sc];
+          };
+          g.strokeStyle = 'rgba(255,179,71,0.18)'; g.lineWidth = 1;
+          g.beginPath();
+          for (let i = 1; i < L.path.length; i++) {
+            const a = L.pos[L.path[i - 1]]; const b = L.pos[L.path[i]];
+            if (!a || !b) continue;
+            const pa = proj(a); const pb = proj(b);
+            g.moveTo(pa[0], pa[1]); g.lineTo(pb[0], pb[1]);
+          }
+          g.stroke();
+          for (const id of L.order) {
+            const sc2 = SIG.data.scenes[id];
+            const q = proj(L.pos[id]);
+            g.fillStyle = '#' + (sc2.kind === 'fin' ? CH_COL.fins : CH_COL[sc2.ch] || 0xffffff).toString(16).padStart(6, '0');
+            g.beginPath(); g.arc(q[0], q[1], sc2.kind === 'fin' ? 5 : 2.2, 0, Math.PI * 2); g.fill();
+          }
+          const fins = Object.values(SIG.data.scenes).filter((s) => s.kind === 'fin');
+          fins.forEach((f, i) => {
+            const got = (P.endings || []).includes(f.fin.id);
+            g.fillStyle = got ? (f.fin.type === 'early' ? '#ff5555' : '#ffd27a') : '#333';
+            g.beginPath(); g.arc(w / 2 + Math.cos((i / fins.length) * Math.PI * 2 + rot) * sc * 4.4, h * 0.12, got ? 6 : 3, 0, Math.PI * 2); g.fill();
+          });
+        },
+        dispose() {},
+      };
+    },
+  });
+})();
+
 // ---- src/ui/fx.js
 // Petits utilitaires d'interface : création d'éléments, vibration, notifications, glitch.
 SIG.UI = SIG.UI || {};
@@ -6654,7 +8617,7 @@ SIG.UI.menu = (function () {
     const ch = SIG.Story.chapter(sc.ch);
     const ov = document.getElementById('cine');
     ov.innerHTML = '';
-    ov.appendChild(el('div', 'cine-n', `CHAPITRE ${ch.n}`));
+    ov.appendChild(el('div', 'cine-n', ch.interlude ? 'INTERLUDE' : `CHAPITRE ${ch.n}`));
     ov.appendChild(el('div', 'cine-title', esc(ch.title)));
     ov.appendChild(el('div', 'cine-sub', esc(ch.sub || '')));
     ov.appendChild(el('div', 'cine-date', esc(ch.date || '')));
@@ -6673,7 +8636,7 @@ SIG.UI.menu = (function () {
     box.className = `ending on type-${f.type}`;
     document.body.classList.add('ended');
     const inner = el('div', 'ending-inner');
-    inner.appendChild(el('div', 'ending-kind', f.type === 'early' ? 'FIN PRÉCOCE' : f.type === 'tbc' ? 'PROTOTYPE' : 'FIN DE SAGA'));
+    inner.appendChild(el('div', 'ending-kind', f.type === 'early' ? 'FIN PRÉCOCE' : f.type === 'tbc' ? 'À SUIVRE' : f.meta ? 'FIN DE SAGA · MÉTA' : 'FIN DE SAGA'));
     inner.appendChild(el('h1', 'ending-title', esc(f.title)));
     for (const b of SIG.Story.blocks(st, sc)) {
       const txt = SIG.Story.interpolate(st, SIG.Story.blockText(b));
@@ -6699,6 +8662,9 @@ SIG.UI.menu = (function () {
       if (await confirmBox('Tout remettre à zéro : état, flags, journal ?', 'Recommencer')) { hideEnding(); SIG.Game.newGame(); }
     };
     row.appendChild(again);
+    const cn = el('button', f.type === 'saga' ? 'btn' : 'btn ghost', 'Ton connectome');
+    cn.onclick = () => showConnectome(st);
+    row.appendChild(cn);
     const tt = el('button', 'btn ghost', "Écran titre");
     tt.onclick = () => SIG.Game.toTitle();
     row.appendChild(tt);
@@ -6707,9 +8673,45 @@ SIG.UI.menu = (function () {
     box.scrollTop = 0;
   }
 
+  // Ton connectome : la partie rendue en 3D, à faire tourner et à capturer.
+  function showConnectome(st) {
+    const meta = Save.meta();
+    const box = document.getElementById('conn');
+    const uniq = new Set(st.path).size;
+    box.innerHTML = '';
+    box.appendChild(el('div', 'conn-title', 'TON CONNECTOME'));
+    const nf = meta.endings.filter((e) => !/^CH\d|PROTO/.test(e)).length;
+    box.appendChild(el('div', 'conn-sub', `${uniq} scènes · ${st.edges.length} synapses · ${nf} ${nf > 1 ? 'fins découvertes' : 'fin découverte'}`));
+    box.appendChild(el('p', 'conn-note', 'Comme la mouche cartographiée : ton parcours devient une carte. Fais-le tourner du doigt.'));
+    const row = el('div', 'conn-btns');
+    const cap = el('button', 'btn', 'Capturer');
+    cap.onclick = () => {
+      const url = SIG.Gfx.capture();
+      if (!url) { SIG.UI.fx.toast('Capture impossible sur cet appareil.'); return; }
+      const a = document.createElement('a');
+      a.href = url; a.download = 'mon-connectome-signal.png';
+      document.body.appendChild(a); a.click(); a.remove();
+      SIG.UI.fx.toast('Image enregistrée.');
+    };
+    const back = el('button', 'btn ghost', 'Retour');
+    back.onclick = () => {
+      box.classList.remove('on');
+      document.body.classList.remove('connectome');
+      SIG.Gfx.setViewing(false);
+      SIG.Game.redisplay();
+    };
+    row.append(cap, back);
+    box.appendChild(row);
+    document.getElementById('ending').className = 'ending';
+    document.body.classList.add('connectome');
+    box.classList.add('on');
+    SIG.Gfx.setViewing(true);
+    SIG.Gfx.setVisual('connectome', { path: st.path.slice(), endings: meta.endings.slice() });
+  }
+
   function hideEnding() { document.getElementById('ending').className = 'ending'; document.body.classList.remove('ended'); }
 
-  return { showTitle, hideTitle, chapterIntro, ending, hideEnding };
+  return { showTitle, hideTitle, chapterIntro, ending, hideEnding, showConnectome };
 })();
 
 // ---- src/engine/main.js
@@ -6721,7 +8723,7 @@ SIG.Game = (function () {
   const { toast, vibrate } = SIG.UI.fx;
   const LABELS = {
     conscience: 'CONSC.', lien: 'LIEN', risque: 'RISQUE', integrite: 'INTÉGR.', credibilite: 'CRÉDIB.',
-    alliance: 'ALLIANCE', temps: 'TEMPS',
+    alliance: 'ALLIANCE', temps: 'TEMPS', rel_remi: 'RÉMI', rel_james: 'JAMES', rel_humain: 'HUMAIN',
   };
 
   const G = {
@@ -6815,7 +8817,11 @@ SIG.Game = (function () {
     for (const [k, v] of Object.entries(p || {})) {
       if (typeof v === 'string' && v[0] === '$') {
         const name = v.slice(1);
-        if (name === 'usure') {
+        if (name === 'cube_prisonnier') {
+          // Aspect du bac à sable au chapitre 5, selon ce que SIGNE a fait avec le Prisonnier.
+          const f = st.f;
+          out[k] = f.prisonnier_pacte ? 'pacte' : f.prisonnier_signale ? 'scelle' : f.prisonnier_prevenu ? 'porte' : f.prisonnier_ignore ? 'fissure' : 'neutre';
+        } else if (name === 'usure') {
           const ch = Story.chapter(st.ch);
           out[k] = 1 - st.temps / ((ch && ch.temps) || 100);
         } else if (st.lists[name]) out[k] = st.lists[name].slice();
@@ -6854,7 +8860,7 @@ SIG.Game = (function () {
     const st = G.state;
     const ch = Story.chapter(st.ch);
     const sc = G.scene;
-    document.getElementById('hud-ch').textContent = ch ? `${ch.n}·${ch.title}` : '';
+    document.getElementById('hud-ch').textContent = ch ? (ch.interlude ? ch.title : `${ch.n}·${ch.title}`) : '';
     document.getElementById('hud-clock').textContent = Story.clock(st, sc) || (ch && ch.date) || '';
     const box = document.getElementById('hud-gauges');
     const keys = (ch && ch.hud) || ['conscience', 'lien', 'risque', 'temps'];
@@ -6973,7 +8979,7 @@ SIG.Game = (function () {
     };
   }
 
-  Object.assign(G, { showFps, boot, newGame, loadState, goto, choose, reloadCheckpoint, toTitle, saveSettings, applySettings, hud });
+  Object.assign(G, { redisplay: () => show(G.scene), showFps, boot, newGame, loadState, goto, choose, reloadCheckpoint, toTitle, saveSettings, applySettings, hud });
   return G;
 })();
 

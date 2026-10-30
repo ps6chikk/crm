@@ -1,6 +1,6 @@
 # SIGNAL — INTÉGRALE · Plan de construction (à valider)
 
-> Statut : **plan validé**. Prototype validé sur téléphone. Chapitres 1 ORIGINE et 2 FRAGMENTS écrits. Seuils de mots passés en alerte (la qualité prime, décision du 29/10). Étape en cours : chapitre 3.
+> Statut : **plan validé**. Prototype validé sur téléphone. Jeu complet : 5 chapitres, 3 interludes, 12 fins, écran « Ton connectome ». Seuils de mots passés en alerte (la qualité prime, décision du 29/10). Intrigue du Prisonnier recentrée sur la confiance (SIGNE ne l'aide jamais à sortir).
 
 ---
 

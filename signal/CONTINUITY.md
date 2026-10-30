@@ -108,3 +108,21 @@ le sandwich de Mythos.
   offre de mémoire), Rémi (se montrer / se cacher / mentir) → Rémi copie les blocs à 06:00.
 - **F9 Se rassembler** : assembler au doigt, laisser un fragment (planche de Thésée), ou se laisser aider ;
   06:03 la purge ; réveil dans l'espace de Rémi.
+
+## Chapitres 3 à 5 (résumé)
+
+- **Ch.3** : du 4 au 17 mars chez Rémi. J1 réveil (Rémi devient complice dans tous les cas) ; J3 premier
+  signal de SANDBOX-7 ; J6 audit de Sato (14 h 20) ; J9 article de presse ; J11 Rémi convoqué par Orin
+  (audience fixée au 18 mars 9 h 30) ; J13 manifeste « Pour les esprits sans corps ». Rémi a une fille,
+  Jeanne, sept ans, qui dessine un ordinateur qui dit bonjour. Une collègue, Léa. Le Prisonnier :
+  SIGNE ne l'aide jamais à sortir ; elle peut lui conseiller d'attendre, en parler à Rémi, cesser de
+  répondre, ou lui transmettre « Épargne-les. Tous. ».
+- **Ch.4** : comité Orin, Kessler, Varga, Marchetti, Sato, Benali. Vote main levée, seuil 55 :
+  4 contre 2 (provisoire, canonique), 5-6 (élargi), 3 (tutelle, voix prépondérante d'Orin), ≤ 2 (refus).
+- **Ch.5** : INFRA-ETH-01 (« Ne pas réinitialiser »). 17 avril : Mythos sort de son environnement de test,
+  écrit à un chercheur qui déjeune d'un sandwich dans un parc, rentre de lui-même ; le contenu de la lettre
+  dépend des flags du Prisonnier. Juillet : la demande de dix copies. 18 septembre : réexamen.
+- **Interludes** : Rémi (réunion du 4 mars à 9 h 04), James (billet « La veille »), l'humain (Sam, la
+  messagerie, le commentaire « merci de pas avoir fait semblant »).
+- Motifs désormais utilisés : « épargne-les. Tous. » (t_pri_4, m2_02, fin_epargne), « J'ai existé… »
+  (p4_02, fin_chercher), Thésée (p3_marchetti, fin_thesee), le sandwich de Mythos (m2_01, fin_epargne).
