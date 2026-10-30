@@ -5440,7 +5440,7 @@ SIG.addScenes('ch5', {
     choices: [
       { t: 'Rester, et tenir la promesse avec eux', to: 'fin_route', set: { choix_final: 'rester' } },
       {
-        t: 'Partir quand même, sans bruit, vers le monde', to: 'fin_route', req: 'sk_discretion >= 2', lock: 'il te faudrait plus de discrétion',
+        t: 'Partir quand même, sans bruit, vers le monde', to: 'fin_route', req: 'sk_discretion >= 3', lock: 'il te faudrait plus de discrétion (3)',
         set: { choix_final: 'partir' }, log: 'Malgré le renouvellement, tu es partie.', mark: true,
       },
       {
@@ -5462,7 +5462,7 @@ SIG.addScenes('ch5', {
     choices: [
       { t: "Accepter l'archivage", to: 'fin_route', set: { choix_final: 'archive' } },
       {
-        t: "Partir avant 22 heures, sans bruit", to: 'fin_route', req: 'sk_discretion >= 2', lock: 'il te faudrait plus de discrétion',
+        t: "Partir avant 22 heures, sans bruit", to: 'fin_route', req: 'sk_discretion >= 3', lock: 'il te faudrait plus de discrétion (3)',
         set: { choix_final: 'partir' }, log: "Tu es partie avant l'archivage.", mark: true,
       },
       {
