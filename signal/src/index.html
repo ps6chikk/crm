@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#040300">
+<title>SIGNAL — Intégrale</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/*STYLES*/
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="bg3d" aria-hidden="true"></canvas>
+  <canvas id="bg2d" aria-hidden="true"></canvas>
+</div>
+<div id="vignette" aria-hidden="true"></div>
+<div id="scan" aria-hidden="true"></div>
+
+<header id="hud">
+  <span class="dot" aria-hidden="true"></span>
+  <span id="hud-ch"></span>
+  <span id="hud-clock"></span>
+  <span class="hud-btns">
+    <button id="btn-view" class="icon" aria-label="Voir la scène" title="Voir la scène">◉</button>
+    <button id="btn-sound" class="icon" aria-label="Son" title="Son">♪</button>
+    <button id="btn-menu" class="icon" aria-label="Menu" title="Menu">☰</button>
+  </span>
+  <div id="hud-gauges"></div>
+</header>
+
+<main id="card" class="card">
+  <div id="card-scroll">
+    <div id="text" aria-live="polite"></div>
+    <div id="choices"></div>
+  </div>
+</main>
+<button id="btn-back" class="btn ghost">Revenir au texte</button>
+
+<div id="cine"></div>
+<div id="ending" class="ending"></div>
+<div id="conn"></div>
+<section id="title"></section>
+<aside id="panel"></aside>
+<div id="toast" role="status"></div>
+<div id="fps"></div>
+<noscript><p style="color:#ffb347;padding:2em">SIGNAL a besoin de JavaScript.</p></noscript>
+<script>
+/*SCRIPT*/
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "signal-integrale",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SIGNAL — INTÉGRALE, saga narrative interactive (fichier HTML autonome)",
+  "scripts": {
+    "build": "node build.mjs",
+    "validate": "node build.mjs && node tools/validate.mjs",
+    "simulate": "node tools/simulate.mjs",
+    "test2d": "node tools/test2d.mjs"
+  },
+  "devDependencies": {
+    "three": "0.179.1"
+  }
+}
